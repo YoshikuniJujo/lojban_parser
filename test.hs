@@ -13,7 +13,6 @@ paragraphs :: Paragraphs
 		{ maybe (ParagraphsS $1) (ParagraphsM $1) $2 }
 
 paragraph :: Paragraph
---	(([Prenex], Sentence), [((I, [[(UI, Maybe NAI)]]), ([Prenex], Sentence))])
 	= statement (i_clause statement)*	{ Paragraph $1 $2 }
 
 statement :: ([Prenex], Sentence)
@@ -148,6 +147,7 @@ la ::: LA
 
 le ::: LE
 	= "le"		{ LE }
+	/ "lo"		{ LO }
 	/ "lei"		{ LEI }
 
 na :: NA
@@ -163,9 +163,10 @@ pu :: PU
 	= "ca"		{ CA }
 
 ui ::: UI
-	= "i\'a"	{ IhA }
-	/ "o\'e"	{ OhE }
+	= ".i\'a"	{ IhA }
+	/ ".o\'e"	{ OhE }
 	/ "ku\'i"	{ KUhI }
+	/ ".oi"		{ OI }
 
 zohu ::: ZOhU
 	= "zo\'u"	{ ZOhU }
@@ -253,12 +254,12 @@ data GOI = PE deriving Show
 data I = I deriving Show
 data KOhA = MI | DO deriving Show
 data LA = LA deriving Show
-data LE = LE | LEI deriving Show
+data LE = LE | LO | LEI deriving Show
 data NA = NA deriving Show
 data NAI = NAI deriving Show
 data NIhO = NIhO deriving Show
 data PU = CA deriving Show
-data UI = OhE | IhA | KUhI deriving Show
+data UI = IhA | KUhI | OhE | OI deriving Show
 data ZOhU = ZOhU deriving Show
 
 main :: IO ()
