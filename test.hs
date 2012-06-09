@@ -61,7 +61,11 @@ sumti_2 :: Sumti
 	= sumti_3 (joik_ek sumti_3)*	{ SLConnect $1 $2 }
 
 sumti_3 :: Sumti
-	= sumti_6
+	= sumti_5
+
+sumti_5 :: Sumti
+	= sumti_6 relative_clause	{ SRelative $1 (fst $2) (snd $2) }
+	/ sumti_6			{ $1 }
 
 sumti_6 :: Sumti
 	= koha	{ SKOhA $1 }
@@ -103,6 +107,9 @@ joik_ek :: A
 ek :: A
 	= a
 
+relative_clause :: (GOI, Term)
+	= goi term
+
 brivla_clause :: (Brivla, [[(UI, Maybe NAI)]])
 	= brivla post_clause
 
@@ -125,6 +132,9 @@ faha :: FAhA
 
 goha :: GOhA
 	= "co\'e"	{ COhE }
+
+goi :: GOI
+	= "pe"		{ PE }
 
 i ::: I
 	= ".i" 		{ I }
@@ -225,6 +235,7 @@ data Sumti
 	| SLA LA Selbri
 	| SLE LE Selbri
 	| SLConnect Sumti [(A, Sumti)]
+	| SRelative Sumti GOI Term
 	deriving Show
 data Tense
 	= TFAhA FAhA
@@ -238,6 +249,7 @@ data Cmene = Cmene String deriving Show
 data A = E deriving Show
 data FAhA = PAhO | TOhO deriving Show
 data GOhA = COhE deriving Show
+data GOI = PE deriving Show
 data I = I deriving Show
 data KOhA = MI | DO deriving Show
 data LA = LA deriving Show
