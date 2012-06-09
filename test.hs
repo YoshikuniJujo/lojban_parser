@@ -23,23 +23,47 @@ statement :: ([Prenex], Sentence)
 sentence :: Sentence
 	= terms? bridi_tail { Sentence (fst $2) $ fromMaybe [] $1 ++ snd $2 }
 
-bridi_tail :: (Selbri, [Sumti])
+bridi_tail :: (Selbri, [Term])
 	= selbri tail_terms
 
-tail_terms :: [Sumti]
+tail_terms :: [Term]
 	= terms?	{ fromMaybe [] $1 }
 
 selbri :: Selbri
-	= na? tanru_unit		{ Selbri $1 $2 }
+	= selbri_1
+	/ tag selbri_1		{ TagSelbri $1 $2 }
+
+selbri_1 :: Selbri
+	= selbri_2
+	/ na selbri		{ NotSelbri $2 }
+
+selbri_2 :: Selbri
+	= selbri_6
+
+selbri_6 :: Selbri
+	= tanru_unit			{ Selbri $1 }
 
 tanru_unit :: TanruUnit -- [(Brivla, [[(UI, Maybe NAI)]])]
 	= brivla_clause brivla_clause*	{ TUBrivla $ $1 : $2 }
 	/ goha				{ TUGOhA $1 }
 
-terms :: [Sumti]
-	= sumti+
+terms :: [Term]
+	= term+
+
+term :: Term
+	= sumti		{ TSumti $1 }
+	/ tag sumti	{ TTense $1 $2 }
 
 sumti :: Sumti
+	= sumti_2
+
+sumti_2 :: Sumti
+	= sumti_3 (joik_ek sumti_3)*	{ SLConnect $1 $2 }
+
+sumti_3 :: Sumti
+	= sumti_6
+
+sumti_6 :: Sumti
 	= koha	{ SKOhA $1 }
 	/ la cmene+	{ SCmene $1 $2 }
 	/ la sumti_tail { SLA $1 $2 }
@@ -60,17 +84,24 @@ indicators :: [(UI, Maybe NAI)]
 indicator :: (UI, Maybe NAI)
 	= ui nai?
 
-terms_ :: [(FAhA, Sumti)]
-	= term+
+tag :: Tense
+	= tense_modal
 
-term :: (FAhA, Sumti)
-	= tag sumti
+tense_modal :: Tense
+	= space_	{ TFAhA $1 }
+	/ time		{ TPU $1 }
 
-tag :: FAhA
-	= space_
+time :: PU
+	= pu
 
 space_ :: FAhA
 	= faha
+
+joik_ek :: A
+	= ek
+
+ek :: A
+	= a
 
 brivla_clause :: (Brivla, [[(UI, Maybe NAI)]])
 	= brivla post_clause
@@ -85,8 +116,12 @@ brivla ::: Brivla
 cmene ::: Cmene
 	= consonant_final "."	{ Cmene $1 }
 
+a ::: A
+	= ".e"		{ E }
+
 faha :: FAhA
-	= "pa\`o"	{ PAhO }
+	= "pa\'o"	{ PAhO }
+	/ "to\'o"	{ TOhO }
 
 goha :: GOhA
 	= "co\'e"	{ COhE }
@@ -113,6 +148,9 @@ nai :: NAI
 
 niho :: NIhO
 	= "ni\'o"	{ NIhO }
+
+pu :: PU
+	= "ca"		{ CA }
 
 ui ::: UI
 	= "i\'a"	{ IhA }
@@ -166,25 +204,39 @@ data Paragraph = Paragraph
 	([Prenex], Sentence) [((I, [[(UI, Maybe NAI)]]), ([Prenex], Sentence))]
 	deriving Show
 data Statement = Statement [Prenex] Sentence
-data Sentence = Sentence Selbri [Sumti] deriving Show
+data Sentence = Sentence Selbri [Term] deriving Show
 
 data TanruUnit
 	= TUBrivla [(Brivla, [[(UI, Maybe NAI)]])]
 	| TUGOhA GOhA
 	deriving Show
-data Selbri = Selbri (Maybe NA) TanruUnit deriving Show -- [( Brivla, [[(UI, Maybe NAI)]])] deriving Show
+data Selbri
+	= Selbri TanruUnit
+	| NotSelbri Selbri
+	| TagSelbri Tense Selbri
+	deriving Show
+data Term
+	= TSumti Sumti
+	| TTense Tense Sumti
+	deriving Show
 data Sumti
 	= SKOhA KOhA
 	| SCmene LA [Cmene]
 	| SLA LA Selbri
 	| SLE LE Selbri
+	| SLConnect Sumti [(A, Sumti)]
 	deriving Show
-data Prenex = Prenex [Sumti] deriving Show
+data Tense
+	= TFAhA FAhA
+	| TPU PU
+	deriving Show
+data Prenex = Prenex [Term] deriving Show
 
 data Brivla = Brivla String deriving Show
 data Cmene = Cmene String deriving Show
 
-data FAhA = PAhO deriving Show
+data A = E deriving Show
+data FAhA = PAhO | TOhO deriving Show
 data GOhA = COhE deriving Show
 data I = I deriving Show
 data KOhA = MI | DO deriving Show
@@ -193,6 +245,7 @@ data LE = LE | LEI deriving Show
 data NA = NA deriving Show
 data NAI = NAI deriving Show
 data NIhO = NIhO deriving Show
+data PU = CA deriving Show
 data UI = OhE | IhA | KUhI deriving Show
 data ZOhU = ZOhU deriving Show
 
