@@ -58,7 +58,9 @@ statement-2 <-
 	statement-3 (I-clause (jek / joik)? stag? BO-clause free* statement-2)? /
 	statement-3 (I-clause (jek / joik)? stag? BO-clause free*)?
 
-statement-3 <- sentence / tag? TUhE-clause free* text-1 TUhU-clause? free*
+statement-3 <-
+	sentence /
+	tag? TUhE-clause free* text-1 TUhU-clause? free*
 
 fragment <-
 	prenex / terms VAU-clause? free* / ek free* / gihek free* / quantifier /

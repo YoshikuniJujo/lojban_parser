@@ -5,17 +5,24 @@ import Data.Maybe
 
 [peggy|
 
-text :: Paragraphs
-	= paragraphs eof	{ $1 }
+text :: Text
+	= text_1 eof		{ $1 }
+
+text_1 :: Text
+	= paragraphs		{ TParagraphs $1 }
+--	/ i free* text_1?	{ Text1 $1 $2 }
 
 paragraphs :: Paragraphs
 	= paragraph (niho paragraphs)?
 		{ maybe (ParagraphsS $1) (ParagraphsM $1) $2 }
 
 paragraph :: Paragraph
-	= statement (i_clause statement)*	{ Paragraph $1 $2 }
+	= statement (i_clause free* statement?)*	{ Paragraph $1 $2 }
 
 statement :: ([Prenex], Sentence)
+	= statement_3
+
+statement_3 :: ([Prenex], Sentence)
 	= sentence		{ ([], $1) }
 	/ prenex statement	{ ($1 : fst $2, snd $2) }
 
@@ -106,6 +113,13 @@ joik_ek :: A
 ek :: A
 	= a
 
+free :: Free
+	= vocative relative_clause? selbri
+			{ FVocativeSelbri $1 $2 $3 }
+
+vocative :: DOI
+	= doi
+
 relative_clause :: (GOI, Term)
 	= goi term
 
@@ -124,6 +138,9 @@ cmene ::: Cmene
 
 a ::: A
 	= ".e"		{ E }
+
+doi :: DOI
+	= "doi"		{ DOI }
 
 faha :: FAhA
 	= "pa\'o"	{ PAhO }
@@ -161,6 +178,7 @@ niho :: NIhO
 
 pu :: PU
 	= "ca"		{ CA }
+	/ "ba"		{ BA }
 
 ui ::: UI
 	= ".i\'a"	{ IhA }
@@ -208,11 +226,19 @@ eof :: ()
 
 |]
 
+data Text
+	= TParagraphs Paragraphs
+	| Text1 I [Free] Text
+	deriving Show
+
 data Paragraphs
 	= ParagraphsS Paragraph
 	| ParagraphsM Paragraph (NIhO, Paragraphs) deriving Show
 data Paragraph = Paragraph
-	([Prenex], Sentence) [((I, [[(UI, Maybe NAI)]]), ([Prenex], Sentence))]
+	([Prenex], Sentence) [(
+		(I, [[(UI, Maybe NAI)]]),
+		[Free],
+		Maybe ([Prenex], Sentence))]
 	deriving Show
 data Statement = Statement [Prenex] Sentence
 data Sentence = Sentence Selbri [Term] deriving Show
@@ -243,11 +269,15 @@ data Tense
 	| TPU PU
 	deriving Show
 data Prenex = Prenex [Term] deriving Show
+data Free
+	= FVocativeSelbri DOI (Maybe (GOI, Term)) Selbri
+	deriving Show
 
 data Brivla = Brivla String deriving Show
 data Cmene = Cmene String deriving Show
 
 data A = E deriving Show
+data DOI = DOI deriving Show
 data FAhA = PAhO | TOhO deriving Show
 data GOhA = COhE deriving Show
 data GOI = PE deriving Show
@@ -258,7 +288,7 @@ data LE = LE | LO | LEI deriving Show
 data NA = NA deriving Show
 data NAI = NAI deriving Show
 data NIhO = NIhO deriving Show
-data PU = CA deriving Show
+data PU = CA | BA deriving Show
 data UI = IhA | KUhI | OhE | OI deriving Show
 data ZOhU = ZOhU deriving Show
 
