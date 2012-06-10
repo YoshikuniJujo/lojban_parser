@@ -485,7 +485,9 @@ pre-zei-bu <-
 	(!BU-clause !ZEI-clause !SI-clause !SA-clause !SU-clause !FAhO-clause
 		any-word-SA-handling) si-clause?
 ; LOhU-pre / ZO-pre / ZOI-pre / !ZEI-clause !BU-clause !FAhO-clause !SI-clause !SA-clause !SU-clause any-word-SA-handling si-clause?
-pre-zei-bu-no-SA <- LOhU-pre / ZO-pre / ZOI-pre / !ZEI-clause !BU-clause !FAhO-clause !SI-clause !SA-clause !SU-clause any-word si-clause?
+pre-zei-bu-no-SA <- LOhU-pre / ZO-pre / ZOI-pre /
+	!ZEI-clause !BU-clause !FAhO-clause !SI-clause !SA-clause !SU-clause
+		any-word si-clause?
 
 dot-star <- .*
 

@@ -57,11 +57,16 @@ selbri_6 :: Selbri
 	= tanru_unit			{ Selbri $1 }
 
 tanru_unit :: TanruUnit
-	= tanru_unit_2
+	= tanru_unit_1 tanru_unit_1*	{ TUTanruUnit $ $1 : $2 }
+
+tanru_unit_1 :: TanruUnit
+	= tanru_unit_2 linkargs		{ TULinkargs $1 $2 }
+	/ tanru_unit_2			{ $1 }
 
 tanru_unit_2 :: TanruUnit
-	= brivla_clause brivla_clause*	{ TUBrivla $ $1 : $2 }
+	= brivla_clause free*		{ TUBrivla $1 $2 }
 	/ goha				{ TUGOhA $1 }
+	/ number moi			{ TMOI $1 $2 }
 	/ se tanru_unit_2		{ TSE $1 $2 }
 	/ nu subsentence kei?		{ TNU $1 $2 }
 
@@ -92,14 +97,16 @@ sumti_5 :: Sumti
 	/ quantifier sumti_6 relative_clause
 				{ SQuantifier $1 $ SRelative $2 (fst $3) (snd $3) }
 	/ quantifier sumti_6	{ SQuantifier $1 $2 }
-	/ quantifier selbri	{ SQuantifier $1 $ SLE LO $2 }
+	/ quantifier selbri	{ SQuantifier $1 $ SLE LO [] $2 }
 
 sumti_6 :: Sumti
 	= zoi_clause	{ $1 }
 	/ koha		{ SKOhA $1 }
 	/ la cmene+	{ SCmene $1 $2 }
 	/ la sumti_tail { let s = SLA $1 $ snd $2 in maybe s (SRelative s PE) $ fst $2 }
-	/ le sumti_tail { let s = SLE $1 $ snd $2 in maybe s (SRelative s PE) $ fst $2 }
+	/ le_clause sumti_tail
+			{ let s = SLE (fst $1) (snd $1) $ snd $2 in
+				maybe s (SRelative s PE) $ fst $2 }
 	/ li__clause	{ SMex $ snd $1 }
 
 sumti_tail :: (Maybe Term, Selbri)
@@ -111,14 +118,15 @@ sumti_tail_1 :: Selbri
 prenex :: Prenex
 	= terms zohu	{ Prenex $1 }
 
-post_clause :: [[(UI, Maybe NAI)]]
+post_clause :: [[Indicator]]
 	= indicators*
 
-indicators :: [(UI, Maybe NAI)]
+indicators :: [Indicator]
 	= indicator+
 
-indicator :: (UI, Maybe NAI)
-	= ui nai?
+indicator :: Indicator
+	= ui nai?	{ IUI $1 $2 }
+	/ cai nai?	{ ICAI $1 $2 }
 
 tag :: Tense
 	= tense_modal
@@ -135,11 +143,17 @@ time :: Time
 space_ :: FAhA
 	= faha
 
-joik_ek :: A
+joik_ek :: (A, [[Indicator]])
 	= ek
 
-ek :: A
-	= a
+ek :: (A, [[Indicator]])
+	= a_clause
+
+linkargs :: Term
+	= linkargs_1
+
+linkargs_1 :: Term
+	= be term	{ $2 }
 
 li__clause :: (LI, PA)
 	= li mex
@@ -169,11 +183,17 @@ vocative :: DOI
 relative_clause :: (GOI, Term)
 	= goi term
 
-brivla_clause :: (Brivla, [[(UI, Maybe NAI)]])
+a_clause :: (A, [[Indicator]])
+	= a post_clause
+
+brivla_clause :: (Brivla, [[Indicator]])
 	= brivla post_clause
 
-i_clause :: (I, [[(UI, Maybe NAI)]])
+i_clause :: (I, [[Indicator]])
 	= i post_clause
+
+le_clause :: (LE, [[Indicator]])
+	= le post_clause
 
 zoi_clause :: Sumti
 	= zoi nullt notNull* nullt	{ SZOI $1 $3 }
@@ -193,6 +213,12 @@ bai ::: BAI
 	/ "gau"		{ GAU }
 	/ "tai"		{ TAI }
 
+be ::: BE
+	= "be"		{ BE }
+
+cai :: CAI
+	= "sai"		{ SAI }
+
 cu ::: CU
 	= "cu"		{ CU }
 
@@ -201,6 +227,8 @@ doi ::: DOI
 
 fa ::: FA
 	= "fa"		{ FA }
+	/ "fi"		{ FI }
+	/ "fo"		{ FO }
 
 faha ::: FAhA
 	= "pa\'o"	{ PAhO }
@@ -225,13 +253,11 @@ koha ::: KOhA
 	= "mi"		{ MI }
 	/ "do"		{ DO }
 	/ "ko"		{ KO }
+	/ "dei"		{ DEI }
+	/ "da"		{ DA }
 
 la ::: LA
 	= "la"		{ LA }
-
-zoi :: ZOI
-	= "zoi"		{ ZOI }
-	/ "la\'o"	{ LAhO }
 
 le ::: LE
 	= "le"		{ LE }
@@ -243,6 +269,9 @@ li ::: LI
 
 mai :: MAI
 	= "mo\'o"	{ MOhO }
+
+moi :: MOI
+	= "moi"		{ MOI }
 
 na ::: NA
 	= "na"		{ NA }
@@ -260,9 +289,11 @@ nu ::: NU
 
 pa ::: PA
 	= "pa"		{ PA }
+	/ "ci"		{ CI }
 	/ "no"		{ NO }
 	/ "so\'i"	{ SOhI }
 	/ "so\'o"	{ SOhO }
+	/ "ro"		{ RO }
 
 pu ::: PU
 	= "ca"		{ CA }
@@ -279,6 +310,12 @@ ui ::: UI
 	/ "ku\'i"	{ KUhI }
 	/ ".oi"		{ OI }
 	/ ".e\'u"	{ EhU }
+	/ "bi\'u"	{ BIhU }
+	/ "ji\'a"	{ JIhA }
+
+zoi :: ZOI
+	= "zoi"		{ ZOI }
+	/ "la\'o"	{ LAhO }
 
 zaho ::: ZAhO
 	= "ba\'o"	{ BAhO }
@@ -344,7 +381,7 @@ data Paragraphs
 	| ParagraphsM Paragraph ([NIhO], [Free], Paragraphs) deriving Show
 data Paragraph = Paragraph
 	([Prenex], Sentence) [(
-		(I, [[(UI, Maybe NAI)]]),
+		(I, [[Indicator]]),
 		[Free],
 		Maybe ([Prenex], Sentence))]
 	deriving Show
@@ -356,10 +393,13 @@ data Subsentence
 	deriving Show
 
 data TanruUnit
-	= TUBrivla [(Brivla, [[(UI, Maybe NAI)]])]
+	= TUBrivla (Brivla, [[Indicator]]) [Free]
 	| TUGOhA GOhA
 	| TNU NU Subsentence
+	| TMOI PA MOI
 	| TSE SE TanruUnit
+	| TUTanruUnit [TanruUnit]
+	| TULinkargs TanruUnit Term
 	deriving Show
 data Selbri
 	= Selbri TanruUnit
@@ -375,8 +415,8 @@ data Sumti
 	= SKOhA KOhA
 	| SCmene LA [Cmene]
 	| SLA LA Selbri
-	| SLE LE Selbri
-	| SLConnect Sumti [(A, Sumti)]
+	| SLE LE [[Indicator]] Selbri
+	| SLConnect Sumti [((A, [[Indicator]]), Sumti)]
 	| SRelative Sumti GOI Term
 	| SQuantifier PA Sumti
 	| SMex PA
@@ -396,6 +436,10 @@ data Free
 	= FVocativeSelbri DOI (Maybe (GOI, Term)) Selbri
 	| FMAI PA MAI
 	deriving Show
+data Indicator
+	= IUI UI (Maybe NAI)
+	| ICAI CAI (Maybe NAI)
+	deriving Show
 
 data Brivla = Brivla String deriving Show
 data Cmene = Cmene String deriving Show
@@ -406,32 +450,37 @@ data BAI
 	| GAU
 	| TAI
 	deriving Show
+data BE = BE deriving Show
+data CAI = SAI deriving Show
 data CU = CU deriving Show
 data DOI = DOI deriving Show
-data FA = FA deriving Show
+data FA = FA | FI | FO deriving Show
 data FAhA = PAhO | TOhO deriving Show
 data FAhO = FAhO deriving Show
 data GOhA = COhE deriving Show
 data GOI = PE deriving Show
 data I = I deriving Show
 data KEI = KEI deriving Show
-data KOhA = MI | DO | KO deriving Show
+data KOhA = MI | DO | KO | DEI | DA deriving Show
 data LA = LA deriving Show
 data LE = LE | LO | LEI deriving Show
 data LI = LI deriving Show
 data MAI = MOhO deriving Show
+data MOI = MOI deriving Show
 data NA = NA deriving Show
 data NAI = NAI deriving Show
 data NIhO = NIhO deriving Show
 data NU = NU | NI | DUhU deriving Show
 data PA	= PA
+	| CI
 	| NO
 	| SOhI
 	| SOhO
+	| RO
 	deriving Show
 data PU = PU | CA | BA deriving Show
 data SE = SE | TE deriving Show
-data UI = IhA | KUhI | OhE | OI | EhU deriving Show
+data UI = BIhU | IhA | KUhI | OhE | OI | EhU | JIhA deriving Show
 data ZAhO = BAhO deriving Show
 data ZOI = ZOI | LAhO deriving Show
 data ZOhU = ZOhU deriving Show
