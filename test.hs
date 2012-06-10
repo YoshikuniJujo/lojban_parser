@@ -90,11 +90,14 @@ sumti_5 :: Sumti
 sumti_6 :: Sumti
 	= koha	{ SKOhA $1 }
 	/ la cmene+	{ SCmene $1 $2 }
-	/ la sumti_tail { SLA $1 $2 }
-	/ le sumti_tail { SLE $1 $2 }
+	/ la sumti_tail { let s = SLA $1 $ snd $2 in maybe s (SRelative s PE) $ fst $2 }
+	/ le sumti_tail { let s = SLE $1 $ snd $2 in maybe s (SRelative s PE) $ fst $2 }
 	/ li__clause	{ SMex $ snd $1 }
 
-sumti_tail :: Selbri
+sumti_tail :: (Maybe Term, Selbri)
+	= sumti_6? sumti_tail_1		{ (fmap TSumti $1, $2) }
+
+sumti_tail_1 :: Selbri
 	= selbri
 
 prenex :: Prenex
