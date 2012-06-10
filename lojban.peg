@@ -339,7 +339,14 @@ operand-1 <- operand-2 (joik-ek operand-2)*
 
 operand-2 <- operand-3 (joik-ek stag? BO-clause free* operand-2)?
 
-operand-3 <- quantifier / lerfu-string !MOI-clause BOI-clause? free* / NIhE-clause free* selbri TEhU-clause? free* / MOhE-clause free* sumti TEhU-clause? free* / JOhI-clause free* mex-2+ TEhU-clause? free* / gek operand gik operand-3 / (LAhE-clause free* / NAhE-clause BO-clause free*) operand LUhU-clause? free*
+operand-3 <-
+	quantifier /
+	lerfu-string !MOI-clause BOI-clause? free* /
+	NIhE-clause free* selbri TEhU-clause? free* /
+	MOhE-clause free* sumti TEhU-clause? free* /
+	JOhI-clause free* mex-2+ TEhU-clause? free* /
+	gek operand gik operand-3 /
+	(LAhE-clause free* / NAhE-clause BO-clause free*) operand LUhU-clause? free*
 
 number <- PA-clause (PA-clause / lerfu-word)*
 

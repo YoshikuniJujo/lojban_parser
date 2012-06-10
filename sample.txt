@@ -15,4 +15,7 @@ to'o lei galdi'u pe la kOrdobas.
 .i .oi co'e lo mutce clani dargu
 .i .oi doi pe mi virnu xirma
 .i .oi la nunmuro mi ba penmi
-# pu le nu tolcliva la kordobas
+pu le nu tolcliva la kordobas.
+
+.i la kOrdobas.
+zo'u darno .o'e nai
