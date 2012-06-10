@@ -66,8 +66,12 @@ terms :: [Term]
 	= term+
 
 term :: Term
+	= term_1
+
+term_1 :: Term
 	= sumti		{ TSumti $1 }
 	/ tag sumti	{ TTense $1 $2 }
+	/ fa sumti	{ TFA $1 $2 }
 
 sumti :: Sumti
 	= sumti_2
@@ -117,11 +121,12 @@ tag :: Tense
 
 tense_modal :: Tense
 	= space_	{ TFAhA $1 }
-	/ time		{ TPU $1 }
-	/ bai		{ TBAI $1 }
+	/ time		{ TTime $1 }
+	/ se? bai	{ TBAI $1 $2 }
 
-time :: PU
-	= pu
+time :: Time
+	= pu		{ TPU $1 }
+	/ zaho		{ TZAhO $1 }
 
 space_ :: FAhA
 	= faha
@@ -140,6 +145,11 @@ mex :: PA
 
 quantifier :: PA
 	= pa
+
+{-
+interval_property :: ZAhO
+	= zaho
+-}
 
 free :: Free
 	= vocative relative_clause? selbri
@@ -169,32 +179,38 @@ a ::: A
 
 bai ::: BAI
 	= "la\'u"	{ LAhU }
+	/ "gau"		{ GAU }
+	/ "tai"		{ TAI }
 
 cu ::: CU
 	= "cu"		{ CU }
 
-doi :: DOI
+doi ::: DOI
 	= "doi"		{ DOI }
 
-faha :: FAhA
+fa ::: FA
+	= "fa"		{ FA }
+
+faha ::: FAhA
 	= "pa\'o"	{ PAhO }
 	/ "to\'o"	{ TOhO }
 
-goha :: GOhA
+goha ::: GOhA
 	= "co\'e"	{ COhE }
 
-goi :: GOI
+goi ::: GOI
 	= "pe"		{ PE }
 
 i ::: I
 	= ".i" 		{ I }
 
-kei :: KEI
+kei ::: KEI
 	= "kei"		{ KEI }
 
 koha ::: KOhA
 	= "mi"		{ MI }
 	/ "do"		{ DO }
+	/ "ko"		{ KO }
 
 la ::: LA
 	= "la"		{ LA }
@@ -207,37 +223,43 @@ le ::: LE
 li ::: LI
 	= "li"		{ LI }
 
-na :: NA
+na ::: NA
 	= "na"		{ NA }
 
-nai :: NAI
+nai ::: NAI
 	= "nai"		{ NAI }
 
-niho :: NIhO
+niho ::: NIhO
 	= "ni\'o"	{ NIhO }
 
-nu :: NU
+nu ::: NU
 	= 'nu'		{ NU }
 	/ 'ni'		{ NI }
 	/ "du\'u"	{ DUhU }
 
-pa :: PA
-	= "so\'i"	{ SOhI }
+pa ::: PA
+	= "pa"		{ PA }
+	/ "so\'i"	{ SOhI }
 	/ "so\'o"	{ SOhO }
 
-pu :: PU
+pu ::: PU
 	= "ca"		{ CA }
-	/ "ba"		{ BA }
+	/ "ba" !"\'"	{ BA }
 	/ "pu"		{ PU }
 
-se :: SE
-	= "te"		{ TE }
+se ::: SE
+	= "se"		{ SE }
+	/ "te"		{ TE }
 
 ui ::: UI
 	= ".i\'a"	{ IhA }
 	/ ".o\'e"	{ OhE }
 	/ "ku\'i"	{ KUhI }
 	/ ".oi"		{ OI }
+	/ ".e\'u"	{ EhU }
+
+zaho ::: ZAhO
+	= "ba\'o"	{ BAhO }
 
 zohu ::: ZOhU
 	= "zo\'u"	{ ZOhU }
@@ -314,6 +336,7 @@ data Selbri
 data Term
 	= TSumti Sumti
 	| TTense Tense Sumti
+	| TFA FA Sumti
 	deriving Show
 data Sumti
 	= SKOhA KOhA
@@ -327,8 +350,12 @@ data Sumti
 	deriving Show
 data Tense
 	= TFAhA FAhA
-	| TPU PU
-	| TBAI BAI
+	| TTime Time
+	| TBAI (Maybe SE) BAI
+	deriving Show
+data Time
+	= TPU PU
+	| TZAhO ZAhO
 	deriving Show
 data Prenex = Prenex [Term] deriving Show
 data Free
@@ -339,15 +366,20 @@ data Brivla = Brivla String deriving Show
 data Cmene = Cmene String deriving Show
 
 data A = E deriving Show
-data BAI = LAhU deriving Show
+data BAI
+	= LAhU
+	| GAU
+	| TAI
+	deriving Show
 data CU = CU deriving Show
 data DOI = DOI deriving Show
+data FA = FA deriving Show
 data FAhA = PAhO | TOhO deriving Show
 data GOhA = COhE deriving Show
 data GOI = PE deriving Show
 data I = I deriving Show
 data KEI = KEI deriving Show
-data KOhA = MI | DO deriving Show
+data KOhA = MI | DO | KO deriving Show
 data LA = LA deriving Show
 data LE = LE | LO | LEI deriving Show
 data LI = LI deriving Show
@@ -355,10 +387,14 @@ data NA = NA deriving Show
 data NAI = NAI deriving Show
 data NIhO = NIhO deriving Show
 data NU = NU | NI | DUhU deriving Show
-data PA = SOhI | SOhO deriving Show
+data PA	= PA
+	| SOhI
+	| SOhO
+	deriving Show
 data PU = PU | CA | BA deriving Show
-data SE = TE deriving Show
-data UI = IhA | KUhI | OhE | OI deriving Show
+data SE = SE | TE deriving Show
+data UI = IhA | KUhI | OhE | OI | EhU deriving Show
+data ZAhO = BAhO deriving Show
 data ZOhU = ZOhU deriving Show
 
 main :: IO ()
