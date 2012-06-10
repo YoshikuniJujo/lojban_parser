@@ -2,6 +2,8 @@
 
 import Text.Peggy
 import Data.Maybe
+import Data.Char
+import Data.List
 
 [peggy|
 
@@ -9,11 +11,12 @@ text :: Text
 	= text_1 eof		{ $1 }
 
 text_1 :: Text
-	= paragraphs		{ TParagraphs $1 }
---	/ i free* text_1?	{ Text1 $1 $2 }
+	= i text_1?			{ Text1 $2 }
+	/ niho+ free* paragraphs?	{ TNIhO $2 $3 }
+	/ paragraphs			{ TParagraphs $1 }
 
 paragraphs :: Paragraphs
-	= paragraph (niho paragraphs)?
+	= paragraph (niho+ free* paragraphs)?
 		{ maybe (ParagraphsS $1) (ParagraphsM $1) $2 }
 
 paragraph :: Paragraph
@@ -92,7 +95,8 @@ sumti_5 :: Sumti
 	/ quantifier selbri	{ SQuantifier $1 $ SLE LO $2 }
 
 sumti_6 :: Sumti
-	= koha	{ SKOhA $1 }
+	= zoi_clause	{ $1 }
+	/ koha		{ SKOhA $1 }
 	/ la cmene+	{ SCmene $1 $2 }
 	/ la sumti_tail { let s = SLA $1 $ snd $2 in maybe s (SRelative s PE) $ fst $2 }
 	/ le sumti_tail { let s = SLE $1 $ snd $2 in maybe s (SRelative s PE) $ fst $2 }
@@ -144,6 +148,9 @@ mex :: PA
 	= quantifier
 
 quantifier :: PA
+	= number
+
+number :: PA
 	= pa
 
 {-
@@ -154,6 +161,7 @@ interval_property :: ZAhO
 free :: Free
 	= vocative relative_clause? selbri
 			{ FVocativeSelbri $1 $2 $3 }
+	/ number mai	{ FMAI $1 $2 }
 
 vocative :: DOI
 	= doi
@@ -166,6 +174,9 @@ brivla_clause :: (Brivla, [[(UI, Maybe NAI)]])
 
 i_clause :: (I, [[(UI, Maybe NAI)]])
 	= i post_clause
+
+zoi_clause :: Sumti
+	= zoi nullt notNull* nullt	{ SZOI $1 $3 }
 
 brivla ::: Brivla
 	= (noDoubleConsonant anyLetter)* doubleConsonant endWithVowel
@@ -195,6 +206,9 @@ faha ::: FAhA
 	= "pa\'o"	{ PAhO }
 	/ "to\'o"	{ TOhO }
 
+faho :: FAhO
+	= "fa\'o"	{ FAhO }
+
 goha ::: GOhA
 	= "co\'e"	{ COhE }
 
@@ -215,6 +229,10 @@ koha ::: KOhA
 la ::: LA
 	= "la"		{ LA }
 
+zoi :: ZOI
+	= "zoi"		{ ZOI }
+	/ "la\'o"	{ LAhO }
+
 le ::: LE
 	= "le"		{ LE }
 	/ "lo"		{ LO }
@@ -222,6 +240,9 @@ le ::: LE
 
 li ::: LI
 	= "li"		{ LI }
+
+mai :: MAI
+	= "mo\'o"	{ MOhO }
 
 na ::: NA
 	= "na"		{ NA }
@@ -239,6 +260,7 @@ nu ::: NU
 
 pa ::: PA
 	= "pa"		{ PA }
+	/ "no"		{ NO }
 	/ "so\'i"	{ SOhI }
 	/ "so\'o"	{ SOhO }
 
@@ -293,6 +315,15 @@ vowel :: Char
 symbol :: Char
 	= [',.]
 
+nullt ::: ()
+	= nullc
+
+nullc :: ()
+	= "\x00"
+
+notNull :: Char
+	= !"\x00" .
+
 anything :: Char
 	= [^ ] / [ ]
 
@@ -303,12 +334,14 @@ eof :: ()
 
 data Text
 	= TParagraphs Paragraphs
-	| Text1 I [Free] Text
+	| Text1 (Maybe Text)
+	| TNIhO [Free] (Maybe Paragraphs)
+--	| Text1 I [Free] Text
 	deriving Show
 
 data Paragraphs
 	= ParagraphsS Paragraph
-	| ParagraphsM Paragraph (NIhO, Paragraphs) deriving Show
+	| ParagraphsM Paragraph ([NIhO], [Free], Paragraphs) deriving Show
 data Paragraph = Paragraph
 	([Prenex], Sentence) [(
 		(I, [[(UI, Maybe NAI)]]),
@@ -347,6 +380,7 @@ data Sumti
 	| SRelative Sumti GOI Term
 	| SQuantifier PA Sumti
 	| SMex PA
+	| SZOI ZOI String
 	deriving Show
 data Tense
 	= TFAhA FAhA
@@ -360,6 +394,7 @@ data Time
 data Prenex = Prenex [Term] deriving Show
 data Free
 	= FVocativeSelbri DOI (Maybe (GOI, Term)) Selbri
+	| FMAI PA MAI
 	deriving Show
 
 data Brivla = Brivla String deriving Show
@@ -375,6 +410,7 @@ data CU = CU deriving Show
 data DOI = DOI deriving Show
 data FA = FA deriving Show
 data FAhA = PAhO | TOhO deriving Show
+data FAhO = FAhO deriving Show
 data GOhA = COhE deriving Show
 data GOI = PE deriving Show
 data I = I deriving Show
@@ -383,11 +419,13 @@ data KOhA = MI | DO | KO deriving Show
 data LA = LA deriving Show
 data LE = LE | LO | LEI deriving Show
 data LI = LI deriving Show
+data MAI = MOhO deriving Show
 data NA = NA deriving Show
 data NAI = NAI deriving Show
 data NIhO = NIhO deriving Show
 data NU = NU | NI | DUhU deriving Show
 data PA	= PA
+	| NO
 	| SOhI
 	| SOhO
 	deriving Show
@@ -395,7 +433,30 @@ data PU = PU | CA | BA deriving Show
 data SE = SE | TE deriving Show
 data UI = IhA | KUhI | OhE | OI | EhU deriving Show
 data ZAhO = BAhO deriving Show
+data ZOI = ZOI | LAhO deriving Show
 data ZOhU = ZOhU deriving Show
 
 main :: IO ()
-main = interact $ (++ "\n") . show . parseString text "<stdin>"
+main = interact $ (++ "\n") . show . parseString text "<stdin>" . preprocess
+
+preprocess :: String -> String
+preprocess "" = ""
+preprocess ('l' : 'a' : '\'' : 'o' : rest_) =
+	"la'o \0 " ++ q ++ " \0 " ++ preprocess rest''
+	where
+	rest = dropWhile isSpace rest_
+	(d, '.' : rest') = span (/= '.') rest
+	(q, rest'') = spanTo ('.' : d) rest'
+preprocess ('z' : 'o' : 'i' : rest_) =
+	"zoi \0 " ++ q ++ " \0 " ++ preprocess rest''
+	where
+	rest = dropWhile isSpace rest_
+	(d, '.' : rest') = span (/= '.') rest
+	(q, rest'') = spanTo ('.' : d) rest'
+preprocess (x : xs) = x : preprocess xs
+
+spanTo :: Eq a => [a] -> [a] -> ([a], [a])
+spanTo d [] = ([], [])
+spanTo d lst@(x : xs)
+	| isPrefixOf d lst = ([], drop (length d) lst)
+	| otherwise = let (pre, post) = spanTo d xs in (x : pre, post)
