@@ -271,6 +271,8 @@ bai ::: BAI
 	/ "fau"		{ FAU }
 	/ "mu\'i"	{ MUhI }
 	/ "pi\'o"	{ PIhO }
+	/ "ki\'u"	{ KIhU }
+	/ "zu\'e"	{ ZUhE }
 
 be ::: BE
 	= "be"		{ BE }
@@ -392,6 +394,7 @@ nu ::: NU
 
 pa ::: PA
 	= "pa"		{ PA }
+	/ "re"		{ RE }
 	/ "ci"		{ CI }
 	/ "xa"		{ XA }
 	/ "no"		{ NO }
@@ -411,6 +414,7 @@ roi ::: ROI
 se ::: SE
 	= "se"		{ SE }
 	/ "te"		{ TE }
+	/ "ve"		{ VE }
 
 to ::: TO
 	= "to"		{ TO }
@@ -609,6 +613,8 @@ data BAI
 	| FAU
 	| MUhI
 	| PIhO
+	| KIhU
+	| ZUhE
 	deriving Show
 data BE = BE deriving Show
 data BEhO = BEhO deriving Show
@@ -645,6 +651,7 @@ data NIhO = NIhO deriving Show
 data NOI = NOI | POI deriving Show
 data NU = NU | NI | DUhU deriving Show
 data PA	= PA
+	| RE
 	| CI
 	| XA
 	| NO
@@ -655,7 +662,7 @@ data PA	= PA
 	deriving Show
 data PU = PU | CA | BA deriving Show
 data ROI = ROI deriving Show
-data SE = SE | TE deriving Show
+data SE = SE | TE | VE deriving Show
 data TO = TO deriving Show
 data TOI = TOI deriving Show
 data UI =
