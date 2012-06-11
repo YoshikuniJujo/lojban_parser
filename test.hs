@@ -28,12 +28,16 @@ paragraphs :: Paragraphs
 paragraph :: Paragraph
 	= statement (i_clause free* statement?)*	{ Paragraph $1 $2 }
 
-statement :: ([Prenex], Sentence)
-	= statement_3
+statement :: Statement
+	= statement_2
 
-statement_3 :: ([Prenex], Sentence)
-	= sentence		{ ([], $1) }
-	/ prenex statement	{ ($1 : fst $2, snd $2) }
+statement_2 :: Statement
+	= statement_3 (i_clause stag? bo statement_2)?	{ SBO $1 $2 }
+
+statement_3 :: Statement
+	= sentence		{ Statement [] $1 }
+	/ prenex statement	{ let Statement p b = $2 in
+					Statement ($1 : p) b }
 
 sentence :: Sentence
 	= terms? cu? bridi_tail	{ Sentence (fromMaybe [] $1) $3 }
@@ -54,8 +58,8 @@ bridi_tail_2 :: BridiTail
 bridi_tail_3 :: BridiTail
 	= selbri tail_terms	{ BTSelbri $1 $2 }
 
-gihek :: GIhA
-	= giha
+gihek :: (GIhA, Maybe NAI)
+	= giha nai?
 
 tail_terms :: Term
 	= terms? free*	{ TFree (fromMaybe [] $1) $2 }
@@ -87,7 +91,8 @@ tanru_unit_2 :: TanruUnit
 	/ me sumti			{ TME $2 }
 	/ number moi			{ TMOI $1 $2 }
 	/ se tanru_unit_2		{ TSE $1 $2 }
-	/ nu subsentence kei?		{ TNU $1 $2 }
+	/ jai tag? tanru_unit_2		{ TJAI $1 $2 $3 }
+	/ nu_clause free* subsentence kei?	{ TNU $1 $2 $3 }
 
 terms :: [Term]
 	= term+
@@ -97,7 +102,8 @@ term :: Term
 
 term_1 :: Term
 	= sumti		{ TSumti $1 }
-	/ tag sumti	{ TTense $1 $2 }
+	/ tag sumti	{ TTense $1 $ Just $2 }
+	/ tag ku?	{ TTense $1 Nothing }
 	/ fa sumti	{ TFA $1 $2 }
 
 sumti :: Sumti
@@ -121,6 +127,7 @@ sumti_5 :: Sumti
 sumti_6 :: Sumti
 	= zoi_clause	{ $1 }
 	/ lerfu_string	{ SLerfu $1 }
+	/ lu text lihu	{ SLU $1 $2 }
 	/ koha		{ SKOhA $1 }
 	/ la cmene+	{ SCmene $1 $2 }
 	/ la sumti_tail
@@ -155,14 +162,28 @@ indicator :: Indicator
 tag :: Tense
 	= tense_modal
 
+stag :: Tense
+	= simple_tense_modal
+
 tense_modal :: Tense
+	= simple_tense_modal
+
+simple_tense_modal :: Tense
 	= space_	{ TFAhA $1 }
 	/ time		{ TTime $1 }
 	/ se? bai	{ TBAI $1 $2 }
 
 time :: Time
-	= pu		{ TPU $1 }
-	/ zaho		{ TZAhO $1 }
+	= zi time_offset*
+			{ TZI $1 $2 }
+	/ time_offset+	{ TTimeOffset $1 }
+	/ pu		{ TPU $1 }
+	/ zeha		{ TZEhA $1 }
+	/ interval_property
+			{ TIntervalProperty $1 }
+
+time_offset :: TimeOffset
+	= pu zi?	{ TimeOffset $1 $2 }
 
 space_ :: FAhA
 	= faha
@@ -177,7 +198,7 @@ linkargs :: Term
 	= linkargs_1
 
 linkargs_1 :: Term
-	= be term	{ $2 }
+	= be term beho?	{ $2 }
 
 li__clause :: (LI, Quantifier)
 	= li mex
@@ -188,13 +209,12 @@ mex :: Quantifier
 quantifier :: Quantifier
 	= number boi?	{ QBOI $1 $2 }
 
+interval_property :: IntervalProperty
+	= zaho		{ IPZAhO $1 }
+	/ number roi	{ IPROI $1 $2 }
+
 number :: PA
 	= pa
-
-{-
-interval_property :: ZAhO
-	= zaho
--}
 
 free :: Free
 	= vocative relative_clause? selbri
@@ -230,6 +250,9 @@ le_clause :: (LE, [[Indicator]])
 zoi_clause :: Sumti
 	= zoi nullt notNull* nullt	{ SZOI $1 $3 }
 
+nu_clause :: NU
+	= nu indicators?		{ $1 }
+
 brivla ::: Brivla
 	= (noDoubleConsonant anyLetter)* doubleConsonant endWithVowel
 		{ Brivla $ map snd $1 ++ $2 ++ $3 }
@@ -245,9 +268,18 @@ bai ::: BAI
 	/ "gau"		{ GAU }
 	/ "tai"		{ TAI }
 	/ "va\'o"	{ VAhO }
+	/ "fau"		{ FAU }
+	/ "mu\'i"	{ MUhI }
+	/ "pi\'o"	{ PIhO }
 
 be ::: BE
 	= "be"		{ BE }
+
+beho :: BEhO
+	= "be\'o"	{ BEhO }
+
+bo ::: BO
+	= "bo"		{ BO }
 
 boi ::: BOI
 	= "boi"		{ BOI }
@@ -255,6 +287,8 @@ boi ::: BOI
 by ::: BY
 	= "py"		{ PY }
 	/ "ly"		{ LY }
+	/ "ky"		{ KY }
+	/ "sy"		{ SY }
 
 cai :: CAI
 	= "sai"		{ SAI }
@@ -270,6 +304,7 @@ fa ::: FA
 	/ "fe"		{ FE }
 	/ "fi"		{ FI }
 	/ "fo"		{ FO }
+	/ "fai"		{ FAI }
 
 faha ::: FAhA
 	= "pa\'o"	{ PAhO }
@@ -291,6 +326,9 @@ goi ::: GOI
 i ::: I
 	= ".i" 		{ I }
 
+jai ::: JAI
+	= "jai"		{ JAI }
+
 kei ::: KEI
 	= "kei"		{ KEI }
 
@@ -301,6 +339,11 @@ koha ::: KOhA
 	/ "dei"		{ DEI }
 	/ "da"		{ DA }
 	/ "ke\'a"	{ KEhA }
+	/ "di\'e"	{ DIhE }
+	/ "ma"		{ MA }
+
+ku :: KU
+	= "ku"		{ KU }
 
 la ::: LA
 	= "la"		{ LA }
@@ -312,6 +355,12 @@ le ::: LE
 
 li ::: LI
 	= "li"		{ LI }
+
+lihu :: LIhU
+	= "li\'u"	{ LIhU }
+
+lu :: LU
+	= "lu"		{ LU }
 
 mai :: MAI
 	= "mo\'o"	{ MOhO }
@@ -356,6 +405,9 @@ pu ::: PU
 	/ "ba" !"\'"	{ BA }
 	/ "pu"		{ PU }
 
+roi ::: ROI
+	= "roi"		{ ROI }
+
 se ::: SE
 	= "se"		{ SE }
 	/ "te"		{ TE }
@@ -375,6 +427,9 @@ ui ::: UI
 	/ "bi\'u"	{ BIhU }
 	/ "ji\'a"	{ JIhA }
 	/ "ja\'o"	{ JAhO }
+	/ "xu"		{ XU }
+	/ "kau"		{ KAU }
+	/ ".ue"		{ UE }
 
 zoi :: ZOI
 	= "zoi"		{ ZOI }
@@ -382,6 +437,13 @@ zoi :: ZOI
 
 zaho ::: ZAhO
 	= "ba\'o"	{ BAhO }
+	/ "de\'a"	{ DEhA }
+
+zeha ::: ZEhA
+	= "ze\'a"	{ ZEhA }
+
+zi :: ZI
+	= "za"		{ ZA }
 
 zohu ::: ZOhU
 	= "zo\'u"	{ ZOhU }
@@ -443,12 +505,15 @@ data Paragraphs
 	= ParagraphsS Paragraph
 	| ParagraphsM Paragraph ([NIhO], [Free], Paragraphs) deriving Show
 data Paragraph = Paragraph
-	([Prenex], Sentence) [(
+	Statement [(
 		(I, [[Indicator]]),
 		[Free],
-		Maybe ([Prenex], Sentence))]
+		Maybe Statement)]
 	deriving Show
-data Statement = Statement [Prenex] Sentence
+data Statement
+	= Statement [Prenex] Sentence
+	| SBO Statement (Maybe ((I, [[Indicator]]), Maybe Tense, BO, Statement))
+	deriving Show
 data Sentence = Sentence [Term] BridiTail deriving Show
 data Subsentence
 	= SSentence Sentence
@@ -458,16 +523,17 @@ data Subsentence
 data TanruUnit
 	= TUBrivla (Brivla, [[Indicator]]) [Free]
 	| TUGOhA GOhA
-	| TNU NU Subsentence
+	| TNU NU [Free] Subsentence
 	| TMOI PA MOI
 	| TSE SE TanruUnit
 	| TUTanruUnit [TanruUnit]
 	| TULinkargs TanruUnit Term
 	| TME Sumti
+	| TJAI JAI (Maybe Tense) TanruUnit
 	deriving Show
 data BridiTail
 	= BTSelbri Selbri Term
-	| BTBridiTail BridiTail (Maybe (GIhA, BridiTail))
+	| BTBridiTail BridiTail (Maybe ((GIhA, Maybe NAI), BridiTail))
 	deriving Show
 data Selbri
 	= Selbri TanruUnit
@@ -476,7 +542,7 @@ data Selbri
 	deriving Show
 data Term
 	= TSumti Sumti
-	| TTense Tense Sumti
+	| TTense Tense (Maybe Sumti)
 	| TFA FA Sumti
 	| TFree [Term] [Free]
 	deriving Show
@@ -490,6 +556,7 @@ data Sumti
 	| SQuantifier Quantifier Sumti
 	| SMex Quantifier
 	| SZOI ZOI String
+	| SLU LU Text
 	| SLerfu [BY]
 	deriving Show
 data Tense
@@ -498,8 +565,19 @@ data Tense
 	| TBAI (Maybe SE) BAI
 	deriving Show
 data Time
-	= TPU PU
+	= TZI ZI [TimeOffset]
+	| TPU PU
 	| TZAhO ZAhO
+	| TZEhA ZEhA
+	| TIntervalProperty IntervalProperty
+	| TTimeOffset [TimeOffset]
+	deriving Show
+data TimeOffset
+	= TimeOffset PU (Maybe ZI)
+	deriving Show
+data IntervalProperty
+	= IPZAhO ZAhO
+	| IPROI PA ROI
 	deriving Show
 data Prenex = Prenex [Term] deriving Show
 data Free
@@ -528,25 +606,36 @@ data BAI
 	| GAU
 	| TAI
 	| VAhO
+	| FAU
+	| MUhI
+	| PIhO
 	deriving Show
 data BE = BE deriving Show
+data BEhO = BEhO deriving Show
+data BO = BO deriving Show
 data BOI = BOI deriving Show
-data BY = LY | PY deriving Show
+data BY = KY | LY | PY | SY
+	deriving Show
 data CAI = SAI deriving Show
 data CU = CU deriving Show
 data DOI = DOI deriving Show
-data FA = FA | FE | FI | FO deriving Show
+data FA = FA | FE | FI | FO | FAI deriving Show
 data FAhA = PAhO | TOhO | BUhU deriving Show
 data FAhO = FAhO deriving Show
 data GIhA = GIhE deriving Show
 data GOhA = COhE deriving Show
 data GOI = PE deriving Show
 data I = I deriving Show
+data JAI = JAI deriving Show
 data KEI = KEI deriving Show
-data KOhA = MI | DO | KO | DEI | DA | KEhA deriving Show
+data KOhA = MI | DO | KO | DEI | DA | KEhA | DIhE | MA
+	deriving Show
+data KU = KU deriving Show
 data LA = LA deriving Show
 data LE = LE | LO | LEI deriving Show
 data LI = LI deriving Show
+data LIhU = LIhU deriving Show
+data LU = LU deriving Show
 data MAI = MOhO deriving Show
 data ME = ME deriving Show
 data MOI = MOI deriving Show
@@ -565,13 +654,19 @@ data PA	= PA
 	| SOhU
 	deriving Show
 data PU = PU | CA | BA deriving Show
+data ROI = ROI deriving Show
 data SE = SE | TE deriving Show
 data TO = TO deriving Show
 data TOI = TOI deriving Show
 data UI =
-	BIhU | IhA | KUhI | OhE | OI | EhU | JIhA | JAhO
+	BIhU | IhA | KUhI | OhE | OI | EhU | JIhA | JAhO | XU | KAU | UE
 	deriving Show
-data ZAhO = BAhO deriving Show
+data ZAhO = BAhO | DEhA
+	deriving Show
+data ZEhA = ZEhA
+	deriving Show
+data ZI = ZA
+	deriving Show
 data ZOI = ZOI | LAhO deriving Show
 data ZOhU = ZOhU deriving Show
 

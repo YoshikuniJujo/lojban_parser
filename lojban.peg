@@ -169,8 +169,9 @@ sumti-6 <-
 	ZOI-clause free* /
 	LOhU-clause free* /
 	lerfu-string !MOI-clause BOI-clause? free* /
-	LU-clause text LIhU-clause? free* / (LAhE-clause free* /
-	NAhE-clause BO-clause free*) relative-clauses? sumti LUhU-clause? free* /
+	LU-clause text LIhU-clause? free* /
+	(LAhE-clause free* / NAhE-clause BO-clause free*) relative-clauses?
+		sumti LUhU-clause? free* /
 	KOhA-clause free* /
 	LA-clause free* relative-clauses? CMENE-clause+ free* /
 	(LA-clause / LE-clause) free* sumti-tail KU-clause? free* /
