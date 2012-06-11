@@ -7,8 +7,14 @@ import Data.List
 
 [peggy|
 
+whole :: Text
+	= text eof			{ $1 }
+
 text :: Text
-	= text_1 eof		{ $1 }
+	= text_part_2 text_1 eof?	{ TIndicator $1 $2 }
+
+text_part_2 :: Maybe [Indicator]
+	= indicators?
 
 text_1 :: Text
 	= i text_1?			{ Text1 $2 }
@@ -30,17 +36,29 @@ statement_3 :: ([Prenex], Sentence)
 	/ prenex statement	{ ($1 : fst $2, snd $2) }
 
 sentence :: Sentence
-	= terms? cu? bridi_tail	{ Sentence (fst $3) $ fromMaybe [] $1 ++ snd $3 }
+	= terms? cu? bridi_tail	{ Sentence (fromMaybe [] $1) $3 }
 
 subsentence :: Subsentence
 	= sentence		{ SSentence $1 }
 	/ prenex subsentence	{ SSubsentence $1 $2 }
 
-bridi_tail :: (Selbri, [Term])
-	= selbri tail_terms
+bridi_tail :: BridiTail
+	= bridi_tail_1
 
-tail_terms :: [Term]
-	= terms?	{ fromMaybe [] $1 }
+bridi_tail_1 :: BridiTail
+	= bridi_tail_2
+
+bridi_tail_2 :: BridiTail
+	= bridi_tail_3 (gihek bridi_tail_2)? { BTBridiTail $1 $2 }
+
+bridi_tail_3 :: BridiTail
+	= selbri tail_terms	{ BTSelbri $1 $2 }
+
+gihek :: GIhA
+	= giha
+
+tail_terms :: Term
+	= terms? free*	{ TFree (fromMaybe [] $1) $2 }
 
 selbri :: Selbri
 	= selbri_1
@@ -66,6 +84,7 @@ tanru_unit_1 :: TanruUnit
 tanru_unit_2 :: TanruUnit
 	= brivla_clause free*		{ TUBrivla $1 $2 }
 	/ goha				{ TUGOhA $1 }
+	/ me sumti			{ TME $2 }
 	/ number moi			{ TMOI $1 $2 }
 	/ se tanru_unit_2		{ TSE $1 $2 }
 	/ nu subsentence kei?		{ TNU $1 $2 }
@@ -92,21 +111,26 @@ sumti_3 :: Sumti
 
 sumti_5 :: Sumti
 	= sumti_6 relative_clause
-				{ SRelative $1 (fst $2) (snd $2) }
+				{ SRelative $1 $2 }
 	/ sumti_6		{ $1 }
 	/ quantifier sumti_6 relative_clause
-				{ SQuantifier $1 $ SRelative $2 (fst $3) (snd $3) }
+				{ SQuantifier $1 $ SRelative $2 $3 }
 	/ quantifier sumti_6	{ SQuantifier $1 $2 }
 	/ quantifier selbri	{ SQuantifier $1 $ SLE LO [] $2 }
 
 sumti_6 :: Sumti
 	= zoi_clause	{ $1 }
+	/ lerfu_string	{ SLerfu $1 }
 	/ koha		{ SKOhA $1 }
 	/ la cmene+	{ SCmene $1 $2 }
-	/ la sumti_tail { let s = SLA $1 $ snd $2 in maybe s (SRelative s PE) $ fst $2 }
+	/ la sumti_tail
+		{ case fst $2 of
+			Nothing -> SLA $1 $ snd $2
+			Just t -> SRelative (SLA $1 $ snd $2) $ RCGOI PE t }
 	/ le_clause sumti_tail
-			{ let s = SLE (fst $1) (snd $1) $ snd $2 in
-				maybe s (SRelative s PE) $ fst $2 }
+		{ case fst $2 of
+			Nothing -> SLE (fst $1) (snd $1) $ snd $2
+			Just t -> SRelative (SLE (fst $1) (snd $1) $ snd $2) $ RCGOI PE t }
 	/ li__clause	{ SMex $ snd $1 }
 
 sumti_tail :: (Maybe Term, Selbri)
@@ -155,14 +179,14 @@ linkargs :: Term
 linkargs_1 :: Term
 	= be term	{ $2 }
 
-li__clause :: (LI, PA)
+li__clause :: (LI, Quantifier)
 	= li mex
 
-mex :: PA
+mex :: Quantifier
 	= quantifier
 
-quantifier :: PA
-	= number
+quantifier :: Quantifier
+	= number boi?	{ QBOI $1 $2 }
 
 number :: PA
 	= pa
@@ -176,12 +200,20 @@ free :: Free
 	= vocative relative_clause? selbri
 			{ FVocativeSelbri $1 $2 $3 }
 	/ number mai	{ FMAI $1 $2 }
+	/ to text toi?	{ FTO $2 }
 
 vocative :: DOI
 	= doi
 
-relative_clause :: (GOI, Term)
-	= goi term
+relative_clause :: RelativeClause
+	= goi term		{ RCGOI $1 $2 }
+	/ noi subsentence	{ RCNOI $1 $2 }
+
+lerfu_string :: [BY]
+	= lerfu_word+
+
+lerfu_word :: BY
+	= by
 
 a_clause :: (A, [[Indicator]])
 	= a post_clause
@@ -212,9 +244,17 @@ bai ::: BAI
 	= "la\'u"	{ LAhU }
 	/ "gau"		{ GAU }
 	/ "tai"		{ TAI }
+	/ "va\'o"	{ VAhO }
 
 be ::: BE
 	= "be"		{ BE }
+
+boi ::: BOI
+	= "boi"		{ BOI }
+
+by ::: BY
+	= "py"		{ PY }
+	/ "ly"		{ LY }
 
 cai :: CAI
 	= "sai"		{ SAI }
@@ -227,15 +267,20 @@ doi ::: DOI
 
 fa ::: FA
 	= "fa"		{ FA }
+	/ "fe"		{ FE }
 	/ "fi"		{ FI }
 	/ "fo"		{ FO }
 
 faha ::: FAhA
 	= "pa\'o"	{ PAhO }
 	/ "to\'o"	{ TOhO }
+	/ "bu\'u"	{ BUhU }
 
 faho :: FAhO
 	= "fa\'o"	{ FAhO }
+
+giha ::: GIhA
+	= "gi\'e"	{ GIhE }
 
 goha ::: GOhA
 	= "co\'e"	{ COhE }
@@ -255,6 +300,7 @@ koha ::: KOhA
 	/ "ko"		{ KO }
 	/ "dei"		{ DEI }
 	/ "da"		{ DA }
+	/ "ke\'a"	{ KEhA }
 
 la ::: LA
 	= "la"		{ LA }
@@ -270,17 +316,25 @@ li ::: LI
 mai :: MAI
 	= "mo\'o"	{ MOhO }
 
+me :: ME
+	= "me"		{ ME }
+
 moi :: MOI
 	= "moi"		{ MOI }
 
 na ::: NA
 	= "na"		{ NA }
+	/ "ja\'a"	{ JAhA }
 
 nai ::: NAI
 	= "nai"		{ NAI }
 
 niho ::: NIhO
 	= "ni\'o"	{ NIhO }
+
+noi ::: NOI
+	= "noi"		{ NOI }
+	/ "poi"		{ POI }
 
 nu ::: NU
 	= 'nu'		{ NU }
@@ -290,10 +344,12 @@ nu ::: NU
 pa ::: PA
 	= "pa"		{ PA }
 	/ "ci"		{ CI }
+	/ "xa"		{ XA }
 	/ "no"		{ NO }
 	/ "so\'i"	{ SOhI }
 	/ "so\'o"	{ SOhO }
 	/ "ro"		{ RO }
+	/ "so\'u"	{ SOhU }
 
 pu ::: PU
 	= "ca"		{ CA }
@@ -304,6 +360,12 @@ se ::: SE
 	= "se"		{ SE }
 	/ "te"		{ TE }
 
+to ::: TO
+	= "to"		{ TO }
+
+toi ::: TOI
+	= "toi"		{ TOI }
+
 ui ::: UI
 	= ".i\'a"	{ IhA }
 	/ ".o\'e"	{ OhE }
@@ -312,6 +374,7 @@ ui ::: UI
 	/ ".e\'u"	{ EhU }
 	/ "bi\'u"	{ BIhU }
 	/ "ji\'a"	{ JIhA }
+	/ "ja\'o"	{ JAhO }
 
 zoi :: ZOI
 	= "zoi"		{ ZOI }
@@ -373,7 +436,7 @@ data Text
 	= TParagraphs Paragraphs
 	| Text1 (Maybe Text)
 	| TNIhO [Free] (Maybe Paragraphs)
---	| Text1 I [Free] Text
+	| TIndicator (Maybe [Indicator]) Text
 	deriving Show
 
 data Paragraphs
@@ -386,7 +449,7 @@ data Paragraph = Paragraph
 		Maybe ([Prenex], Sentence))]
 	deriving Show
 data Statement = Statement [Prenex] Sentence
-data Sentence = Sentence Selbri [Term] deriving Show
+data Sentence = Sentence [Term] BridiTail deriving Show
 data Subsentence
 	= SSentence Sentence
 	| SSubsentence Prenex Subsentence
@@ -400,6 +463,11 @@ data TanruUnit
 	| TSE SE TanruUnit
 	| TUTanruUnit [TanruUnit]
 	| TULinkargs TanruUnit Term
+	| TME Sumti
+	deriving Show
+data BridiTail
+	= BTSelbri Selbri Term
+	| BTBridiTail BridiTail (Maybe (GIhA, BridiTail))
 	deriving Show
 data Selbri
 	= Selbri TanruUnit
@@ -410,6 +478,7 @@ data Term
 	= TSumti Sumti
 	| TTense Tense Sumti
 	| TFA FA Sumti
+	| TFree [Term] [Free]
 	deriving Show
 data Sumti
 	= SKOhA KOhA
@@ -417,10 +486,11 @@ data Sumti
 	| SLA LA Selbri
 	| SLE LE [[Indicator]] Selbri
 	| SLConnect Sumti [((A, [[Indicator]]), Sumti)]
-	| SRelative Sumti GOI Term
-	| SQuantifier PA Sumti
-	| SMex PA
+	| SRelative Sumti RelativeClause
+	| SQuantifier Quantifier Sumti
+	| SMex Quantifier
 	| SZOI ZOI String
+	| SLerfu [BY]
 	deriving Show
 data Tense
 	= TFAhA FAhA
@@ -433,12 +503,20 @@ data Time
 	deriving Show
 data Prenex = Prenex [Term] deriving Show
 data Free
-	= FVocativeSelbri DOI (Maybe (GOI, Term)) Selbri
+	= FVocativeSelbri DOI (Maybe RelativeClause) Selbri
 	| FMAI PA MAI
+	| FTO Text
 	deriving Show
 data Indicator
 	= IUI UI (Maybe NAI)
 	| ICAI CAI (Maybe NAI)
+	deriving Show
+data RelativeClause
+	= RCGOI GOI Term
+	| RCNOI NOI Subsentence
+	deriving Show
+data Quantifier
+	= QBOI PA (Maybe BOI)
 	deriving Show
 
 data Brivla = Brivla String deriving Show
@@ -449,44 +527,56 @@ data BAI
 	= LAhU
 	| GAU
 	| TAI
+	| VAhO
 	deriving Show
 data BE = BE deriving Show
+data BOI = BOI deriving Show
+data BY = LY | PY deriving Show
 data CAI = SAI deriving Show
 data CU = CU deriving Show
 data DOI = DOI deriving Show
-data FA = FA | FI | FO deriving Show
-data FAhA = PAhO | TOhO deriving Show
+data FA = FA | FE | FI | FO deriving Show
+data FAhA = PAhO | TOhO | BUhU deriving Show
 data FAhO = FAhO deriving Show
+data GIhA = GIhE deriving Show
 data GOhA = COhE deriving Show
 data GOI = PE deriving Show
 data I = I deriving Show
 data KEI = KEI deriving Show
-data KOhA = MI | DO | KO | DEI | DA deriving Show
+data KOhA = MI | DO | KO | DEI | DA | KEhA deriving Show
 data LA = LA deriving Show
 data LE = LE | LO | LEI deriving Show
 data LI = LI deriving Show
 data MAI = MOhO deriving Show
+data ME = ME deriving Show
 data MOI = MOI deriving Show
-data NA = NA deriving Show
+data NA = NA | JAhA deriving Show
 data NAI = NAI deriving Show
 data NIhO = NIhO deriving Show
+data NOI = NOI | POI deriving Show
 data NU = NU | NI | DUhU deriving Show
 data PA	= PA
 	| CI
+	| XA
 	| NO
 	| SOhI
 	| SOhO
 	| RO
+	| SOhU
 	deriving Show
 data PU = PU | CA | BA deriving Show
 data SE = SE | TE deriving Show
-data UI = BIhU | IhA | KUhI | OhE | OI | EhU | JIhA deriving Show
+data TO = TO deriving Show
+data TOI = TOI deriving Show
+data UI =
+	BIhU | IhA | KUhI | OhE | OI | EhU | JIhA | JAhO
+	deriving Show
 data ZAhO = BAhO deriving Show
 data ZOI = ZOI | LAhO deriving Show
 data ZOhU = ZOhU deriving Show
 
 main :: IO ()
-main = interact $ (++ "\n") . show . parseString text "<stdin>" . preprocess
+main = interact $ (++ "\n") . show . parseString whole "<stdin>" . preprocess
 
 preprocess :: String -> String
 preprocess "" = ""
