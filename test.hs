@@ -29,7 +29,10 @@ paragraph :: Paragraph
 	= statement (i_clause free* statement?)*	{ Paragraph $1 $2 }
 
 statement :: Statement
-	= statement_2
+	= statement_1
+
+statement_1 :: Statement
+	= statement_2 (i_clause joik_jek statement_2?)*	{ SJoikJek $1 $2 }
 
 statement_2 :: Statement
 	= statement_3 (i_clause stag? bo statement_2)?	{ SBO $1 $2 }
@@ -227,16 +230,25 @@ vocative :: DOI
 
 relative_clause :: RelativeClause
 	= goi term		{ RCGOI $1 $2 }
-	/ noi subsentence	{ RCNOI $1 $2 }
+	/ noi subsentence kuho?	{ RCNOI $1 $2 }
 
-lerfu_string :: [BY]
+lerfu_string :: [LerfWord]
 	= lerfu_word+
 
-lerfu_word :: BY
-	= by
+joik_jek :: JA
+	= jek
+
+jek :: JA
+	= ja
+
+lerfu_word :: LerfWord
+	= by_clause	{ LBY (fst $1) (snd $1) }
 
 a_clause :: (A, [[Indicator]])
 	= a post_clause
+
+by_clause :: (BY, [[Indicator]])
+	= by post_clause
 
 brivla_clause :: (Brivla, [[Indicator]])
 	= brivla post_clause
@@ -317,7 +329,8 @@ faho :: FAhO
 	= "fa\'o"	{ FAhO }
 
 giha ::: GIhA
-	= "gi\'e"	{ GIhE }
+	= "gi\'a"	{ GIhA }
+	/ "gi\'e"	{ GIhE }
 
 goha ::: GOhA
 	= "co\'e"	{ COhE }
@@ -327,6 +340,9 @@ goi ::: GOI
 
 i ::: I
 	= ".i" 		{ I }
+
+ja ::: JA
+	= "je"		{ JE }
 
 jai ::: JAI
 	= "jai"		{ JAI }
@@ -346,6 +362,9 @@ koha ::: KOhA
 
 ku :: KU
 	= "ku"		{ KU }
+
+kuho :: KUhO
+	= "ku\'o"	{ KUhO }
 
 la ::: LA
 	= "la"		{ LA }
@@ -406,7 +425,7 @@ pa ::: PA
 pu ::: PU
 	= "ca"		{ CA }
 	/ "ba" !"\'"	{ BA }
-	/ "pu"		{ PU }
+	/ "pu" !"\'"	{ PU }
 
 roi ::: ROI
 	= "roi"		{ ROI }
@@ -434,19 +453,22 @@ ui ::: UI
 	/ "xu"		{ XU }
 	/ "kau"		{ KAU }
 	/ ".ue"		{ UE }
+	/ "po\'o"	{ POhO }
 
-zoi :: ZOI
+zoi ::: ZOI
 	= "zoi"		{ ZOI }
 	/ "la\'o"	{ LAhO }
 
 zaho ::: ZAhO
 	= "ba\'o"	{ BAhO }
 	/ "de\'a"	{ DEhA }
+	/ "co\'a"	{ COhA }
+	/ "pu\'o"	{ PUhO }
 
 zeha ::: ZEhA
 	= "ze\'a"	{ ZEhA }
 
-zi :: ZI
+zi ::: ZI
 	= "za"		{ ZA }
 
 zohu ::: ZOhU
@@ -517,6 +539,7 @@ data Paragraph = Paragraph
 data Statement
 	= Statement [Prenex] Sentence
 	| SBO Statement (Maybe ((I, [[Indicator]]), Maybe Tense, BO, Statement))
+	| SJoikJek Statement [((I, [[Indicator]]), JA, Maybe Statement)]
 	deriving Show
 data Sentence = Sentence [Term] BridiTail deriving Show
 data Subsentence
@@ -561,7 +584,7 @@ data Sumti
 	| SMex Quantifier
 	| SZOI ZOI String
 	| SLU LU Text
-	| SLerfu [BY]
+	| SLerfu [LerfWord]
 	deriving Show
 data Tense
 	= TFAhA FAhA
@@ -600,6 +623,9 @@ data RelativeClause
 data Quantifier
 	= QBOI PA (Maybe BOI)
 	deriving Show
+data LerfWord
+	= LBY BY [[Indicator]]
+	deriving Show
 
 data Brivla = Brivla String deriving Show
 data Cmene = Cmene String deriving Show
@@ -628,15 +654,17 @@ data DOI = DOI deriving Show
 data FA = FA | FE | FI | FO | FAI deriving Show
 data FAhA = PAhO | TOhO | BUhU deriving Show
 data FAhO = FAhO deriving Show
-data GIhA = GIhE deriving Show
+data GIhA = GIhA | GIhE deriving Show
 data GOhA = COhE deriving Show
 data GOI = PE deriving Show
 data I = I deriving Show
+data JA = JE deriving Show
 data JAI = JAI deriving Show
 data KEI = KEI deriving Show
 data KOhA = MI | DO | KO | DEI | DA | KEhA | DIhE | MA
 	deriving Show
 data KU = KU deriving Show
+data KUhO = KUhO deriving Show
 data LA = LA deriving Show
 data LE = LE | LO | LEI deriving Show
 data LI = LI deriving Show
@@ -666,9 +694,9 @@ data SE = SE | TE | VE deriving Show
 data TO = TO deriving Show
 data TOI = TOI deriving Show
 data UI =
-	BIhU | IhA | KUhI | OhE | OI | EhU | JIhA | JAhO | XU | KAU | UE
+	BIhU | IhA | KUhI | OhE | OI | EhU | JIhA | JAhO | XU | KAU | UE | POhO
 	deriving Show
-data ZAhO = BAhO | DEhA
+data ZAhO = BAhO | DEhA | COhA | PUhO
 	deriving Show
 data ZEhA = ZEhA
 	deriving Show
