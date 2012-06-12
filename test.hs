@@ -90,7 +90,7 @@ tanru_unit_1 :: TanruUnit
 
 tanru_unit_2 :: TanruUnit
 	= brivla_clause free*		{ TUBrivla $1 $2 }
-	/ goha				{ TUGOhA $1 }
+	/ goha_clause			{ TUGOhA $1 }
 	/ me sumti			{ TME $2 }
 	/ number moi			{ TMOI $1 $2 }
 	/ se tanru_unit_2		{ TSE $1 $2 }
@@ -135,13 +135,13 @@ sumti_6 :: Sumti
 	/ lerfu_string	{ SLerfu $1 }
 	/ lu text lihu	{ SLU $1 $2 }
 	/ lahe sumti	{ SLAhE $2 }
-	/ koha		{ SKOhA $1 }
+	/ koha_clause	{ SKOhA $1 }
 	/ la cmene+	{ SCmene $1 $2 }
-	/ la sumti_tail
+	/ la sumti_tail ku?
 		{ case fst $2 of
 			Nothing -> SLA $1 $ snd $2
 			Just t -> SRelative (SLA $1 $ snd $2) $ RCGOI PE t }
-	/ le_clause sumti_tail
+	/ le_clause sumti_tail ku?
 		{ case fst $2 of
 			Nothing -> SLE (fst $1) (snd $1) $ snd $2
 			Just t -> SRelative (SLE (fst $1) (snd $1) $ snd $2) $ RCGOI PE t }
@@ -179,7 +179,7 @@ simple_tense_modal :: Tense
 	= se? bai	{ TBAI $1 $2 }
 	/ space_	{ TSpace $1 }
 	/ time		{ TTime $1 }
-	/ caha		{ TCAhA $1 }
+	/ caha_clause	{ TCAhA $1 }
 
 time :: Time
 	= zi time_offset*
@@ -207,8 +207,9 @@ space_interval :: SpaceInterval
 space_int_props :: [(FEhE, IntervalProperty)]
 	= (fehe interval_property)+
 
-joik_ek :: (A, [[Indicator]])
-	= ek
+joik_ek :: JoikEk
+	= ek		{ JEEk $1 }
+	/ joik		{ JEJoik $1 }
 
 ek :: (A, [[Indicator]])
 	= a_clause
@@ -253,8 +254,9 @@ relative_clause :: RelativeClause
 lerfu_string :: [LerfWord]
 	= lerfu_word+
 
-joik_jek :: JA
-	= jek
+joik_jek :: JoikJek
+	= jek	{ JJJek $1 }
+	/ joik	{ JJJoik $1 }
 
 gek :: (GA, Maybe NAI)
 	= ga nai?
@@ -264,6 +266,9 @@ gik :: (GI, Maybe NAI)
 
 jek :: JA
 	= ja
+
+joik :: JOI
+	= joi
 
 lerfu_word :: LerfWord
 	= by_clause	{ LBY (fst $1) (snd $1) }
@@ -277,8 +282,17 @@ a_clause :: (A, [[Indicator]])
 by_clause :: (BY, [[Indicator]])
 	= by post_clause
 
+caha_clause :: (CAhA, [[Indicator]]) 
+	= caha post_clause
+
 giha_clause :: (GIhA, [[Indicator]])
 	= giha post_clause
+
+goha_clause :: (GOhA, [[Indicator]])
+	= goha post_clause
+
+koha_clause :: (KOhA, [[Indicator]])
+	= koha post_clause
 
 i_clause :: (I, [[Indicator]])
 	= i post_clause
@@ -338,7 +352,7 @@ boi ::: BOI
 
 by ::: BY
 	= "py"		{ PY }
-	/ "ly"		{ LY }
+	/ "ly."		{ LY }
 	/ "ky"		{ KY }
 	/ "sy"		{ SY }
 
@@ -388,10 +402,13 @@ giha ::: GIhA
 goha ::: GOhA
 	= "co\'e"	{ COhE }
 	/ "du" !"\'"	{ DU }
+	/ "mo" !"\'"	{ MO }
+	/ "go\'i"	{ GOhI }
 
 goi ::: GOI
 	= "pe"		{ PE }
 	/ "po\'u"	{ POhU }
+	/ "no\'u"	{ NOhU }
 
 i ::: I
 	= ".i" 		{ I }
@@ -401,6 +418,9 @@ ja ::: JA
 
 jai ::: JAI
 	= "jai"		{ JAI }
+
+joi ::: JOI
+	= "joi"		{ JOI }
 
 kei ::: KEI
 	= "kei"		{ KEI }
@@ -435,6 +455,7 @@ le ::: LE
 	= "le"		{ LE }
 	/ "lo"		{ LO }
 	/ "lei"		{ LEI }
+	/ "loi"		{ LOI }
 
 li ::: LI
 	= "li"		{ LI }
@@ -617,7 +638,7 @@ data Paragraph = Paragraph
 data Statement
 	= Statement [Prenex] Sentence
 	| SBO Statement (Maybe ((I, [[Indicator]]), Maybe Tense, BO, Statement))
-	| SJoikJek Statement [((I, [[Indicator]]), JA, Maybe Statement)]
+	| SJoikJek Statement [((I, [[Indicator]]), JoikJek, Maybe Statement)]
 	deriving Show
 data Sentence = Sentence [Term] BridiTail deriving Show
 data Subsentence
@@ -627,7 +648,7 @@ data Subsentence
 
 data TanruUnit
 	= TUBrivla (Brivla, [[Indicator]]) [Free]
-	| TUGOhA GOhA
+	| TUGOhA (GOhA, [[Indicator]])
 	| TNU NU [Free] Subsentence
 	| TMOI Number MOI
 	| TSE SE TanruUnit
@@ -652,11 +673,11 @@ data Term
 	| TFree [Term] [Free]
 	deriving Show
 data Sumti
-	= SKOhA KOhA
+	= SKOhA (KOhA, [[Indicator]])
 	| SCmene LA [Cmene]
 	| SLA LA Selbri
 	| SLE LE [[Indicator]] Selbri
-	| SLConnect Sumti [((A, [[Indicator]]), Sumti)]
+	| SLConnect Sumti [(JoikEk, Sumti)]
 	| SGek (GA, Maybe NAI) Sumti (GI, Maybe NAI) Sumti
 	| SRelative Sumti RelativeClause
 	| SQuantifier Quantifier Sumti
@@ -670,7 +691,7 @@ data Tense
 	= TTime Time
 	| TSpace Space
 	| TBAI (Maybe SE) BAI
-	| TCAhA CAhA
+	| TCAhA (CAhA, [[Indicator]])
 	deriving Show
 data Time
 	= TZI ZI [TimeOffset]
@@ -719,6 +740,14 @@ data LerfWord
 data Number
 	= Number [(PA, [[Indicator]])]
 	deriving Show
+data JoikJek
+	= JJJek JA
+	| JJJoik JOI
+	deriving Show
+data JoikEk
+	= JEJoik JOI
+	| JEEk (A, [[Indicator]])
+	deriving Show
 
 data Brivla = Brivla String deriving Show
 data Cmene = Cmene String deriving Show
@@ -753,11 +782,12 @@ data FEhE = FEhE deriving Show
 data GA = GE deriving Show
 data GI = GI deriving Show
 data GIhA = GIhA | GIhE | GIhI deriving Show
-data GOhA = COhE | DU deriving Show
-data GOI = PE | POhU deriving Show
+data GOhA = COhE | DU | MO | GOhI deriving Show
+data GOI = PE | POhU | NOhU deriving Show
 data I = I deriving Show
 data JA = JE deriving Show
 data JAI = JAI deriving Show
+data JOI = JOI deriving Show
 data KEI = KEI deriving Show
 data KOhA = MI | DO | KO | DEI | DA | KEhA | DIhE | MA | DIhU | TA | ZOhE
 	deriving Show
@@ -765,7 +795,7 @@ data KU = KU deriving Show
 data KUhO = KUhO deriving Show
 data LA = LA deriving Show
 data LAhE = LAhE | TUhA deriving Show
-data LE = LE | LO | LEI deriving Show
+data LE = LE | LO | LEI | LOI deriving Show
 data LI = LI deriving Show
 data LIhU = LIhU deriving Show
 data LU = LU deriving Show
