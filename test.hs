@@ -73,7 +73,7 @@ selbri :: Selbri
 
 selbri_1 :: Selbri
 	= selbri_2
-	/ na selbri		{ NotSelbri $2 }
+	/ na_clause selbri	{ NotSelbri $1 $2 }
 
 selbri_2 :: Selbri
 	= selbri_6
@@ -172,7 +172,7 @@ tense_modal :: Tense
 	= simple_tense_modal
 
 simple_tense_modal :: Tense
-	= space_	{ TFAhA $1 }
+	= space_	{ TSpace $1 }
 	/ time		{ TTime $1 }
 	/ se? bai	{ TBAI $1 $2 }
 
@@ -188,8 +188,19 @@ time :: Time
 time_offset :: TimeOffset
 	= pu zi?	{ TimeOffset $1 $2 }
 
-space_ :: FAhA
+space_ :: Space
+	= space_offset		{ SFAhA $1 }
+	/ space_interval	{ SSpaceInterval $1 }
+
+space_offset :: FAhA
 	= faha
+
+space_interval :: SpaceInterval
+	= veha			{ SIVEhA $1 }
+	/ space_int_props	{ SIFEhE $1 }
+
+space_int_props :: [(FEhE, IntervalProperty)]
+	= (fehe interval_property)+
 
 joik_ek :: (A, [[Indicator]])
 	= ek
@@ -213,8 +224,9 @@ quantifier :: Quantifier
 	= number boi?	{ QBOI $1 $2 }
 
 interval_property :: IntervalProperty
-	= zaho		{ IPZAhO $1 }
-	/ number roi	{ IPROI $1 $2 }
+	= number roi	{ IPROI $1 $2 }
+	/ tahe nai?	{ IPTAhE $1 $2 }
+	/ zaho		{ IPZAhO $1 }
 
 number :: PA
 	= pa
@@ -259,6 +271,12 @@ i_clause :: (I, [[Indicator]])
 le_clause :: (LE, [[Indicator]])
 	= le post_clause
 
+na_clause :: (NA, [[Indicator]])
+	= na post_clause
+
+nai_clause :: (NAI, [[Indicator]])
+	= nai post_clause
+
 zoi_clause :: Sumti
 	= zoi nullt notNull* nullt	{ SZOI $1 $3 }
 
@@ -274,6 +292,7 @@ cmene ::: Cmene
 
 a ::: A
 	= ".e"		{ E }
+	/ "ji"		{ JI }
 
 bai ::: BAI
 	= "la\'u"	{ LAhU }
@@ -328,12 +347,16 @@ faha ::: FAhA
 faho :: FAhO
 	= "fa\'o"	{ FAhO }
 
+fehe :: FEhE
+	= "fe\'e"	{ FEhE }
+
 giha ::: GIhA
 	= "gi\'a"	{ GIhA }
 	/ "gi\'e"	{ GIhE }
 
 goha ::: GOhA
 	= "co\'e"	{ COhE }
+	/ "du" !"\'"	{ DU }
 
 goi ::: GOI
 	= "pe"		{ PE }
@@ -429,11 +452,15 @@ pu ::: PU
 
 roi ::: ROI
 	= "roi"		{ ROI }
+	/ "re\'u"	{ REhU }
 
 se ::: SE
 	= "se"		{ SE }
 	/ "te"		{ TE }
 	/ "ve"		{ VE }
+
+tahe ::: TAhE
+	= "ru\'i"	{ RUhI }
 
 to ::: TO
 	= "to"		{ TO }
@@ -454,6 +481,10 @@ ui ::: UI
 	/ "kau"		{ KAU }
 	/ ".ue"		{ UE }
 	/ "po\'o"	{ POhO }
+	/ "sa\'e"	{ SAhE }
+
+veha ::: VEhA
+	= "ve\'a"	{ VEhA }
 
 zoi ::: ZOI
 	= "zoi"		{ ZOI }
@@ -467,6 +498,7 @@ zaho ::: ZAhO
 
 zeha ::: ZEhA
 	= "ze\'a"	{ ZEhA }
+	/ "ze\'i"	{ ZEhI }
 
 zi ::: ZI
 	= "za"		{ ZA }
@@ -483,10 +515,15 @@ consonant_final :: String
 	/ consonant			{ [$1] }
 
 noDoubleConsonant :: ()
-	= !(consonant consonant)	{ () }
+	= !doubleConsonant
+{-
+	= !(consonant consonant
+		/ consonant [y] consonant)	{ () }
+-}
 
 doubleConsonant :: String
-	= consonant consonant	{ $1 : [$2] }
+	= consonant consonant		{ $1 : [$2] }
+	/ consonant [y] consonant	{ $1 : 'y' : [$2] }
 
 anyLetter :: Char
 	= consonant / vowel / symbol
@@ -564,7 +601,7 @@ data BridiTail
 	deriving Show
 data Selbri
 	= Selbri TanruUnit
-	| NotSelbri Selbri
+	| NotSelbri (NA, [[Indicator]]) Selbri
 	| TagSelbri Tense Selbri
 	deriving Show
 data Term
@@ -587,8 +624,8 @@ data Sumti
 	| SLerfu [LerfWord]
 	deriving Show
 data Tense
-	= TFAhA FAhA
-	| TTime Time
+	= TTime Time
+	| TSpace Space
 	| TBAI (Maybe SE) BAI
 	deriving Show
 data Time
@@ -603,8 +640,17 @@ data TimeOffset
 	= TimeOffset PU (Maybe ZI)
 	deriving Show
 data IntervalProperty
-	= IPZAhO ZAhO
-	| IPROI PA ROI
+	= IPROI PA ROI
+	| IPTAhE TAhE (Maybe NAI)
+	| IPZAhO ZAhO
+	deriving Show
+data Space
+	= SFAhA FAhA
+	| SSpaceInterval SpaceInterval
+	deriving Show
+data SpaceInterval
+	= SIVEhA VEhA
+	| SIFEhE [(FEhE, IntervalProperty)]
 	deriving Show
 data Prenex = Prenex [Term] deriving Show
 data Free
@@ -630,7 +676,7 @@ data LerfWord
 data Brivla = Brivla String deriving Show
 data Cmene = Cmene String deriving Show
 
-data A = E deriving Show
+data A = E | JI deriving Show
 data BAI
 	= LAhU
 	| GAU
@@ -654,8 +700,9 @@ data DOI = DOI deriving Show
 data FA = FA | FE | FI | FO | FAI deriving Show
 data FAhA = PAhO | TOhO | BUhU deriving Show
 data FAhO = FAhO deriving Show
+data FEhE = FEhE deriving Show
 data GIhA = GIhA | GIhE deriving Show
-data GOhA = COhE deriving Show
+data GOhA = COhE | DU deriving Show
 data GOI = PE deriving Show
 data I = I deriving Show
 data JA = JE deriving Show
@@ -689,16 +736,18 @@ data PA	= PA
 	| SOhU
 	deriving Show
 data PU = PU | CA | BA deriving Show
-data ROI = ROI deriving Show
+data ROI = ROI | REhU deriving Show
 data SE = SE | TE | VE deriving Show
+data TAhE = RUhI deriving Show
 data TO = TO deriving Show
 data TOI = TOI deriving Show
-data UI =
-	BIhU | IhA | KUhI | OhE | OI | EhU | JIhA | JAhO | XU | KAU | UE | POhO
+data UI	= BIhU | IhA | KUhI | OhE | OI | EhU | JIhA | JAhO | XU | KAU | UE | POhO
+	| SAhE
 	deriving Show
+data VEhA = VEhA deriving Show
 data ZAhO = BAhO | DEhA | COhA | PUhO
 	deriving Show
-data ZEhA = ZEhA
+data ZEhA = ZEhA | ZEhI
 	deriving Show
 data ZI = ZA
 	deriving Show
