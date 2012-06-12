@@ -128,6 +128,8 @@ sumti_5 :: Sumti
 	/ quantifier sumti_6 relative_clause
 				{ SQuantifier $1 $ SRelative $2 $3 }
 	/ quantifier sumti_6	{ SQuantifier $1 $2 }
+	/ quantifier selbri relative_clause
+				{ SQuantifier $1 $ SRelative (SLE LO [] $2) $3 }
 	/ quantifier selbri	{ SQuantifier $1 $ SLE LO [] $2 }
 
 sumti_6 :: Sumti
@@ -248,7 +250,7 @@ vocative :: DOI
 	= doi
 
 relative_clause :: RelativeClause
-	= goi term		{ RCGOI $1 $2 }
+	= goi term gehu?	{ RCGOI $1 $2 }
 	/ noi subsentence kuho?	{ RCNOI $1 $2 }
 
 lerfu_string :: [LerfWord]
@@ -337,6 +339,8 @@ bai ::: BAI
 	/ "ki\'u"	{ KIhU }
 	/ "zu\'e"	{ ZUhE }
 	/ "cau"		{ CAU }
+	/ "bau"		{ BAU }
+	/ "ta\'i"	{ TAhI }
 
 be ::: BE
 	= "be"		{ BE }
@@ -389,7 +393,10 @@ fehe :: FEhE
 	= "fe\'e"	{ FEhE }
 
 ga :: GA
-	= "ge"		{ GE }
+	= "ge" !"\'"	{ GE }
+
+gehu :: GEhU
+	= "ge\'u"	{ GEhU }
 
 gi :: GI
 	= "gi"		{ GI }
@@ -435,7 +442,7 @@ koha ::: KOhA
 	/ "di\'e"	{ DIhE }
 	/ "ma"		{ MA }
 	/ "di\'u"	{ DIhU }
-	/ "ta"		{ TA }
+	/ "ta" !"\'"	{ TA }
 	/ "zo\'e"	{ ZOhE }
 
 ku :: KU
@@ -521,6 +528,7 @@ se ::: SE
 	= "se"		{ SE }
 	/ "te"		{ TE }
 	/ "ve"		{ VE }
+	/ "xe"		{ XE }
 
 tahe ::: TAhE
 	= "ru\'i"	{ RUhI }
@@ -764,6 +772,8 @@ data BAI
 	| KIhU
 	| ZUhE
 	| CAU
+	| BAU
+	| TAhI
 	deriving Show
 data BE = BE deriving Show
 data BEhO = BEhO deriving Show
@@ -780,6 +790,7 @@ data FAhA = PAhO | TOhO | BUhU | NEhI deriving Show
 data FAhO = FAhO deriving Show
 data FEhE = FEhE deriving Show
 data GA = GE deriving Show
+data GEhU = GEhU deriving Show
 data GI = GI deriving Show
 data GIhA = GIhA | GIhE | GIhI deriving Show
 data GOhA = COhE | DU | MO | GOhI deriving Show
@@ -821,7 +832,7 @@ data PA	= PA
 	deriving Show
 data PU = PU | CA | BA deriving Show
 data ROI = ROI | REhU deriving Show
-data SE = SE | TE | VE deriving Show
+data SE = SE | TE | VE | XE deriving Show
 data TAhE = RUhI deriving Show
 data TO = TO deriving Show
 data TOI = TOI deriving Show
