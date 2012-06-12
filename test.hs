@@ -61,8 +61,8 @@ bridi_tail_2 :: BridiTail
 bridi_tail_3 :: BridiTail
 	= selbri tail_terms	{ BTSelbri $1 $2 }
 
-gihek :: (GIhA, Maybe NAI)
-	= giha nai?
+gihek :: ((GIhA, [[Indicator]]), Maybe NAI)
+	= giha_clause nai?
 
 tail_terms :: Term
 	= terms? free*	{ TFree (fromMaybe [] $1) $2 }
@@ -116,7 +116,10 @@ sumti_2 :: Sumti
 	= sumti_3 (joik_ek sumti_3)*	{ SLConnect $1 $2 }
 
 sumti_3 :: Sumti
-	= sumti_5
+	= sumti_4
+
+sumti_4 :: Sumti
+	= sumti_5 / gek sumti gik sumti_4	{ SGek $1 $2 $3 $4 }
 
 sumti_5 :: Sumti
 	= sumti_6 relative_clause
@@ -131,6 +134,7 @@ sumti_6 :: Sumti
 	= zoi_clause	{ $1 }
 	/ lerfu_string	{ SLerfu $1 }
 	/ lu text lihu	{ SLU $1 $2 }
+	/ lahe sumti	{ SLAhE $2 }
 	/ koha		{ SKOhA $1 }
 	/ la cmene+	{ SCmene $1 $2 }
 	/ la sumti_tail
@@ -172,9 +176,10 @@ tense_modal :: Tense
 	= simple_tense_modal
 
 simple_tense_modal :: Tense
-	= space_	{ TSpace $1 }
+	= se? bai	{ TBAI $1 $2 }
+	/ space_	{ TSpace $1 }
 	/ time		{ TTime $1 }
-	/ se? bai	{ TBAI $1 $2 }
+	/ caha		{ TCAhA $1 }
 
 time :: Time
 	= zi time_offset*
@@ -221,15 +226,16 @@ mex :: Quantifier
 	= quantifier
 
 quantifier :: Quantifier
-	= number boi?	{ QBOI $1 $2 }
+	= number !moi boi?	{ QBOI $1 $2 }
 
 interval_property :: IntervalProperty
 	= number roi	{ IPROI $1 $2 }
 	/ tahe nai?	{ IPTAhE $1 $2 }
 	/ zaho		{ IPZAhO $1 }
 
-number :: PA
-	= pa
+number :: Number
+	= pa_clause+	{ Number $1 }
+--	= pa pa*	{ $1 : $2 }
 
 free :: Free
 	= vocative relative_clause? selbri
@@ -250,11 +256,20 @@ lerfu_string :: [LerfWord]
 joik_jek :: JA
 	= jek
 
+gek :: (GA, Maybe NAI)
+	= ga nai?
+
+gik :: (GI, Maybe NAI)
+	= gi nai?
+
 jek :: JA
 	= ja
 
 lerfu_word :: LerfWord
 	= by_clause	{ LBY (fst $1) (snd $1) }
+
+brivla_clause :: (Brivla, [[Indicator]])
+	= brivla post_clause
 
 a_clause :: (A, [[Indicator]])
 	= a post_clause
@@ -262,8 +277,8 @@ a_clause :: (A, [[Indicator]])
 by_clause :: (BY, [[Indicator]])
 	= by post_clause
 
-brivla_clause :: (Brivla, [[Indicator]])
-	= brivla post_clause
+giha_clause :: (GIhA, [[Indicator]])
+	= giha post_clause
 
 i_clause :: (I, [[Indicator]])
 	= i post_clause
@@ -276,6 +291,9 @@ na_clause :: (NA, [[Indicator]])
 
 nai_clause :: (NAI, [[Indicator]])
 	= nai post_clause
+
+pa_clause :: (PA, [[Indicator]])
+	= pa post_clause
 
 zoi_clause :: Sumti
 	= zoi nullt notNull* nullt	{ SZOI $1 $3 }
@@ -304,6 +322,7 @@ bai ::: BAI
 	/ "pi\'o"	{ PIhO }
 	/ "ki\'u"	{ KIhU }
 	/ "zu\'e"	{ ZUhE }
+	/ "cau"		{ CAU }
 
 be ::: BE
 	= "be"		{ BE }
@@ -326,6 +345,10 @@ by ::: BY
 cai :: CAI
 	= "sai"		{ SAI }
 
+caha :: CAhA
+	= "ca\'a"	{ CAhA }
+	/ "ka\'e"	{ KAhE }
+
 cu ::: CU
 	= "cu"		{ CU }
 
@@ -343,6 +366,7 @@ faha ::: FAhA
 	= "pa\'o"	{ PAhO }
 	/ "to\'o"	{ TOhO }
 	/ "bu\'u"	{ BUhU }
+	/ "ne\'i"	{ NEhI }
 
 faho :: FAhO
 	= "fa\'o"	{ FAhO }
@@ -350,9 +374,16 @@ faho :: FAhO
 fehe :: FEhE
 	= "fe\'e"	{ FEhE }
 
+ga :: GA
+	= "ge"		{ GE }
+
+gi :: GI
+	= "gi"		{ GI }
+
 giha ::: GIhA
 	= "gi\'a"	{ GIhA }
 	/ "gi\'e"	{ GIhE }
+	/ "gi\'i"	{ GIhI }
 
 goha ::: GOhA
 	= "co\'e"	{ COhE }
@@ -360,6 +391,7 @@ goha ::: GOhA
 
 goi ::: GOI
 	= "pe"		{ PE }
+	/ "po\'u"	{ POhU }
 
 i ::: I
 	= ".i" 		{ I }
@@ -382,6 +414,9 @@ koha ::: KOhA
 	/ "ke\'a"	{ KEhA }
 	/ "di\'e"	{ DIhE }
 	/ "ma"		{ MA }
+	/ "di\'u"	{ DIhU }
+	/ "ta"		{ TA }
+	/ "zo\'e"	{ ZOhE }
 
 ku :: KU
 	= "ku"		{ KU }
@@ -391,6 +426,10 @@ kuho :: KUhO
 
 la ::: LA
 	= "la"		{ LA }
+
+lahe ::: LAhE
+	= "la\'e"	{ LAhE }
+	/ "tu\'a"	{ TUhA }
 
 le ::: LE
 	= "le"		{ LE }
@@ -433,20 +472,23 @@ nu ::: NU
 	= 'nu'		{ NU }
 	/ 'ni'		{ NI }
 	/ "du\'u"	{ DUhU }
+	/ "ka" !"\'"	{ KA }
 
 pa ::: PA
 	= "pa"		{ PA }
-	/ "re"		{ RE }
+	/ "re" !"\'"	{ RE }
 	/ "ci"		{ CI }
 	/ "xa"		{ XA }
+	/ "bi" !"\'"	{ BI }
 	/ "no"		{ NO }
 	/ "so\'i"	{ SOhI }
 	/ "so\'o"	{ SOhO }
 	/ "ro"		{ RO }
 	/ "so\'u"	{ SOhU }
+	/ "su\'e"	{ SUhE }
 
 pu ::: PU
-	= "ca"		{ CA }
+	= "ca" !"\'"	{ CA }
 	/ "ba" !"\'"	{ BA }
 	/ "pu" !"\'"	{ PU }
 
@@ -495,13 +537,16 @@ zaho ::: ZAhO
 	/ "de\'a"	{ DEhA }
 	/ "co\'a"	{ COhA }
 	/ "pu\'o"	{ PUhO }
+	/ "co\'u"	{ COhU }
+	/ "za\'o"	{ ZAhO }
 
 zeha ::: ZEhA
 	= "ze\'a"	{ ZEhA }
 	/ "ze\'i"	{ ZEhI }
+	/ "ze\'u"	{ ZEhU }
 
 zi ::: ZI
-	= "za"		{ ZA }
+	= "za" !"\'"	{ ZA }
 
 zohu ::: ZOhU
 	= "zo\'u"	{ ZOhU }
@@ -516,10 +561,6 @@ consonant_final :: String
 
 noDoubleConsonant :: ()
 	= !doubleConsonant
-{-
-	= !(consonant consonant
-		/ consonant [y] consonant)	{ () }
--}
 
 doubleConsonant :: String
 	= consonant consonant		{ $1 : [$2] }
@@ -588,7 +629,7 @@ data TanruUnit
 	= TUBrivla (Brivla, [[Indicator]]) [Free]
 	| TUGOhA GOhA
 	| TNU NU [Free] Subsentence
-	| TMOI PA MOI
+	| TMOI Number MOI
 	| TSE SE TanruUnit
 	| TUTanruUnit [TanruUnit]
 	| TULinkargs TanruUnit Term
@@ -597,7 +638,7 @@ data TanruUnit
 	deriving Show
 data BridiTail
 	= BTSelbri Selbri Term
-	| BTBridiTail BridiTail (Maybe ((GIhA, Maybe NAI), BridiTail))
+	| BTBridiTail BridiTail (Maybe (((GIhA, [[Indicator]]), Maybe NAI), BridiTail))
 	deriving Show
 data Selbri
 	= Selbri TanruUnit
@@ -616,17 +657,20 @@ data Sumti
 	| SLA LA Selbri
 	| SLE LE [[Indicator]] Selbri
 	| SLConnect Sumti [((A, [[Indicator]]), Sumti)]
+	| SGek (GA, Maybe NAI) Sumti (GI, Maybe NAI) Sumti
 	| SRelative Sumti RelativeClause
 	| SQuantifier Quantifier Sumti
 	| SMex Quantifier
 	| SZOI ZOI String
 	| SLU LU Text
 	| SLerfu [LerfWord]
+	| SLAhE Sumti
 	deriving Show
 data Tense
 	= TTime Time
 	| TSpace Space
 	| TBAI (Maybe SE) BAI
+	| TCAhA CAhA
 	deriving Show
 data Time
 	= TZI ZI [TimeOffset]
@@ -640,7 +684,7 @@ data TimeOffset
 	= TimeOffset PU (Maybe ZI)
 	deriving Show
 data IntervalProperty
-	= IPROI PA ROI
+	= IPROI Number ROI
 	| IPTAhE TAhE (Maybe NAI)
 	| IPZAhO ZAhO
 	deriving Show
@@ -655,7 +699,7 @@ data SpaceInterval
 data Prenex = Prenex [Term] deriving Show
 data Free
 	= FVocativeSelbri DOI (Maybe RelativeClause) Selbri
-	| FMAI PA MAI
+	| FMAI Number MAI
 	| FTO Text
 	deriving Show
 data Indicator
@@ -667,10 +711,13 @@ data RelativeClause
 	| RCNOI NOI Subsentence
 	deriving Show
 data Quantifier
-	= QBOI PA (Maybe BOI)
+	= QBOI Number (Maybe BOI)
 	deriving Show
 data LerfWord
 	= LBY BY [[Indicator]]
+	deriving Show
+data Number
+	= Number [(PA, [[Indicator]])]
 	deriving Show
 
 data Brivla = Brivla String deriving Show
@@ -687,6 +734,7 @@ data BAI
 	| PIhO
 	| KIhU
 	| ZUhE
+	| CAU
 	deriving Show
 data BE = BE deriving Show
 data BEhO = BEhO deriving Show
@@ -695,24 +743,28 @@ data BOI = BOI deriving Show
 data BY = KY | LY | PY | SY
 	deriving Show
 data CAI = SAI deriving Show
+data CAhA = CAhA | KAhE deriving Show
 data CU = CU deriving Show
 data DOI = DOI deriving Show
 data FA = FA | FE | FI | FO | FAI deriving Show
-data FAhA = PAhO | TOhO | BUhU deriving Show
+data FAhA = PAhO | TOhO | BUhU | NEhI deriving Show
 data FAhO = FAhO deriving Show
 data FEhE = FEhE deriving Show
-data GIhA = GIhA | GIhE deriving Show
+data GA = GE deriving Show
+data GI = GI deriving Show
+data GIhA = GIhA | GIhE | GIhI deriving Show
 data GOhA = COhE | DU deriving Show
-data GOI = PE deriving Show
+data GOI = PE | POhU deriving Show
 data I = I deriving Show
 data JA = JE deriving Show
 data JAI = JAI deriving Show
 data KEI = KEI deriving Show
-data KOhA = MI | DO | KO | DEI | DA | KEhA | DIhE | MA
+data KOhA = MI | DO | KO | DEI | DA | KEhA | DIhE | MA | DIhU | TA | ZOhE
 	deriving Show
 data KU = KU deriving Show
 data KUhO = KUhO deriving Show
 data LA = LA deriving Show
+data LAhE = LAhE | TUhA deriving Show
 data LE = LE | LO | LEI deriving Show
 data LI = LI deriving Show
 data LIhU = LIhU deriving Show
@@ -724,16 +776,18 @@ data NA = NA | JAhA deriving Show
 data NAI = NAI deriving Show
 data NIhO = NIhO deriving Show
 data NOI = NOI | POI deriving Show
-data NU = NU | NI | DUhU deriving Show
+data NU = NU | NI | DUhU | KA deriving Show
 data PA	= PA
 	| RE
 	| CI
 	| XA
+	| BI
 	| NO
 	| SOhI
 	| SOhO
 	| RO
 	| SOhU
+	| SUhE
 	deriving Show
 data PU = PU | CA | BA deriving Show
 data ROI = ROI | REhU deriving Show
@@ -745,9 +799,9 @@ data UI	= BIhU | IhA | KUhI | OhE | OI | EhU | JIhA | JAhO | XU | KAU | UE | POh
 	| SAhE
 	deriving Show
 data VEhA = VEhA deriving Show
-data ZAhO = BAhO | DEhA | COhA | PUhO
+data ZAhO = BAhO | DEhA | COhA | PUhO | COhU | ZAhO
 	deriving Show
-data ZEhA = ZEhA | ZEhI
+data ZEhA = ZEhA | ZEhI | ZEhU
 	deriving Show
 data ZI = ZA
 	deriving Show
