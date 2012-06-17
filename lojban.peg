@@ -1409,7 +1409,9 @@ consonant-final <- (non-space &non-space)* consonant &pause
 
 cmavo <- !cmene !CVCy-lujvo cmavo-form &post-word
 
-CVCy-lujvo <- CVC-rafsi y h? initial-rafsi* brivla-core / stressed-CVC-rafsi y short-final-rafsi
+CVCy-lujvo <-
+	CVC-rafsi y h? initial-rafsi* brivla-core /
+	stressed-CVC-rafsi y short-final-rafsi
 
 cmavo-form <- !h !cluster onset (nucleus h)* (!stressed nucleus / nucleus !cluster) / y+ / digit
 
