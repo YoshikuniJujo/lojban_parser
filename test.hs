@@ -4,6 +4,7 @@ import Text.Peggy
 import Data.Maybe
 import Data.Char
 import Data.List
+import Control.Applicative
 
 [peggy|
 
@@ -11,7 +12,7 @@ whole :: Text
 	= text eof			{ $1 }
 
 text :: Text
-	= text_part_2 text_1 eof?	{ TIndicator $1 $2 }
+	= text_part_2 text_1 eof?	{ maybe $2 (flip TIndicator $2) $1 }
 
 text_part_2 :: Maybe [Indicator]
 	= indicators?
@@ -26,24 +27,29 @@ paragraphs :: Paragraphs
 		{ maybe (ParagraphsS $1) (ParagraphsM $1) $2 }
 
 paragraph :: Paragraph
-	= statement (i_clause free* statement?)*	{ Paragraph $1 $2 }
+	= statement (i_clause free* statement?)*
+			{ if null $2 then Paragraph $1 else ParagraphPlus $1 $2 }
 
 statement :: Statement
 	= statement_1
 
 statement_1 :: Statement
-	= statement_2 (i_clause joik_jek statement_2?)*	{ SJoikJek $1 $2 }
+	= statement_2 (i_clause joik_jek statement_2?)*
+		{ if null $2 then $1 else SJoikJek $1 $2 }
 
 statement_2 :: Statement
-	= statement_3 (i_clause stag? bo statement_2)?	{ SBO $1 $2 }
+	= statement_3 (i_clause stag? bo statement_2)?	{ maybe $1 (SBO $1) $2 }
 
 statement_3 :: Statement
-	= sentence		{ Statement [] $1 }
-	/ prenex statement	{ let Statement p b = $2 in
-					Statement ($1 : p) b }
+	= sentence		{ Statement $1 }
+	/ prenex statement	{ case $2 of
+					Statement s -> StatementPrenex [$1] s
+					StatementPrenex ps s ->
+						StatementPrenex ($1 : ps) s }
+
 
 sentence :: Sentence
-	= terms? cu? bridi_tail	{ Sentence (fromMaybe [] $1) $3 }
+	= terms? cu? bridi_tail	{ maybe (Sentence $3) (flip SentenceHead $3) $1 }
 
 subsentence :: Subsentence
 	= sentence		{ SSentence $1 }
@@ -56,16 +62,19 @@ bridi_tail_1 :: BridiTail
 	= bridi_tail_2
 
 bridi_tail_2 :: BridiTail
-	= bridi_tail_3 (gihek bridi_tail_2)? { BTBridiTail $1 $2 }
+	= bridi_tail_3 (gihek bridi_tail_2)? { maybe $1 (BTBridiTail $1) $2 }
 
 bridi_tail_3 :: BridiTail
-	= selbri tail_terms	{ BTSelbri $1 $2 }
+	= selbri tail_terms	{ maybe (BTSelbri $1) (BTSelbriTail $1) $2 }
 
 gihek :: ((GIhA, [[Indicator]]), Maybe NAI)
 	= giha_clause nai?
 
-tail_terms :: Term
-	= terms? free*	{ TFree (fromMaybe [] $1) $2 }
+tail_terms :: Maybe Term
+	= terms? free*	{ case ($1, $2) of
+		(Nothing, []) -> Nothing
+		(Just ts, []) -> Just $ TTerms ts
+		_ -> Just $ TFree (fromMaybe [] $1) $2 }
 
 selbri :: Selbri
 	= selbri_1
@@ -76,20 +85,32 @@ selbri_1 :: Selbri
 	/ na_clause selbri	{ NotSelbri $1 $2 }
 
 selbri_2 :: Selbri
+	= selbri_3 (co selbri_2)?
+				{ maybe $1 (SeCO $1 . snd) $2 }
+
+selbri_3 :: Selbri
+	= selbri_4+		{ case $1 of [s] -> s; _ -> STanru $1 }
+
+selbri_4 :: Selbri
+	= selbri_5 (joik_jek selbri_5)*
+				{ if null $2 then $1 else SeJoikJek $1 $2 }
+
+selbri_5 :: Selbri
 	= selbri_6
 
 selbri_6 :: Selbri
-	= tanru_unit			{ Selbri $1 }
+	= tanru_unit (bo selbri_6)?	{ maybe (Selbri $1) (SelbriBo $1 . snd) $2 }
 
 tanru_unit :: TanruUnit
-	= tanru_unit_1 tanru_unit_1*	{ TUTanruUnit $ $1 : $2 }
+	= tanru_unit_1
 
 tanru_unit_1 :: TanruUnit
 	= tanru_unit_2 linkargs		{ TULinkargs $1 $2 }
 	/ tanru_unit_2			{ $1 }
 
 tanru_unit_2 :: TanruUnit
-	= brivla_clause free*		{ TUBrivla $1 $2 }
+	= brivla_clause free*		{ if null $2 then TUBrivla $1 else
+						TUBrivlaFree $1 $2 }
 	/ goha_clause			{ TUGOhA $1 }
 	/ me sumti			{ TME $2 }
 	/ number moi			{ TMOI $1 $2 }
@@ -113,7 +134,7 @@ sumti :: Sumti
 	= sumti_2
 
 sumti_2 :: Sumti
-	= sumti_3 (joik_ek sumti_3)*	{ SLConnect $1 $2 }
+	= sumti_3 (joik_ek sumti_3)*	{ if null $2 then $1 else SLConnect $1 $2 }
 
 sumti_3 :: Sumti
 	= sumti_4
@@ -129,24 +150,27 @@ sumti_5 :: Sumti
 				{ SQuantifier $1 $ SRelative $2 $3 }
 	/ quantifier sumti_6	{ SQuantifier $1 $2 }
 	/ quantifier selbri relative_clause
-				{ SQuantifier $1 $ SRelative (SLE LO [] $2) $3 }
-	/ quantifier selbri	{ SQuantifier $1 $ SLE LO [] $2 }
+				{ SQuantifier $1 $ SRelative (SLEPost LO [] $2) $3 }
+	/ quantifier selbri	{ SQuantifier $1 $ SLE LO $2 }
 
 sumti_6 :: Sumti
 	= zoi_clause	{ $1 }
 	/ lerfu_string	{ SLerfu $1 }
 	/ lu text lihu	{ SLU $1 $2 }
 	/ lahe sumti	{ SLAhE $2 }
-	/ koha_clause	{ SKOhA $1 }
+	/ koha_clause	{ if null $ snd $1 then SKOhA $ fst $1 else
+				SKOhAPost (fst $1) (snd $1) }
 	/ la cmene+	{ SCmene $1 $2 }
 	/ la sumti_tail ku?
 		{ case fst $2 of
 			Nothing -> SLA $1 $ snd $2
 			Just t -> SRelative (SLA $1 $ snd $2) $ RCGOI PE t }
 	/ le_clause sumti_tail ku?
-		{ case fst $2 of
-			Nothing -> SLE (fst $1) (snd $1) $ snd $2
-			Just t -> SRelative (SLE (fst $1) (snd $1) $ snd $2) $ RCGOI PE t }
+		{ case (snd $1, fst $2) of
+			([], Nothing) -> SLE (fst $1) $ snd $2
+			(_, Nothing) -> SLEPost (fst $1) (snd $1) $ snd $2
+			(_, Just t) -> SRelative (SLEPost (fst $1) (snd $1) $
+				snd $2) $ RCGOI PE t }
 	/ li__clause	{ SMex $ snd $1 }
 
 sumti_tail :: (Maybe Term, Selbri)
@@ -229,7 +253,7 @@ mex :: Quantifier
 	= quantifier
 
 quantifier :: Quantifier
-	= number !moi boi?	{ QBOI $1 $2 }
+	= number !moi boi?	{ maybe (QNumber $1) (QBOI $1) $2 }
 
 interval_property :: IntervalProperty
 	= number roi	{ IPROI $1 $2 }
@@ -275,8 +299,9 @@ joik :: JOI
 lerfu_word :: LerfWord
 	= by_clause	{ LBY (fst $1) (snd $1) }
 
-brivla_clause :: (Brivla, [[Indicator]])
-	= brivla post_clause
+brivla_clause :: Brivla
+	= brivla post_clause	{ if null $2 then $1 else
+					BrivlaPost $1 $2 }
 
 a_clause :: (A, [[Indicator]])
 	= a post_clause
@@ -366,6 +391,9 @@ cai :: CAI
 caha :: CAhA
 	= "ca\'a"	{ CAhA }
 	/ "ka\'e"	{ KAhE }
+
+co :: CO
+	= "co" !"\'"	{ CO }
 
 cu ::: CU
 	= "cu"		{ CU }
@@ -631,31 +659,37 @@ data Text
 	= TParagraphs Paragraphs
 	| Text1 (Maybe Text)
 	| TNIhO [Free] (Maybe Paragraphs)
-	| TIndicator (Maybe [Indicator]) Text
+	| TIndicator [Indicator] Text
 	deriving Show
 
 data Paragraphs
 	= ParagraphsS Paragraph
 	| ParagraphsM Paragraph ([NIhO], [Free], Paragraphs) deriving Show
-data Paragraph = Paragraph
-	Statement [(
+data Paragraph
+	= Paragraph Statement
+	| ParagraphPlus Statement [(
 		(I, [[Indicator]]),
 		[Free],
 		Maybe Statement)]
 	deriving Show
 data Statement
-	= Statement [Prenex] Sentence
-	| SBO Statement (Maybe ((I, [[Indicator]]), Maybe Tense, BO, Statement))
+	= Statement Sentence
+	| StatementPrenex [Prenex] Sentence
+	| SBO Statement ((I, [[Indicator]]), Maybe Tense, BO, Statement)
 	| SJoikJek Statement [((I, [[Indicator]]), JoikJek, Maybe Statement)]
 	deriving Show
-data Sentence = Sentence [Term] BridiTail deriving Show
+data Sentence
+	= Sentence BridiTail
+	| SentenceHead [Term] BridiTail
+	deriving Show
 data Subsentence
 	= SSentence Sentence
 	| SSubsentence Prenex Subsentence
 	deriving Show
 
 data TanruUnit
-	= TUBrivla (Brivla, [[Indicator]]) [Free]
+	= TUBrivla Brivla
+	| TUBrivlaFree Brivla [Free]
 	| TUGOhA (GOhA, [[Indicator]])
 	| TNU NU [Free] Subsentence
 	| TMOI Number MOI
@@ -666,25 +700,33 @@ data TanruUnit
 	| TJAI JAI (Maybe Tense) TanruUnit
 	deriving Show
 data BridiTail
-	= BTSelbri Selbri Term
-	| BTBridiTail BridiTail (Maybe (((GIhA, [[Indicator]]), Maybe NAI), BridiTail))
+	= BTSelbri Selbri
+	| BTSelbriTail Selbri Term
+	| BTBridiTail BridiTail (((GIhA, [[Indicator]]), Maybe NAI), BridiTail)
 	deriving Show
 data Selbri
-	= Selbri TanruUnit
+	= STanru [Selbri]
+	| Selbri TanruUnit
+	| SelbriBo TanruUnit Selbri
 	| NotSelbri (NA, [[Indicator]]) Selbri
 	| TagSelbri Tense Selbri
+	| SeJoikJek Selbri [(JoikJek, Selbri)]
+	| SeCO Selbri Selbri
 	deriving Show
 data Term
 	= TSumti Sumti
 	| TTense Tense (Maybe Sumti)
 	| TFA FA Sumti
+	| TTerms [Term]
 	| TFree [Term] [Free]
 	deriving Show
 data Sumti
-	= SKOhA (KOhA, [[Indicator]])
+	= SKOhA KOhA
+	| SKOhAPost KOhA [[Indicator]]
 	| SCmene LA [Cmene]
 	| SLA LA Selbri
-	| SLE LE [[Indicator]] Selbri
+	| SLE LE Selbri
+	| SLEPost LE [[Indicator]] Selbri
 	| SLConnect Sumti [(JoikEk, Sumti)]
 	| SGek (GA, Maybe NAI) Sumti (GI, Maybe NAI) Sumti
 	| SRelative Sumti RelativeClause
@@ -740,7 +782,8 @@ data RelativeClause
 	| RCNOI NOI Subsentence
 	deriving Show
 data Quantifier
-	= QBOI Number (Maybe BOI)
+	= QNumber Number
+	| QBOI Number BOI
 	deriving Show
 data LerfWord
 	= LBY BY [[Indicator]]
@@ -757,7 +800,10 @@ data JoikEk
 	| JEEk (A, [[Indicator]])
 	deriving Show
 
-data Brivla = Brivla String deriving Show
+data Brivla
+	= Brivla String
+	| BrivlaPost Brivla [[Indicator]]
+	deriving Show
 data Cmene = Cmene String deriving Show
 
 data A = E | JI deriving Show
@@ -783,6 +829,7 @@ data BY = KY | LY | PY | SY
 	deriving Show
 data CAI = SAI deriving Show
 data CAhA = CAhA | KAhE deriving Show
+data CO = CO deriving Show
 data CU = CU deriving Show
 data DOI = DOI deriving Show
 data FA = FA | FE | FI | FO | FAI deriving Show
@@ -850,7 +897,7 @@ data ZOI = ZOI | LAhO deriving Show
 data ZOhU = ZOhU deriving Show
 
 main :: IO ()
-main = interact $ (++ "\n") . show . parseString whole "<stdin>" . preprocess
+main = interact $ (++ "\n") . either show show . parseString whole "<stdin>" . preprocess
 
 preprocess :: String -> String
 preprocess "" = ""
