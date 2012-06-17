@@ -1449,7 +1449,9 @@ brivla-head <- !cmavo !slinkuhi !h &onset unstressed-syllable*
 
 slinkuhi <- consonant rafsi-string
 
-rafsi-string <- y-less-rafsi* (gismu / CVV-final-rafsi / stressed-y-less-rafsi short-final-rafsi / y-rafsi / stressed-y-rafsi / stressed-y-less-rafsi? initial-pair y)
+rafsi-string <- y-less-rafsi*
+	(gismu / CVV-final-rafsi / stressed-y-less-rafsi short-final-rafsi /
+		y-rafsi / stressed-y-rafsi / stressed-y-less-rafsi? initial-pair y)
 
 ;-------------------------------------------------------------------
 
