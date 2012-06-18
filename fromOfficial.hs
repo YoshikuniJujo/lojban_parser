@@ -661,6 +661,253 @@ nahe :: NAhE = &cmavo_l
 nahu :: () = &cmavo_l n a h u &post_word	{ () }
 nihe :: () = &cmavo_l n i h e &post_word	{ () }
 
+niho :: NIhO = &cmavo_l
+	( n i h o	{ NIhO }
+	/ n o h i	{ NOhI } )
+	&post_word
+
+noi :: NOI = &cmavo_l
+	( v o i		{ VOI }
+	/ n o i		{ NOI }
+	/ p o i		{ POI } )
+	&post_word
+
+nu :: NU = &cmavo_l
+	( n i		{ NI }
+	/ d u h u	{ DUhU }
+	/ s i h o	{ SIhO }
+	/ n u		{ NU }
+	/ l i h i	{ LIhI }
+	/ k a		{ KA }
+	/ j e i		{ JEI }
+	/ s u h u	{ SUhU }
+	/ z u h o	{ ZUhO }
+	/ m u h e	{ MUhE }
+	/ p u h u	{ PUhU }
+	/ z a h i	{ ZAhI } )
+	&post_word
+
+nuha :: () = &cmavo_l n u h a &post_word		{ () }
+nuhi :: () = &cmavo_l n u h i &post_word		{ () }
+nuhu :: () = &cmavo_l n u h u &post_word		{ () }
+
+pa :: PA = &cmavo_l
+	( d a u		{ DAU }
+	/ f e i		{ FEI }
+	/ j a u		{ JAU }
+	/ r e i		{ REI }
+	/ v a i		{ VAI }
+	/ p i h e	{ PIhE }
+	/ p i		{ PI }
+	/ f i h u	{ FIhU }
+	/ z a h u	{ ZAhU }
+	/ m e h i	{ MEhI }
+	/ n i h u	{ NIhU }
+	/ k i h o	{ KIhO }
+	/ c e h i	{ CEhI }
+	/ m a h u	{ MAhU }
+	/ r a h e	{ RAhE }
+	/ d a h a	{ DAhA }
+	/ s o h a	{ SOhA }
+	/ j i h i	{ JIhI }
+	/ s u h o	{ SUhO }
+	/ s u h e	{ SUhE }
+	/ r o		{ RO }
+	/ r a u		{ RAU }
+	/ s o h u	{ SOhU }
+	/ s o h i	{ SOhI }
+	/ s o h e	{ SOhE }
+	/ s o h o	{ SOhO }
+	/ m o h a	{ MOhA }
+	/ d u h e	{ DUhE }
+	/ t e h o	{ TEhO }
+	/ k a h o	{ KAhO }
+	/ c i h i	{ CIhI }
+	/ t u h o	{ TUhO }
+	/ x o		{ XO }
+	/ p a i		{ PAI }
+	/ n o h o	{ NOhO }
+	/ n o		{ NO }
+	/ p a		{ PA }
+	/ r e		{ RE }
+	/ c i		{ CI }
+	/ v o		{ VO }
+	/ m u		{ MU }
+	/ x a		{ XA }
+	/ z e		{ ZE }
+	/ b i		{ BI }
+	/ s o		{ SO }
+	/ digit		{ case $1 of
+				'0' -> NO
+				'1' -> PA
+				'2' -> RE
+				'3' -> CI
+				'4' -> VO
+				'5' -> MU
+				'6' -> XA
+				'7' -> ZE
+				'8' -> BI
+				'9' -> SO } )
+	&post_word
+
+pehe :: () = &cmavo_l p e h e &post_word		{ () }
+peho :: () = &cmavo_l p e h o &post_word		{ () }
+
+pu :: PU = &cmavo_l
+	( b a		{ BA }
+	/ p u		{ PU }
+	/ c a		{ CA } )
+	&post_word
+
+raho :: () = &cmavo_l r a h o &post_word		{ () }
+
+roi :: ROI = &cmavo_l
+	( r e h u	{ REhU }
+	/ r o i		{ ROI } )
+	&post_word
+
+sa :: () = &cmavo_l s a &post_word			{ () }
+
+se :: SE = &cmavo_l
+	( s e		{ SE }
+	/ t e		{ TE }
+	/ v e		{ VE }
+	/ x e		{ XE } )
+	&post_word
+
+sei :: SEI = &cmavo_l
+	( s e i		{ SEI }
+	/ t i h o	{ TIhO } )
+	&post_word
+
+sehu :: () = &cmavo_l s e h u &post_word		{ () }
+si :: () = &cmavo_l s i &post_word			{ () }
+soi :: () = &cmavo_l s o i &post_word			{ () }
+su :: () = &cmavo_l s u &post_word			{ () }
+
+tahe :: TAhE = &cmavo_l
+	( r u h i	{ RUhI }
+	/ t a h e	{ TAhE }
+	/ d i h i	{ DIhI }
+	/ n a h o	{ NAhO } )
+	&post_word
+
+tehu :: () = &cmavo_l t e h u &post_word		{ () }
+tei :: () = &cmavo_l t e i &post_word			{ () }
+
+to :: TO = &cmavo_l
+	( t o h i	{ TOhI }
+	/ t o		{ TO } )
+	&post_word
+
+toi :: () = &cmavo_l t o i &post_word			{ () }
+tuhe :: () = &cmavo_l t u h e &post_word		{ () }
+tuhu :: () = &cmavo_l t u h u &post_word		{ () }
+
+ui :: UI = &cmavo
+	( i h a		{ IhA }
+	/ i e		{ IE }
+	/ a h e		{ AhE }
+	/ u h i		{ UhI }
+	/ i h o		{ IhO }
+	/ i h e		{ IhE }
+	/ a h a		{ AhA }
+	/ i a		{ IA }
+	/ o h i		{ OhI }
+	/ o h e		{ OhE }
+	/ e h e		{ EhE }
+	/ o i		{ OI }
+	/ u o		{ UO }
+	/ e h i		{ EhI }
+	/ u h o		{ UhO }
+	/ a u		{ AU }
+	/ u a		{ UA }
+	/ a h i		{ AhI }
+	/ i h u		{ IhU }
+	/ i i		{ II }
+	/ u h a		{ UhA }
+	/ u i		{ UI }
+	/ a h o		{ AhO }
+	/ a i		{ AI }
+	/ a h u		{ AhU }
+	/ i u		{ IU }
+	/ e i		{ EI }
+	/ o h o		{ OhO }
+	/ e h a		{ EhA }
+	/ u u		{ UU }
+	/ o h a		{ OhA }
+	/ o h u		{ OhU }
+	/ u h u		{ UhU }
+	/ e h o		{ EhO }
+	/ i o		{ IO }
+	/ e h u		{ EhU }
+	/ u e		{ UE }
+	/ i h i		{ IhI }
+	/ u h e		{ UhE }
+	/ b a h a	{ BAhA }
+	/ j a h o	{ JAhO }
+	/ c a h e	{ CAhE }
+	/ s u h a	{ SUhA }
+	/ t i h e	{ TIhE }
+	/ k a h u	{ KAhU }
+	/ s e h o	{ SEhO }
+	/ z a h a	{ ZAhA }
+	/ p e h i	{ PEhI }
+	/ r u h a	{ RUhA }
+	/ j u h a	{ JUhA }
+	/ t a h o	{ TAhO }
+	/ r a h u	{ RAhU }
+	/ l i h a	{ LIhA }
+	/ b a h u	{ BAhU }
+	/ m u h a	{ MUhA }
+	/ d o h a	{ DOhA }
+	/ t o h u	{ TOhU }
+	/ v a h i	{ VAhI }
+	/ p a h e	{ PAhE }
+	/ z u h u	{ ZUhU }
+	/ s a h e	{ SAhE }
+	/ l a h a	{ LAhA }
+	/ k e h u	{ KEhU }
+	/ s a h u	{ SAhU }
+	/ d a h i	{ DAhI }
+	/ j e h u	{ JEhU }
+	/ s a h a	{ SAhA }
+	/ k a u		{ KAU }
+	/ t a h u	{ TAhU }
+	/ n a h i	{ NAhI }
+	/ j o h a	{ JOhA }
+	/ b i h u	{ BIhU }
+	/ l i h o	{ LIhO }
+	/ p a u		{ PAU }
+	/ m i h u	{ MIhU }
+	/ k u h i	{ KUhI }
+	/ j i h a	{ JIhA }
+	/ s i h a	{ SIhA }
+	/ p o h o	{ POhO }
+	/ p e h a	{ PEhA }
+	/ r o h i	{ ROhI }
+	/ r o h e	{ ROhE }
+	/ r o h o	{ ROhO }
+	/ r o h u	{ ROhU }
+	/ r o h a	{ ROhA }
+	/ r e h e	{ REhE }
+	/ l e h o	{ LEhO }
+	/ j u h o	{ JUhO }
+	/ f u h i	{ FUhI }
+	/ d a i		{ DAI }
+	/ g a h i	{ GAhI }
+	/ z o h o	{ ZOhO }
+	/ b e h u	{ BEhU }
+	/ r i h e	{ RIhE }
+	/ s e h i	{ SEhI }
+	/ s e h a	{ SEhA }
+	/ v u h e	{ VUhE }
+	/ k i h a	{ KIhA }
+	/ x u		{ XU }
+	/ g e h e	{ GEhE }
+	/ b u h o	{ BUhO } )
+	&post_word
+
 |]
 
 data A = A | E | JI | O | U deriving Show
