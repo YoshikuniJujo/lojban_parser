@@ -12,7 +12,31 @@ import Data.Maybe
 cmene :: String = cmene_l
 brivla :: String = gismu / lujvo / fuhivla
 cmavo :: ()
-	= a_   { () } / bai  { () } / bu   { () }
+	= a_   { () } / bai  { () } / bahe { () } / be   { () } / bei  { () }
+	/ beho { () } / bihe { () } / bihi { () } / bo   { () } / boi  { () }
+	/ bu   { () } / by   { () } / caha { () } / cai  { () } / cei  { () }
+	/ cehe { () } / co   { () } / coi  { () } / cu   { () } / cuhe { () }
+	/ daho { () } / doi  { () } / dohu { () } / fa   { () } / faha { () }
+	/ faho { () } / fehe { () } / fehu { () } / fiho { () } / foi  { () }
+	/ fuha { () } / fuhe { () } / fuho { () } / ga   { () } / gaho { () }
+	/ gehu { () } / gi   { () } / giha { () } / goi  { () } / goha { () }
+	/ guha { () } / i_   { () } / ja   { () } / jai  { () } / johi { () }
+	/ joi  { () } / ke   { () } / kehe { () } / kei  { () } / ki   { () }
+	/ koha { () } / ku   { () } / kuhe { () } / kuho { () } / la   { () }
+	/ lau  { () } / lahe { () } / le   { () } / lehu { () } / li   { () }
+	/ lihu { () } / loho { () } / lohu { () } / lu   { () } / luhu { () }
+	/ maho { () } / mai  { () } / me   { () } / mehu { () } / mohe { () }
+	/ mohi { () } / moi  { () } / na   { () } / nai  { () } / nahe { () }
+	/ nahu { () } / nihe { () } / niho { () } / noi  { () } / nu   { () }
+	/ nuha { () } / nuhi { () } / nuhu { () } / pa   { () } / pehe { () }
+	/ peho { () } / pu   { () } / raho { () } / roi  { () } / sa   { () }
+	/ se   { () } / sei  { () } / sehu { () } / si   { () } / soi  { () }
+	/ su   { () } / tahe { () } / tehu { () } / tei  { () } / to   { () }
+	/ toi  { () } / tuhe { () } / tuhu { () } / ui   { () } / va   { () }
+	/ vau  { () } / vei  { () } / veho { () } / vuhu { () } / veha { () }
+	/ viha { () } / vuho { () } / xi   { () } / zaho { () } / zeha { () }
+	/ zei  { () } / zi   { () } / zihe { () } / zo   { () } / zoi  { () }
+	/ zohu { () } / cmavo_l { () }
 
 -------------------------------------------------------------------- 1388
 
@@ -606,6 +630,29 @@ ku :: () = &cmavo_l k u &post_word		{ () }
 kuhe :: () = &cmavo_l k u h e &post_word	{ () }
 kuho :: () = &cmavo_l k u h o &post_word	{ () }
 
+la :: LA = &cmavo_l
+	( l a i		{ LAI }
+	/ l a h i	{ LAhI }
+	/ l a		{ LA } )
+	&post_word
+
+lau :: LAU = &cmavo_l
+	( c e h a	{ CEhA }
+	/ l a u		{ LAU }
+	/ z a i		{ ZAI }
+	/ t a u		{ TAU } )
+	&post_word
+
+lahe :: LAhE = &cmavo_l
+	( t u h a	{ TUhA }
+	/ l u h a	{ LUhA }
+	/ l u h o	{ LUhO }
+	/ l a h e	{ LAhE }
+	/ v u h i	{ VUhI }
+	/ l u h i	{ LUhI }
+	/ l u h e	{ LUhE } )
+	&post_word
+
 le :: LE = &cmavo_l
 	( l e i		{ LEI }
 	/ l o i		{ LOI }
@@ -1056,6 +1103,9 @@ data KOhA
 	| DE   | DI   | KO   | MI   | DO
 	deriving Show
 
+data LA = LAI | LAhI | LA deriving Show
+data LAU = CEhA | LAU | ZAI | TAU deriving Show
+data LAhE = TUhA | LUhA | LUhO | LAhE | VUhI | LUhI | LUhE deriving Show
 data LE = LEI | LOI | LEhI | LOhI | LEhE | LOhE | LO | LE deriving Show
 data MAI = MOhO | MAI deriving Show
 data MOI = MEI | MOI | SIhE | CUhO | VAhE deriving Show

@@ -1787,7 +1787,9 @@ LA <- &cmavo ( l a i / l a h i / l a ) &post-word
 
 LAU <- &cmavo ( c e h a / l a u / z a i / t a u ) &post-word
 
-LAhE <- &cmavo ( t u h a / l u h a / l u h o / l a h e / v u h i / l u h i / l u h e ) &post-word
+LAhE <- &cmavo
+	( t u h a / l u h a / l u h o / l a h e / v u h i / l u h i / l u h e )
+	&post-word
 
 LE <- &cmavo
 	( l e i / l o i / l e h i / l o h i / l e h e / l o h e / l o / l e )
