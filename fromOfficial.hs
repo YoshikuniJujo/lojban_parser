@@ -9,6 +9,8 @@ import Data.Char
 
 [peggy|
 
+test_parser :: TanruUnit = tanru_unit_2	eof { $1 }
+
 --- GRAMMAR --- 23
 
 tanru_unit_2 :: TanruUnit
@@ -16,16 +18,37 @@ tanru_unit_2 :: TanruUnit
 
 -- text ::
 
+indicators :: (Bool, [Indicator]) = _FUhE_clause? indicator+
+	{ (isJust $1, $2) }
+indicator :: Indicator =
+	( (_UI_clause { Left $1 } / _CAI_clause { Right $1 }) _NAI_clause?
+				{ case ($1, $2) of
+					(Left ui, Nothing) -> IUI ui
+					(Left ui, Just nai) -> IUINAI ui nai
+					(Right cai, Nothing) -> ICAI cai
+					(Right cai, Just nai) -> ICAINAI cai nai }
+	/ _DAhO_clause		{ IDAhO $1 }
+	/ _FUhO_clause		{ IFUhO $1 } )
+	!_BU_clause
+
 -- ****************** 473
 -- Magic Words
 -- ******************
 
 -- zei_clause :: String = pre_clause zei_clause_no_pre	{ $2 }
--- zei_clause_no_pre :: String = 
+zei_clause_no_pre :: ()
+	= pre_zei_bu (zei_tail? bu_tail)* zei_tail post_clause	{ () }
 
--- pre_zei_bu :: ()
---	= (!_BU_clause !_ZEI_clause !_SI_clause !_SA_clause !_SU_clause
---		!_FAhO_clause any_word_sa_handling) si_clause?
+bu_clause_no_pre :: ()
+	= pre_zei_bu (bu_tail? zei_tail)* bu_tail post_clause	{ () }
+
+zei_tail :: () = (_ZEI_clause lojban_word)+		{ () }
+bu_tail :: () = _BU_clause+				{ () }
+
+pre_zei_bu :: ()
+	= (!_BU_clause !_ZEI_clause !_SI_clause !_SA_clause !_SU_clause
+		!_FAhO_clause any_word_SA_handling) si_clause?
+	{ () }
 
 -- General Morphology Issues 498
 
@@ -35,17 +58,18 @@ tanru_unit_2 :: TanruUnit
 
 -- Handling of what can go after a cmavo
 {-
-post_clause :: ()
-	= spaces? si_clause? !zei__clause !bu_clause indicators*		{ () }
 -}
--- pre_clause :: () = bahe_clause?						{ () }
-post_clause :: () = spaces?	{ () }
-pre_clause :: Int = &.		{ 123 }
+post_clause :: [(Bool, [Indicator])]
+	= spaces? si_clause? !_ZEI_clause !_BU_clause indicators*
+	{ $3 }
+pre_clause :: [BAhE] = _BAhE_clause?			{ fromMaybe [] $1 }
 
-{-
 any_word_SA_handling :: ()
-	= _BRIVLA_pre / known_cmavo_SA / _CMAVO_pre / _CMENE_pre
--}
+	= _BRIVLA_pre					{ () }
+	/ known_cmavo_SA / _CMAVO_pre / _CMENE_pre	{ () }
+
+known_cmavo_SA :: ()
+	= _A_pre { () }
 
 -- Handling of spaces and things like spaces.
 --- SPACE --- 534
@@ -54,27 +78,40 @@ any_word_SA_handling :: ()
 
 -- Handling of SI and interactions with zo and lo'u...le'u
 
--- si_clause :: ()
---	= ((erasable_clause / si_word / sa_clause) si_clause? _SI_clause)+	{ () }
+si_clause :: ()
+	= ((erasable_clause / si_word / _SA_clause) si_clause? _SI_clause)+
+	{ () }
 
--- si_word :: () = pre_zei_bu
+erasable_clause :: ()
+	= bu_clause_no_pre !_ZEI_clause !_BU_clause		{ () }
+	/ zei_clause_no_pre !_ZEI_clause !_BU_clause		{ () }
+
+si_word :: () = pre_zei_bu
 
 --- SELMAHO --- 553
 
 _BRIVLA_clause :: Clause BRIVLA
-	= _BRIVLA_pre _BRIVLA_post				{ Raw $ snd $1 }
+	= _BRIVLA_pre _BRIVLA_post	{ case ($1, $2) of
+						(([], br), []) -> Raw br
+						((bahe, br), []) -> Pre bahe br
+						(([], br), ui) -> Post br ui }
 --	/ zei_clause
-_BRIVLA_pre :: (Int, BRIVLA) = pre_clause _BRIVLA spaces?	{ ($1 ,$2) }
-_BRIVLA_post :: [Indicator] = post_clause			{ [] }
+_BRIVLA_pre :: ([BAhE], BRIVLA)
+	= pre_clause _BRIVLA spaces?		{ ($1, $2) }
+_BRIVLA_post :: [(Bool, [Indicator])] = post_clause
 
 _CMENE_pre :: CMENE = pre_clause _CMENE spaces?			{ $2 }
 
 _CMAVO_pre :: () = pre_clause _CMAVO spaces?			{ () }
 
+--	eks; basic afterthought logical connectives
+_A_pre :: A = pre_clause _A spaces?				{ $2 }
+
 --	next word intensifier
--- _BAhE_clause :: 
+_BAhE_clause :: [BAhE] = (_BAhE_pre _BAhE_post)+		{ map fst $1 }
 _BAhE_pre :: BAhE = _BAhE spaces?				{ $1 }
--- _BAhE_post :: () = si_clause? !zei_clause !bu_clause	{ () }
+_BAhE_post :: () = si_clause? !_ZEI_clause !_BU_clause		{ () }
+_BAhE_no_SA_handling :: () = _BAhE spaces? _BAhE_post		{ () }
 
 --	turns any word into a BY lerfu word
 _BU_clause :: () = _BU_pre _BU_post		{ () }
@@ -82,18 +119,88 @@ _BU_clause :: () = _BU_pre _BU_post		{ () }
 _BU_pre :: () = _BU spaces?			{ () }
 _BU_post :: () = spaces?			{ () }
 
+--	afterthought intensity marker
+_CAI_clause :: Clause CAI = _CAI_pre _CAI_post			{ Raw $1 }
+_CAI_pre :: CAI = pre_clause _CAI spaces?			{ $2 }
+_CAI_post :: () = post_clause					{ () }
+_CAI_no_SA_handling :: () = pre_clause _CAI post_clause		{ () }
+
+--	cancel anaphoracataphora assignments
+_DAhO_clause :: Clause Unit = _DAhO_pre _DAhO_post		{ Raw () }
+_DAhO_pre :: () = pre_clause _DAhO spaces?			{ () }
+_DAhO_post :: () = post_clause					{ () }
+_DAhO_no_SA_handling :: () = pre_clause _DAhO post_clause	{ () }
+
+--	normally elided 'done pause' to indicate end of utterance string
+_FAhO_clause :: () = pre_clause _FAhO spaces?	{ () }
+
+--	open long scope for indicator
+_FUhE_clause :: Clause Unit = _FUhE_pre _FUhE_post		{ Raw () }
+_FUhE_pre :: () = pre_clause _FUhE spaces?			{ () }
+_FUhE_post :: () = !_BU_clause spaces? !_ZEI_clause !_BU_clause	{ () }
+_FUhE_no_SA_handling :: () = pre_clause _FUhE post_clause	{ () }
+
+--	close long scope for indicator
+_FUhO_clause :: Clause Unit = _FUhO_pre _FUhO_post		{ Raw () }
+_FUhO_pre :: () = pre_clause _FUhO spaces?			{ () }
+_FUhO_post :: () = post_clause					{ () }
+_FUhO_no_SA_handling :: () = pre_clause _FUhO post_clause	{ () }
+
+--	attached to words to negate them
+_NAI_clause :: Clause Unit = _NAI_pre _NAI_post			{ Post () $2 }
+_NAI_pre :: () = pre_clause _NAI spaces?			{ () }
+_NAI_post :: [(Bool, [Indicator])] = post_clause
+_NAI_no_SA_handling :: () = pre_clause _NAI post_clause		{ () }
+
+--	metalinguistic eraser to the beginning of the current utterance
+_SA_clause :: () = _SA_pre _SA_post		{ () }
+_SA_pre :: () = pre_clause _SA spaces?		{ () }
+_SA_post :: () = spaces?			{ () }
+
 --	metalinguistic single word eraser
 _SI_clause :: () = spaces? _SI spaces?		{ () }
 
+--	metalinguistic eraser of the entire text
+_SU_clause :: () = _SU_pre _SU_post		{ () }
+_SU_pre :: () = pre_clause _SU spaces?		{ () }
+_SU_post :: () = post_clause			{ () }
+
+--	attitudinals, observationals, discursives
+_UI_clause :: Clause UI = _UI_pre _UI_post				{ Raw $1 }
+_UI_pre :: UI = pre_clause _UI spaces?					{ $2 }
+_UI_post :: () = post_clause						{ () }
+_UI_no_SA_handling :: () = pre_clause _UI post_clause			{ () }
+
 --	lujvo glue
-_ZEI_clause :: () = _ZEI_pre _ZEI_post		{ () }
--- _ZEI_pre :: () = pre_clause _ZEI spaces?
-_ZEI_pre :: () = _ZEI spaces?			{ () }
-_ZEI_post :: () = spaces?			{ () }
+_ZEI_clause :: Clause Unit = _ZEI_pre _ZEI_post				{ Raw () }
+_ZEI_clause_no_SA :: () = _ZEI_pre_no_SA _ZEI _ZEI_post			{ () }
+_ZEI_pre :: () = pre_clause _ZEI spaces?				{ () }
+_ZEI_pre_no_SA :: () = pre_clause					{ () }
+_ZEI_post :: () = spaces?						{ () }
+_ZEI_no_SA_handling :: () = pre_clause _ZEI post_clause			{ () }
+
+--	time distance tense
+_ZI_clause :: Clause ZI = _ZI_pre _ZI_post				{ Raw $1 }
+_ZI_pre :: ZI = pre_clause _ZI spaces?					{ $2 }
+_ZI_post :: () = post_clause						{ () }
+_ZI_no_SA_handling :: () = pre_clause _ZI post_clause			{ () }
+
+--	conjoins relative clauses
+_ZIhE_clause :: Clause Unit = _ZIhE_pre _ZIhE_post			{ Raw () }
+_ZIhE_pre :: () = pre_clause _ZIhE spaces?				{ () }
+_ZIhE_post :: () = post_clause						{ () }
+_ZIhE_no_SA_handling :: () = pre_clause _ZIhE post_clause		{ () }
+
+--	single word metalinguistic quote marker
+_ZO_clause :: Clause Quote = _ZO_pre _ZO_post				{ Raw $1 }
+_ZO_pre :: Quote = pre_clause _ZO spaces? lojban_word spaces?
+	{  SingleWordQuote $4 }
+_ZO_post :: () = post_clause						{ () }
+_ZO_no_SA_handling :: () = pre_clause _ZO spaces? lojban_word spaces?	{ () }
 
 --	delimited quote marker
-_ZOI_clause :: Clause DelimitedQuote = _ZOI_pre _ZOI_post		{ Raw $1 }
-_ZOI_pre :: DelimitedQuote
+_ZOI_clause :: Clause Quote = _ZOI_pre _ZOI_post			{ Raw $1 }
+_ZOI_pre :: Quote
 	= pre_clause _ZOI spaces? "\x00" zoi_word* "\x00" spaces?
 	{ DelimitedQuote $2 $4 }
 _ZOI_post :: () = post_clause						{ () }
@@ -142,7 +249,7 @@ _CMAVO :: ()
 
 words :: [String] = pause? (word pause?)*		{ map fst $2 }
 word :: String = lojban_word / non_lojban_word
-lojban_word :: String = cmene / cmavo / brivla_l
+lojban_word :: String = cmene / cmavo / brivla
 
 -------------------------------------------------------------------- 1396
 
@@ -165,7 +272,7 @@ cmavo_form :: String
 
 -------------------------------------------------------------------- 1420
 
-brivla_l :: String = !cmavo initial_rafsi* brivla_core	{ concat $1 ++ $2 }
+brivla :: String = !cmavo initial_rafsi* brivla_core	{ concat $1 ++ $2 }
 
 brivla_core :: String
 	= fuhivla / gismu / cvv_final_rafsi
@@ -378,7 +485,7 @@ initial_spaces :: ()
 	= (comma* space_char { () } / !ybu y { () })+ eof?	{ () }
 	/ eof
 ybu :: Lerfu = y space_char* _BU				{ Lerfu 'y' }
-lujvo :: String = !gismu !fuhivla brivla_l
+lujvo :: String = !gismu !fuhivla brivla
 
 -------------------------------------------------------------------- 1646
 
@@ -1151,12 +1258,25 @@ _ZOhU :: () = &cmavo z o h u &post_word	{ () }
 data TanruUnit = TUBRIVLA (Clause BRIVLA)
 	deriving Show
 
-data DelimitedQuote = DelimitedQuote ZOI String deriving Show
+data Quote
+	= SingleWordQuote String
+	| DelimitedQuote ZOI String
+	deriving Show
 
 data Clause a
-	= Raw a | Pre [BAhE] a | Post a [Indicator] | PrePost [BAhE] a [Indicator]
+	= Raw a
+	| Pre [BAhE] a
+	| Post a [(Bool, [Indicator])]
+	| PrePost [BAhE] a [(Bool, [Indicator])]
 	deriving Show
-data Indicator = Indicator deriving Show
+data Indicator
+	= IUI (Clause UI)
+	| IUINAI (Clause UI) (Clause ())
+	| ICAI (Clause CAI)
+	| ICAINAI (Clause CAI) (Clause ())
+	| IDAhO (Clause ())
+	| IFUhO (Clause ())
+	deriving Show
 
 data BRIVLA = BRIVLA String deriving Show
 data CMENE = CMENE String deriving Show
@@ -1276,7 +1396,7 @@ data ZOI = ZOI | LAhO deriving Show
 
 main :: IO ()
 main = interact $ (++ "\n") . either show show .
-	parseString tanru_unit_2 "<stdin>" . preprocess
+	parseString test_parser "<stdin>" . preprocess
 
 type Unit = ()
 
