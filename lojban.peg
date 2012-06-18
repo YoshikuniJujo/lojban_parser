@@ -541,7 +541,9 @@ su-clause <- (erasable-clause / su-word)* SU-clause
 
 si-clause <- ((erasable-clause / si-word / SA-clause) si-clause? SI-clause)+
 
-erasable-clause <- bu-clause-no-pre !ZEI-clause !BU-clause / zei-clause-no-pre !ZEI-clause !BU-clause
+erasable-clause <-
+	bu-clause-no-pre !ZEI-clause !BU-clause /
+	zei-clause-no-pre !ZEI-clause !BU-clause
 
 sa-word <- pre-zei-bu
 

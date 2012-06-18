@@ -7,53 +7,147 @@ import Data.Maybe
 
 [peggy|
 
---- MORPHOLOGY ---
+--- GRAMMAR --- 23
 
-cmene :: String = cmene_l
-brivla :: String = gismu / lujvo / fuhivla
-cmavo :: ()
-	= a_   { () } / bai  { () } / bahe { () } / be   { () } / bei  { () }
-	/ beho { () } / bihe { () } / bihi { () } / bo   { () } / boi  { () }
-	/ bu   { () } / by   { () } / caha { () } / cai  { () } / cei  { () }
-	/ cehe { () } / co   { () } / coi  { () } / cu   { () } / cuhe { () }
-	/ daho { () } / doi  { () } / dohu { () } / fa   { () } / faha { () }
-	/ faho { () } / fehe { () } / fehu { () } / fiho { () } / foi  { () }
-	/ fuha { () } / fuhe { () } / fuho { () } / ga   { () } / gaho { () }
-	/ gehu { () } / gi   { () } / giha { () } / goi  { () } / goha { () }
-	/ guha { () } / i_   { () } / ja   { () } / jai  { () } / johi { () }
-	/ joi  { () } / ke   { () } / kehe { () } / kei  { () } / ki   { () }
-	/ koha { () } / ku   { () } / kuhe { () } / kuho { () } / la   { () }
-	/ lau  { () } / lahe { () } / le   { () } / lehu { () } / li   { () }
-	/ lihu { () } / loho { () } / lohu { () } / lu   { () } / luhu { () }
-	/ maho { () } / mai  { () } / me   { () } / mehu { () } / mohe { () }
-	/ mohi { () } / moi  { () } / na   { () } / nai  { () } / nahe { () }
-	/ nahu { () } / nihe { () } / niho { () } / noi  { () } / nu   { () }
-	/ nuha { () } / nuhi { () } / nuhu { () } / pa   { () } / pehe { () }
-	/ peho { () } / pu   { () } / raho { () } / roi  { () } / sa   { () }
-	/ se   { () } / sei  { () } / sehu { () } / si   { () } / soi  { () }
-	/ su   { () } / tahe { () } / tehu { () } / tei  { () } / to   { () }
-	/ toi  { () } / tuhe { () } / tuhu { () } / ui   { () } / va   { () }
-	/ vau  { () } / vei  { () } / veho { () } / vuhu { () } / veha { () }
-	/ viha { () } / vuho { () } / xi   { () } / zaho { () } / zeha { () }
-	/ zei  { () } / zi   { () } / zihe { () } / zo   { () } / zoi  { () }
-	/ zohu { () } / cmavo_l { () }
+tanru_unit_2 :: TanruUnit
+	= _BRIVLA_clause	{ TUBRIVLA $1 }
+
+-- text ::
+
+-- ****************** 473
+-- Magic Words
+-- ******************
+
+-- zei_clause :: String = pre_clause zei_clause_no_pre	{ $2 }
+-- zei_clause_no_pre :: String = 
+
+-- pre_zei_bu :: ()
+--	= (!_BU_clause !_ZEI_clause !_SI_clause !_SA_clause !_SU_clause
+--		!_FAhO_clause any_word_sa_handling) si_clause?
+
+-- General Morphology Issues 498
+
+-- 1. Spaces (including '.y') and UI are eaten *after* a word.
+
+-- 3. BAhE is eaten *before* a word.
+
+-- Handling of what can go after a cmavo
+{-
+post_clause :: ()
+	= spaces? si_clause? !zei__clause !bu_clause indicators*		{ () }
+-}
+-- pre_clause :: () = bahe_clause?						{ () }
+post_clause :: () = spaces?	{ () }
+pre_clause :: Int = &.		{ 123 }
+
+{-
+any_word_SA_handling :: ()
+	= _BRIVLA_pre / known_cmavo_SA / _CMAVO_pre / _CMENE_pre
+-}
+
+-- Handling of spaces and things like spaces.
+--- SPACE --- 534
+
+-- SU clauses
+
+-- Handling of SI and interactions with zo and lo'u...le'u
+
+-- si_clause :: ()
+--	= ((erasable_clause / si_word / sa_clause) si_clause? _SI_clause)+	{ () }
+
+-- si_word :: () = pre_zei_bu
+
+--- SELMAHO --- 553
+
+_BRIVLA_clause :: Clause BRIVLA
+	= _BRIVLA_pre _BRIVLA_post				{ Raw $ snd $1 }
+--	/ zei_clause
+_BRIVLA_pre :: (Int, BRIVLA) = pre_clause _BRIVLA spaces?	{ ($1 ,$2) }
+_BRIVLA_post :: [Indicator] = post_clause			{ [] }
+
+_CMENE_pre :: CMENE = pre_clause _CMENE spaces?			{ $2 }
+
+_CMAVO_pre :: () = pre_clause _CMAVO spaces?			{ () }
+
+--	next word intensifier
+-- _BAhE_clause :: 
+_BAhE_pre :: BAhE = _BAhE spaces?				{ $1 }
+-- _BAhE_post :: () = si_clause? !zei_clause !bu_clause	{ () }
+
+--	turns any word into a BY lerfu word
+_BU_clause :: () = _BU_pre _BU_post		{ () }
+-- _BU_pre :: () = pre_clause _BU spaces?
+_BU_pre :: () = _BU spaces?			{ () }
+_BU_post :: () = spaces?			{ () }
+
+--	metalinguistic single word eraser
+_SI_clause :: () = spaces? _SI spaces?		{ () }
+
+--	lujvo glue
+_ZEI_clause :: () = _ZEI_pre _ZEI_post		{ () }
+-- _ZEI_pre :: () = pre_clause _ZEI spaces?
+_ZEI_pre :: () = _ZEI spaces?			{ () }
+_ZEI_post :: () = spaces?			{ () }
+
+{-
+--	delimited quote marker
+_ZOI_clause :: ZOI = _ZOI_pre _ZOI_post				{ $1 }
+_ZOI_pre :: ZOI = pre_clause _ZOI
+-}
+
+--	prenex terminator (not elidable)
+_ZOhU_clause :: Clause Unit = _ZOhU_pre _ZOhU_post		{ Raw () }
+_ZOhU_pre :: () = pre_clause _ZOhU spaces?			{ () }
+_ZOhU_post :: () = post_clause					{ () }
+_ZOhU_no_SA_handling :: () = pre_clause _ZOhU post_clause	{ () }
+
+--- MORPHOLOGY --- 1334
+
+_CMENE :: CMENE = cmene						{ CMENE $1 }
+_BRIVLA :: BRIVLA = (gismu / lujvo / fuhivla)			{ BRIVLA $1 }
+_CMAVO :: ()
+	= _A   	{ () } / _BAI  { () } / _BAhE { () } / _BE   { () } / _BEI  { () }
+	/ _BEhO { () } / _BIhE { () } / _BIhI { () } / _BO   { () } / _BOI  { () }
+	/ _BU   { () } / _BY   { () } / _CAhA { () } / _CAI  { () } / _CEI  { () }
+	/ _CEhE { () } / _CO   { () } / _COI  { () } / _CU   { () } / _CUhE { () }
+	/ _DAhO { () } / _DOI  { () } / _DOhU { () } / _FA   { () } / _FAhA { () }
+	/ _FAhO { () } / _FEhE { () } / _FEhU { () } / _FIhO { () } / _FOI  { () }
+	/ _FUhA { () } / _FUhE { () } / _FUhO { () } / _GA   { () } / _GAhO { () }
+	/ _GEhU { () } / _GI   { () } / _GIhA { () } / _GOI  { () } / _GOhA { () }
+	/ _GUhA { () } / _I    { () } / _JA   { () } / _JAI  { () } / _JOhI { () }
+	/ _JOI  { () } / _KE   { () } / _KEhE { () } / _KEI  { () } / _KI   { () }
+	/ _KOhA { () } / _KU   { () } / _KUhE { () } / _KUhO { () } / _LA   { () }
+	/ _LAU  { () } / _LAhE { () } / _LE   { () } / _LEhU { () } / _LI   { () }
+	/ _LIhU { () } / _LOhO { () } / _LOhU { () } / _LU   { () } / _LUhU { () }
+	/ _MAhO { () } / _MAI  { () } / _ME   { () } / _MEhU { () } / _MOhE { () }
+	/ _MOhI { () } / _MOI  { () } / _NA   { () } / _NAI  { () } / _NAhE { () }
+	/ _NAhU { () } / _NIhE { () } / _NIhO { () } / _NOI  { () } / _NU   { () }
+	/ _NUhA { () } / _NUhI { () } / _NUhU { () } / _PA   { () } / _PEhE { () }
+	/ _PEhO { () } / _PU   { () } / _RAhO { () } / _ROI  { () } / _SA   { () }
+	/ _SE   { () } / _SEI  { () } / _SEhU { () } / _SI   { () } / _SOI  { () }
+	/ _SU   { () } / _TAhE { () } / _TEhU { () } / _TEI  { () } / _TO   { () }
+	/ _TOI  { () } / _TUhE { () } / _TUhU { () } / _UI   { () } / _VA   { () }
+	/ _VAU  { () } / _VEI  { () } / _VEhO { () } / _VUhU { () } / _VEhA { () }
+	/ _VIhA { () } / _VUhO { () } / _XI   { () } / _ZAhO { () } / _ZEhA { () }
+	/ _ZEI  { () } / _ZI   { () } / _ZIhE { () } / _ZO   { () } / _ZOI  { () }
+	/ _ZOhU { () } / cmavo { () }
 
 -------------------------------------------------------------------- 1388
 
 words :: [String] = pause? (word pause?)*		{ map fst $2 }
 word :: String = lojban_word / non_lojban_word
-lojban_word :: String = cmene_l / cmavo_l / brivla_l
+lojban_word :: String = cmene / cmavo / brivla_l
 
 -------------------------------------------------------------------- 1396
 
-cmene_l :: String
+cmene :: String
 	= !h &consonant_final coda? (any_syllable / digit { [$1] })* &pause
 	{ maybe (concat $2) (++ concat $2) $1 }
 consonant_final :: () = (non_space &non_space)* consonant &pause	{ () }
 
 -------------------------------------------------------------------- 1408
 
-cmavo_l :: String = !cmene_l !cvcy_lujvo cmavo_form &post_word
+cmavo :: String = !cmene !cvcy_lujvo cmavo_form &post_word
 cvcy_lujvo :: ()
 	= cvc_rafsi y h? initial_rafsi* brivla_core	{ () }
 	/ stressed_cvc_rafsi y short_final_rafsi	{ () }
@@ -65,7 +159,7 @@ cmavo_form :: String
 
 -------------------------------------------------------------------- 1420
 
-brivla_l :: String = !cmavo_l initial_rafsi* brivla_core	{ concat $1 ++ $2 }
+brivla_l :: String = !cmavo initial_rafsi* brivla_core	{ concat $1 ++ $2 }
 
 brivla_core :: String
 	= fuhivla / gismu / cvv_final_rafsi
@@ -104,7 +198,7 @@ fuhivla_rafsi :: String
 
 fuhivla_head :: String = !rafsi_string brivla_head
 brivla_head :: String
-	= !cmavo_l !slinkuhi !h &onset unstressed_syllable*	{ concat $1 }
+	= !cmavo !slinkuhi !h &onset unstressed_syllable*	{ concat $1 }
 slinkuhi :: String = consonant rafsi_string			{ $1 : $2 }
 rafsi_string :: String = y_less_rafsi*
 	( gismu
@@ -165,7 +259,7 @@ r_hyphen :: Char = r &consonant / n &r
 -------------------------------------------------------------------- 1500
 
 final_syllable :: String
-	= onset !y !stressed nucleus !cmene_l &post_word	{ $1 ++ $2 }
+	= onset !y !stressed nucleus !cmene &post_word	{ $1 ++ $2 }
 
 stressed_syllable :: String = &stressed syllable / syllable &stress
 stressed_diphthong :: (Char, Char) = &stressed diphthong / diphthong &stress
@@ -277,12 +371,12 @@ spaces :: () = !y initial_spaces				{ () }
 initial_spaces :: ()
 	= (comma* space_char { () } / !ybu y { () })+ eof?	{ () }
 	/ eof
-ybu :: Lerfu = y space_char* bu					{ Lerfu 'y' }
+ybu :: Lerfu = y space_char* _BU				{ Lerfu 'y' }
 lujvo :: String = !gismu !fuhivla brivla_l
 
 -------------------------------------------------------------------- 1646
 
-a_ :: A = &cmavo_l
+_A :: A = &cmavo
 	( a	{ A }
 	/ e	{ E }
 	/ j i	{ JI }
@@ -290,7 +384,7 @@ a_ :: A = &cmavo_l
 	/ u	{ U } )
 	&post_word
 
-bai :: BAI = &cmavo_l
+_BAI :: BAI = &cmavo
 	( d u h o	{ DUhO }
 	/ s i h u	{ SIhU }
 	/ z a u		{ ZAU  }
@@ -351,23 +445,23 @@ bai :: BAI = &cmavo_l
 	/ r a i		{ RAI  } )
 	&post_word
 
-bahe :: BAhE = &cmavo_l
+_BAhE :: BAhE = &cmavo
 	( b a h e	{ BAhE }
 	/ z a h e	{ ZAhE } )
 	&post_word
 
-be :: () = &cmavo_l b e &post_word		{ () }
-bei :: () = &cmavo_l b e i &post_word		{ () }
-beho :: () = &cmavo_l b e h o &post_word	{ () }
-bihe :: () = &cmavo_l b i h e &post_word	{ () }
-bihi :: () = &cmavo_l b i h i &post_word	{ () }
-bo :: () = &cmavo_l b o &post_word		{ () }
-boi :: () = &cmavo_l b o i &post_word		{ () }
-bu :: () = &cmavo_l (b u) &post_word		{ () }
+_BE :: () = &cmavo b e &post_word		{ () }
+_BEI :: () = &cmavo b e i &post_word		{ () }
+_BEhO :: () = &cmavo b e h o &post_word	{ () }
+_BIhE :: () = &cmavo b i h e &post_word	{ () }
+_BIhI :: () = &cmavo b i h i &post_word	{ () }
+_BO :: () = &cmavo b o &post_word		{ () }
+_BOI :: () = &cmavo b o i &post_word		{ () }
+_BU :: () = &cmavo (b u) &post_word		{ () }
 
-by :: Lerfu
+_BY :: Lerfu
 	= ybu
-	/ &cmavo_l
+	/ &cmavo
 	( j o h o	{ JOhO }
 	/ r u h o	{ RUhO }
 	/ g e h o	{ GEhO }
@@ -397,14 +491,14 @@ by :: Lerfu
 	/ z y		{ Lerfu 'z' } )
 	&post_word
 
-caha :: CAhA = &cmavo_l
+_CAhA :: CAhA = &cmavo
 	( c a h a	{ CAhA }
 	/ p u h i	{ PUhI }
 	/ n u h o	{ NUhO }
 	/ k a h e	{ KAhE } )
 	&post_word
 
-cai :: CAI = &cmavo_l
+_CAI :: CAI = &cmavo
 	( p e i		{ PEI }
 	/ c a i		{ CAI }
 	/ c u h i	{ CUhI }
@@ -412,11 +506,11 @@ cai :: CAI = &cmavo_l
 	/ r u h e	{ RUhE } )
 	&post_word
 
-cei :: () = &cmavo_l c e i &post_word		{ () }
-cehe :: () = &cmavo_l c e h e &post_word	{ () }
-co :: () = &cmavo_l c o &post_word		{ () }
+_CEI :: () = &cmavo c e i &post_word		{ () }
+_CEhE :: () = &cmavo c e h e &post_word	{ () }
+_CO :: () = &cmavo c o &post_word		{ () }
 
-coi :: COI = &cmavo_l
+_COI :: COI = &cmavo
 	( j u h i	{ JUhI }
 	/ c o i		{ COI }
 	/ f i h i	{ FIhI }
@@ -435,18 +529,18 @@ coi :: COI = &cmavo_l
 	/ v i h o	{ VIhO } )
 	&post_word
 
-cu :: () = &cmavo_l c u &post_word		{ () }
+_CU :: () = &cmavo c u &post_word		{ () }
 
-cuhe :: CUhE = &cmavo_l
+_CUhE :: CUhE = &cmavo
 	( c u h e	{ CUhE }
 	/ n a u		{ NAU } )
 	&post_word
 
-daho :: () = &cmavo_l d a h o &post_word	{ () }
-doi :: () = &cmavo_l d o i &post_word		{ () }
-dohu :: () = &cmavo_l d o h u &post_word	{ () }
+_DAhO :: () = &cmavo d a h o &post_word	{ () }
+_DOI :: () = &cmavo d o i &post_word		{ () }
+_DOhU :: () = &cmavo d o h u &post_word	{ () }
 
-fa :: FA = &cmavo_l 
+_FA :: FA = &cmavo 
 	( f a i		{ FAI }
 	/ f a		{ FA }
 	/ f e		{ FE }
@@ -456,7 +550,7 @@ fa :: FA = &cmavo_l
 	/ f i		{ FI } )
 	&post_word
 
-faha :: FAhA = &cmavo_l
+_FAhA :: FAhA = &cmavo
 	( d u h a	{ DUhA }
 	/ b e h a	{ BEhA }
 	/ n e h u	{ NEhU }
@@ -481,16 +575,16 @@ faha :: FAhA = &cmavo_l
 	/ f a h a	{ FAhA } )
 	&post_word
 
-faho :: () = &cmavo_l f a h o &post_word	{ () }
-fehe :: () = &cmavo_l f e h e &post_word	{ () }
-fehu :: () = &cmavo_l f e h u &post_word	{ () }
-fiho :: () = &cmavo_l f i h o &post_word	{ () }
-foi :: () = &cmavo_l f o i &post_word		{ () }
-fuha :: () = &cmavo_l f u h a &post_word	{ () }
-fuhe :: () = &cmavo_l f u h e &post_word	{ () }
-fuho :: () = &cmavo_l f u h o &post_word	{ () }
+_FAhO :: () = &cmavo f a h o &post_word	{ () }
+_FEhE :: () = &cmavo f e h e &post_word	{ () }
+_FEhU :: () = &cmavo f e h u &post_word	{ () }
+_FIhO :: () = &cmavo f i h o &post_word	{ () }
+_FOI :: () = &cmavo f o i &post_word		{ () }
+_FUhA :: () = &cmavo f u h a &post_word	{ () }
+_FUhE :: () = &cmavo f u h e &post_word	{ () }
+_FUhO :: () = &cmavo f u h o &post_word	{ () }
 
-ga :: GA = &cmavo_l
+_GA :: GA = &cmavo
 	( g e h i	{ GEhI }
 	/ g e		{ GE }
 	/ g o		{ GO }
@@ -498,15 +592,15 @@ ga :: GA = &cmavo_l
 	/ g u		{ GU } )
 	&post_word
 
-gaho :: GAhO = &cmavo_l
+_GAhO :: GAhO = &cmavo
 	( k e h i	{ KEhI }
 	/ g a h o	{ GAhO } )
 	&post_word
 
-gehu :: () = &cmavo_l g e h u &post_word	{ () }
-gi :: () = &cmavo_l g i &post_word		{ () }
+_GEhU :: () = &cmavo g e h u &post_word	{ () }
+_GI :: () = &cmavo g i &post_word		{ () }
 
-giha :: GIhA = &cmavo_l
+_GIhA :: GIhA = &cmavo
 	( g i h e	{ GIhE }
 	/ g i h i	{ GIhI }
 	/ g i h o	{ GIhO }
@@ -514,7 +608,7 @@ giha :: GIhA = &cmavo_l
 	/ g i h u	{ GIhU } )
 	&post_word
 
-goi :: GOI = &cmavo_l
+_GOI :: GOI = &cmavo
 	( n o h u	{ NOhU }
 	/ n e		{ NE }
 	/ g o i		{ GOI }
@@ -524,7 +618,7 @@ goi :: GOI = &cmavo_l
 	/ p o		{ PO } )
 	&post_word
 
-goha :: GOhA = &cmavo_l
+_GOhA :: GOhA = &cmavo
 	( m o		{ MO }
 	/ n e i		{ NEI }
 	/ g o h u	{ GOhU }
@@ -540,7 +634,7 @@ goha :: GOhA = &cmavo_l
 	/ c o h e	{ COhE } )
 	&post_word
 
-guha :: GUhA = &cmavo_l
+_GUhA :: GUhA = &cmavo
 	( g u h e	{ GUhE }
 	/ g u h i	{ GUhI }
 	/ g u h o	{ GUhO }
@@ -548,9 +642,9 @@ guha :: GUhA = &cmavo_l
 	/ g u h u	{ GUhU } )
 	&post_word
 
-i_ :: () = &cmavo_l i &post_word		{ () }
+_I :: () = &cmavo i &post_word		{ () }
 
-ja :: JA = &cmavo_l
+_JA :: JA = &cmavo
 	( j e h i	{ JEhI }
 	/ j e		{ JE }
 	/ j o		{ JO }
@@ -558,10 +652,10 @@ ja :: JA = &cmavo_l
 	/ j u		{ JU } )
 	&post_word
 
-jai :: () = &cmavo_l j a i &post_word		{ () }
-johi :: () = &cmavo_l j o h i &post_word	{ () }
+_JAI :: () = &cmavo j a i &post_word		{ () }
+_JOhI :: () = &cmavo j o h i &post_word	{ () }
 
-joi :: JOI = &cmavo_l
+_JOI :: JOI = &cmavo
 	( f a h u	{ FAhU }
 	/ p i h u	{ PIhU }
 	/ j o i		{ JOI }
@@ -573,12 +667,12 @@ joi :: JOI = &cmavo_l
 	/ j u h e	{ JUhE } )
 	&post_word
 
-ke :: () = &cmavo_l k e &post_word		{ () }
-kehe :: () = &cmavo_l k e h e &post_word	{ () }
-kei :: () = &cmavo_l k e i &post_word		{ () }
-ki :: () = &cmavo_l k i &post_word		{ () }
+_KE :: () = &cmavo k e &post_word		{ () }
+_KEhE :: () = &cmavo k e h e &post_word	{ () }
+_KEI :: () = &cmavo k e i &post_word		{ () }
+_KI :: () = &cmavo k i &post_word		{ () }
 
-koha :: KOhA = &cmavo_l
+_KOhA :: KOhA = &cmavo
 	( d a h u	{ DAhU }
 	/ d a h e	{ DAhE }
 	/ d i h u	{ DIhU }
@@ -626,24 +720,24 @@ koha :: KOhA = &cmavo_l
 	/ d o		{ DO } )
 	&post_word
 
-ku :: () = &cmavo_l k u &post_word		{ () }
-kuhe :: () = &cmavo_l k u h e &post_word	{ () }
-kuho :: () = &cmavo_l k u h o &post_word	{ () }
+_KU :: () = &cmavo k u &post_word		{ () }
+_KUhE :: () = &cmavo k u h e &post_word	{ () }
+_KUhO :: () = &cmavo k u h o &post_word	{ () }
 
-la :: LA = &cmavo_l
+_LA :: LA = &cmavo
 	( l a i		{ LAI }
 	/ l a h i	{ LAhI }
 	/ l a		{ LA } )
 	&post_word
 
-lau :: LAU = &cmavo_l
+_LAU :: LAU = &cmavo
 	( c e h a	{ CEhA }
 	/ l a u		{ LAU }
 	/ z a i		{ ZAI }
 	/ t a u		{ TAU } )
 	&post_word
 
-lahe :: LAhE = &cmavo_l
+_LAhE :: LAhE = &cmavo
 	( t u h a	{ TUhA }
 	/ l u h a	{ LUhA }
 	/ l u h o	{ LUhO }
@@ -653,7 +747,7 @@ lahe :: LAhE = &cmavo_l
 	/ l u h e	{ LUhE } )
 	&post_word
 
-le :: LE = &cmavo_l
+_LE :: LE = &cmavo
 	( l e i		{ LEI }
 	/ l o i		{ LOI }
 	/ l e h i	{ LEhI }
@@ -664,26 +758,26 @@ le :: LE = &cmavo_l
 	/ l e		{ LE } )
 	&post_word
 
-lehu :: () = &cmavo_l l e h u &post_word	{ () }
-li :: () = &cmavo_l l i &post_word		{ () }
-lihu :: () = &cmavo_l l i h u &post_word	{ () }
-loho :: () = &cmavo_l l o h o &post_word	{ () }
-lohu :: () = &cmavo_l l o h u &post_word	{ () }
-lu :: () = &cmavo_l l u &post_word		{ () }
-luhu :: () = &cmavo_l l u h u &post_word	{ () }
-maho :: () = &cmavo_l m a h o &post_word	{ () }
+_LEhU :: () = &cmavo l e h u &post_word	{ () }
+_LI :: () = &cmavo l i &post_word		{ () }
+_LIhU :: () = &cmavo l i h u &post_word	{ () }
+_LOhO :: () = &cmavo l o h o &post_word	{ () }
+_LOhU :: () = &cmavo l o h u &post_word	{ () }
+_LU :: () = &cmavo l u &post_word		{ () }
+_LUhU :: () = &cmavo l u h u &post_word	{ () }
+_MAhO :: () = &cmavo m a h o &post_word	{ () }
 
-mai :: MAI = &cmavo_l
+_MAI :: MAI = &cmavo
 	( m o h o	{ MOhO }
 	/ m a i		{ MAI } )
 	&post_word
 
-me :: () = &cmavo_l m e &post_word		{ () }
-mehu :: () = &cmavo_l m e h u &post_word	{ () }
-mohe :: () = &cmavo_l m o h e &post_word	{ () }
-mohi :: () = &cmavo_l m o h i &post_word	{ () }
+_ME :: () = &cmavo m e &post_word		{ () }
+_MEhU :: () = &cmavo m e h u &post_word	{ () }
+_MOhE :: () = &cmavo m o h e &post_word	{ () }
+_MOhI :: () = &cmavo m o h i &post_word	{ () }
 
-moi :: MOI = &cmavo_l
+_MOI :: MOI = &cmavo
 	( m e i		{ MEI }
 	/ m o i		{ MOI }
 	/ s i h e	{ SIhE }
@@ -691,35 +785,35 @@ moi :: MOI = &cmavo_l
 	/ v a h e	{ VAhE } )
 	&post_word
 
-na :: NA = &cmavo_l
+_NA :: NA = &cmavo
 	( j a h a	{ JAhA }
 	/ n a		{ NA } )
 	&post_word
 
-nai :: () = &cmavo_l n a i &post_word		{ () }
+_NAI :: () = &cmavo n a i &post_word		{ () }
 
-nahe :: NAhE = &cmavo_l
+_NAhE :: NAhE = &cmavo
 	( t o h e	{ TOhE }
 	/ j e h a	{ JEhA }
 	/ n a h e	{ NAhE }
 	/ n o h e	{ NOhE } )
 	&post_word
 
-nahu :: () = &cmavo_l n a h u &post_word	{ () }
-nihe :: () = &cmavo_l n i h e &post_word	{ () }
+_NAhU :: () = &cmavo n a h u &post_word	{ () }
+_NIhE :: () = &cmavo n i h e &post_word	{ () }
 
-niho :: NIhO = &cmavo_l
+_NIhO :: NIhO = &cmavo
 	( n i h o	{ NIhO }
 	/ n o h i	{ NOhI } )
 	&post_word
 
-noi :: NOI = &cmavo_l
+_NOI :: NOI = &cmavo
 	( v o i		{ VOI }
 	/ n o i		{ NOI }
 	/ p o i		{ POI } )
 	&post_word
 
-nu :: NU = &cmavo_l
+_NU :: NU = &cmavo
 	( n i		{ NI }
 	/ d u h u	{ DUhU }
 	/ s i h o	{ SIhO }
@@ -734,11 +828,11 @@ nu :: NU = &cmavo_l
 	/ z a h i	{ ZAhI } )
 	&post_word
 
-nuha :: () = &cmavo_l n u h a &post_word		{ () }
-nuhi :: () = &cmavo_l n u h i &post_word		{ () }
-nuhu :: () = &cmavo_l n u h u &post_word		{ () }
+_NUhA :: () = &cmavo n u h a &post_word		{ () }
+_NUhI :: () = &cmavo n u h i &post_word		{ () }
+_NUhU :: () = &cmavo n u h u &post_word		{ () }
 
-pa :: PA = &cmavo_l
+_PA :: PA = &cmavo
 	( d a u		{ DAU }
 	/ f e i		{ FEI }
 	/ j a u		{ JAU }
@@ -797,61 +891,61 @@ pa :: PA = &cmavo_l
 				'9' -> SO } )
 	&post_word
 
-pehe :: () = &cmavo_l p e h e &post_word		{ () }
-peho :: () = &cmavo_l p e h o &post_word		{ () }
+_PEhE :: () = &cmavo p e h e &post_word		{ () }
+_PEhO :: () = &cmavo p e h o &post_word		{ () }
 
-pu :: PU = &cmavo_l
+_PU :: PU = &cmavo
 	( b a		{ BA }
 	/ p u		{ PU }
 	/ c a		{ CA } )
 	&post_word
 
-raho :: () = &cmavo_l r a h o &post_word		{ () }
+_RAhO :: () = &cmavo r a h o &post_word		{ () }
 
-roi :: ROI = &cmavo_l
+_ROI :: ROI = &cmavo
 	( r e h u	{ REhU }
 	/ r o i		{ ROI } )
 	&post_word
 
-sa :: () = &cmavo_l s a &post_word			{ () }
+_SA :: () = &cmavo s a &post_word			{ () }
 
-se :: SE = &cmavo_l
+_SE :: SE = &cmavo
 	( s e		{ SE }
 	/ t e		{ TE }
 	/ v e		{ VE }
 	/ x e		{ XE } )
 	&post_word
 
-sei :: SEI = &cmavo_l
+_SEI :: SEI = &cmavo
 	( s e i		{ SEI }
 	/ t i h o	{ TIhO } )
 	&post_word
 
-sehu :: () = &cmavo_l s e h u &post_word		{ () }
-si :: () = &cmavo_l s i &post_word			{ () }
-soi :: () = &cmavo_l s o i &post_word			{ () }
-su :: () = &cmavo_l s u &post_word			{ () }
+_SEhU :: () = &cmavo s e h u &post_word		{ () }
+_SI :: () = &cmavo s i &post_word			{ () }
+_SOI :: () = &cmavo s o i &post_word			{ () }
+_SU :: () = &cmavo s u &post_word			{ () }
 
-tahe :: TAhE = &cmavo_l
+_TAhE :: TAhE = &cmavo
 	( r u h i	{ RUhI }
 	/ t a h e	{ TAhE }
 	/ d i h i	{ DIhI }
 	/ n a h o	{ NAhO } )
 	&post_word
 
-tehu :: () = &cmavo_l t e h u &post_word		{ () }
-tei :: () = &cmavo_l t e i &post_word			{ () }
+_TEhU :: () = &cmavo t e h u &post_word		{ () }
+_TEI :: () = &cmavo t e i &post_word			{ () }
 
-to :: TO = &cmavo_l
+_TO :: TO = &cmavo
 	( t o h i	{ TOhI }
 	/ t o		{ TO } )
 	&post_word
 
-toi :: () = &cmavo_l t o i &post_word			{ () }
-tuhe :: () = &cmavo_l t u h e &post_word		{ () }
-tuhu :: () = &cmavo_l t u h u &post_word		{ () }
+_TOI :: () = &cmavo t o i &post_word			{ () }
+_TUhE :: () = &cmavo t u h e &post_word		{ () }
+_TUhU :: () = &cmavo t u h u &post_word		{ () }
 
-ui :: UI = &cmavo_l
+_UI :: UI = &cmavo
 	( i h a		{ IhA }
 	/ i e		{ IE }
 	/ a h e		{ AhE }
@@ -955,17 +1049,17 @@ ui :: UI = &cmavo_l
 	/ b u h o	{ BUhO } )
 	&post_word
 
-va :: VA = &cmavo_l
+_VA :: VA = &cmavo
 	( v i		{ VI }
 	/ v a		{ VA }
 	/ v u		{ VU } )
 	&post_word
 
-vau :: () = &cmavo_l v a u &post_word		{ () }
-vei :: () = &cmavo_l v e i &post_word		{ () }
-veho :: () = &cmavo_l v e h o &post_word	{ () }
+_VAU :: () = &cmavo v a u &post_word		{ () }
+_VEI :: () = &cmavo v e i &post_word		{ () }
+_VEhO :: () = &cmavo v e h o &post_word	{ () }
 
-vuhu :: VUhU = &cmavo_l
+_VUhU :: VUhU = &cmavo
 	( g e h a	{ GEhA }
 	/ f u h u	{ FUhU }
 	/ p i h i	{ PIhI }
@@ -990,25 +1084,25 @@ vuhu :: VUhU = &cmavo_l
 	/ s i h i	{ SIhI } )
 	&post_word
 
-veha :: VEhA = &cmavo_l
+_VEhA :: VEhA = &cmavo
 	( v e h u	{ VEhU }
 	/ v e h a	{ VEhA }
 	/ v e h i	{ VEhI }
 	/ v e h e	{ VEhE } )
 	&post_word
 
-viha :: VIhA = &cmavo_l
+_VIhA :: VIhA = &cmavo
 	( v i h i	{ VIhI }
 	/ v i h a	{ VIhA }
 	/ v i h u	{ VIhU }
 	/ v i h e	{ VIhE } )
 	&post_word
 
-vuho :: () = &cmavo_l v u h o &post_word		{ () }
-xi :: () = &cmavo_l x i &post_word			{ () }
-y_ :: () = &cmavo_l y+ &post_word			{ () }
+_VUhO :: () = &cmavo v u h o &post_word		{ () }
+_XI :: () = &cmavo x i &post_word			{ () }
+_Y :: () = &cmavo y+ &post_word			{ () }
 
-zaho :: ZAhO = &cmavo_l
+_ZAhO :: ZAhO = &cmavo
 	( c o h i	{ COhI }
 	/ p u h o	{ PUhO }
 	/ c o h u	{ COhU }
@@ -1021,32 +1115,43 @@ zaho :: ZAhO = &cmavo_l
 	/ z a h o	{ ZAhO } )
 	&post_word
 
-zeha :: ZEhA = &cmavo_l
+_ZEhA :: ZEhA = &cmavo
 	( z e h u	{ ZEhU }
 	/ z e h a	{ ZEhA }
 	/ z e h i	{ ZEhI }
 	/ z e h e	{ ZEhE } )
 	&post_word
 
-zei :: () = &cmavo_l z e i &post_word		{ () }
+_ZEI :: () = &cmavo z e i &post_word		{ () }
 
-zi :: ZI = &cmavo_l
+_ZI :: ZI = &cmavo
 	( z u		{ ZU }
 	/ z a		{ ZA }
 	/ z i		{ ZI } )
 	&post_word
 
-zihe :: () = &cmavo_l z i h e &post_word	{ () }
-zo :: () = &cmavo_l z o &post_word		{ () }
+_ZIhE :: () = &cmavo z i h e &post_word	{ () }
+_ZO :: () = &cmavo z o &post_word		{ () }
 
-zoi :: ZOI = &cmavo_l
+_ZOI :: ZOI = &cmavo
 	( z o i		{ ZOI }
 	/ l a h o	{ LAhO } )
 	&post_word
 
-zohu :: () = &cmavo_l z o h u &post_word	{ () }
+_ZOhU :: () = &cmavo z o h u &post_word	{ () }
 
 |]
+
+data TanruUnit = TUBRIVLA (Clause BRIVLA)
+	deriving Show
+
+data Clause a
+	= Raw a | Pre [BAhE] a | Post a [Indicator] | PrePost [BAhE] a [Indicator]
+	deriving Show
+data Indicator = Indicator deriving Show
+
+data BRIVLA = BRIVLA String deriving Show
+data CMENE = CMENE String deriving Show
 
 data A = A | E | JI | O | U deriving Show
 data BAI
@@ -1162,4 +1267,7 @@ data ZI = ZU | ZA | ZI deriving Show
 data ZOI = ZOI | LAhO deriving Show
 
 main :: IO ()
-main = interact $ either show show . parseString words "<stdin>"
+main = interact $ (++ "\n") . either show show .
+	parseString tanru_unit_2 "<stdin>"
+
+type Unit = ()
