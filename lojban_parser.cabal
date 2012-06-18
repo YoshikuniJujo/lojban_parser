@@ -21,3 +21,8 @@ executable testLojbanParser
     hs-source-dirs:	./
     main-is:		test.hs
     build-depends:	base >= 3 && < 5, peggy >= 0.3.1
+
+executable lojbanparser
+    hs-source-dirs:	./
+    main-is:		fromOfficial.hs
+    build-depends:	base >= 3 && < 5, peggy >= 0.3.1

@@ -255,3 +255,6 @@ bu :: () = &cmavo (b u) &post_word	{ () }
 |]
 
 data Lerfu = Lerfu
+
+main :: IO ()
+main = interact $ either show show . parseString words "<stdin>"
