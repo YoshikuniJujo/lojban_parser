@@ -7,22 +7,28 @@ import Data.Maybe
 
 [peggy|
 
+--- MORPHOLOGY ---
+
+cmene :: String = cmene_l
+brivla :: String = gismu / lujvo / fuhivla
+cmavo :: () = bu
+
 -------------------------------------------------------------------- 1388
 
 words :: [String] = pause? (word pause?)*		{ map fst $2 }
 word :: String = lojban_word / non_lojban_word
-lojban_word :: String = cmene / cmavo / brivla
+lojban_word :: String = cmene_l / cmavo_l / brivla_l
 
 -------------------------------------------------------------------- 1396
 
-cmene :: String
+cmene_l :: String
 	= !h &consonant_final coda? (any_syllable / digit { [$1] })* &pause
 	{ maybe (concat $2) (++ concat $2) $1 }
 consonant_final :: () = (non_space &non_space)* consonant &pause	{ () }
 
 -------------------------------------------------------------------- 1408
 
-cmavo :: String = !cmene !cvcy_lujvo cmavo_form &post_word
+cmavo_l :: String = !cmene_l !cvcy_lujvo cmavo_form &post_word
 cvcy_lujvo :: ()
 	= cvc_rafsi y h? initial_rafsi* brivla_core	{ () }
 	/ stressed_cvc_rafsi y short_final_rafsi	{ () }
@@ -34,7 +40,7 @@ cmavo_form :: String
 
 -------------------------------------------------------------------- 1420
 
-brivla :: String = !cmavo initial_rafsi* brivla_core	{ concat $1 ++ $2 }
+brivla_l :: String = !cmavo_l initial_rafsi* brivla_core	{ concat $1 ++ $2 }
 
 brivla_core :: String
 	= fuhivla / gismu / cvv_final_rafsi
@@ -73,7 +79,7 @@ fuhivla_rafsi :: String
 
 fuhivla_head :: String = !rafsi_string brivla_head
 brivla_head :: String
-	= !cmavo !slinkuhi !h &onset unstressed_syllable*	{ concat $1 }
+	= !cmavo_l !slinkuhi !h &onset unstressed_syllable*	{ concat $1 }
 slinkuhi :: String = consonant rafsi_string			{ $1 : $2 }
 rafsi_string :: String = y_less_rafsi*
 	( gismu
@@ -134,7 +140,7 @@ r_hyphen :: Char = r &consonant / n &r
 -------------------------------------------------------------------- 1500
 
 final_syllable :: String
-	= onset !y !stressed nucleus !cmene &post_word	{ $1 ++ $2 }
+	= onset !y !stressed nucleus !cmene_l &post_word	{ $1 ++ $2 }
 
 stressed_syllable :: String = &stressed syllable / syllable &stress
 stressed_diphthong :: (Char, Char) = &stressed diphthong / diphthong &stress
@@ -172,7 +178,7 @@ nucleus :: String
 	/ diphthong				{ [fst $1, snd $1] }
 	/ y !nucleus				{ [$1] }
 
--------------------------------------------------------------------- 1523
+-------------------------------------------------------------------- 1533
 
 glide :: Char = (i / u) &nucleus !glide
 diphthong :: (Char, Char) = (a i / a u / e i / o i) !nucleus !glide
@@ -185,7 +191,7 @@ o :: Char = comma* [oO]			{ $2 }
 u :: Char = comma* [uU]			{ $2 }
 y :: Char = comma* [yY]			{ $2 }
 
--------------------------------------------------------------------- 1543
+-------------------------------------------------------------------- 1553
 
 cluster :: String = consonant consonant+	{ $1 : $2 }
 
@@ -226,7 +232,7 @@ p :: Char = comma* [pP] !h !p !voiced		{ $2 }
 t :: Char = comma* [tT] !h !t !voiced		{ $2 }
 h :: Char = comma* ['h] &nucleus		{ $2 }
 
--------------------------------------------------------------------- 1612
+-------------------------------------------------------------------- 1613
 
 digit :: Char = comma* [0123456789] !h !nucleus 		{ $2 }
 post_word :: () = pause / !nucleus lojban_word			{ () }
@@ -235,24 +241,105 @@ eof :: () = comma* !.						{ () }
 comma :: () = [,]						{ () }
 non_lojban_word :: String = !lojban_word non_space+
 non_space :: Char = !space_char .
-space_char :: () = [.?! ] { () } / space_char1 / space_char2
+space_char :: () = [.?! ] { () } / space_char1 / space_char2 / space_char3
 space_char1 :: () = '\t'					{ () }
 space_char2 :: () = '\r'					{ () }
+space_char3 :: () = '\n'					{ () }
 
--------------------------------------------------------------------- 1635
+-------------------------------------------------------------------- 1636
 
 spaces :: () = !y initial_spaces				{ () }
 initial_spaces :: ()
 	= (comma* space_char { () } / !ybu y { () })+ eof?	{ () }
 	/ eof
 ybu :: Lerfu = y space_char* bu					{ Lerfu }
-lujvo :: String = !gismu !fuhivla brivla
+lujvo :: String = !gismu !fuhivla brivla_l
 
--------------------------------------------------------------------- 1645
+-------------------------------------------------------------------- 1646
 
-bu :: () = &cmavo (b u) &post_word	{ () }
+a_ :: A = &cmavo_l
+	( a	{ A }
+	/ e	{ E }
+	/ j i	{ JI }
+	/ o	{ O }
+	/ u	{ U } )
+	&post_word
+
+bai :: BAI = &cmavo_l
+	( d u h o	{ DUhO }
+	/ s i h u	{ SIhU }
+	/ z a u		{ ZAU  }
+	/ k i h i	{ KIhI }
+	/ d u h i	{ DUhI }
+	/ c u h u	{ CUhU }
+	/ t u h i	{ TUhI }
+	/ t i h u	{ TIhU }
+	/ d i h o	{ DIhO }
+	/ j i h u	{ JIhU }
+	/ r i h a	{ RIhA }
+	/ n i h i	{ NIhI }
+	/ m u h i	{ MUhI }
+	/ k i h u	{ KIhU }
+	/ b a i		{ BAI  }
+	/ f i h e	{ FIhE }
+	/ d e h i	{ DEhI }
+	/ c i h o	{ CIhO }
+	/ m a u		{ MAU  }
+	/ m u h u	{ MUhU }
+	/ r i h i	{ RIhI }
+	/ r a h i	{ RAhI }
+	/ k a h a	{ KAhA }
+	/ p a h u	{ PAhU }
+	/ p a h a	{ PAhA }
+	/ l e h a	{ LEhA }
+	/ k u h u	{ KUhU }
+	/ t a i		{ TAI  }
+	/ b a u		{ BAU  }
+	/ m a h i	{ MAhI }
+	/ c i h e	{ CIhE }
+	/ f a u		{ FAU  }
+	/ p o h i	{ POhI }
+	/ c a u		{ CAU  }
+	/ m a h e	{ MAhE }
+	/ c i h u	{ CIhU }
+	/ r a h a	{ RAhA }
+	/ p u h a	{ PUhA }
+	/ l i h e	{ LIhE }
+	/ l a h u	{ LAhU }
+	/ b a h i	{ BAhI }
+	/ k a h i	{ KAhI }
+	/ s a u		{ SAU  }
+	/ f a h e	{ FAhE }
+	/ b e h i	{ BEhI }
+	/ t i h i	{ TIhI }
+	/ j a h e	{ JAhE }
+	/ g a h a	{ GAhA }
+	/ v a h o	{ VAhO }
+	/ j i h o	{ JIhO }
+	/ m e h a	{ MEhA }
+	/ d o h e	{ DOhE }
+	/ j i h e	{ JIhE }
+	/ p i h o	{ PIhO }
+	/ g a u		{ GAU  }
+	/ z u h e	{ ZUhE }
+	/ m e h e	{ MEhE }
+	/ r a i		{ RAI  } )
+	&post_word
+
+bu :: () = &cmavo_l (b u) &post_word	{ () }
 
 |]
+
+data A = A | E | JI | O | U deriving Show
+data BAI
+	= DUhO | SIhU | ZAU  | KIhI | DUhI | CUhU | TUhI | TIhU | DIhO | JIhU
+	| RIhA | NIhI | MUhI | KIhU | VAhU | KOI  | CAhI | TAhI | PUhE | JAhI
+	| KAI  | BAI  | FIhE | DEhI | CIhO | MAU  | MUhU | RIhI | RAhI | KAhA
+	| PAhU | PAhA | LEhA | KUhU | TAI  | BAU  | MAhI | CIhE | FAU  | POhI
+	| CAU  | MAhE | CIhU | RAhA | PUhA | LIhE | LAhU | BAhI | KAhI | SAU
+	| FAhE | BEhI | TIhI | JAhE | GAhA | VAhO | JIhO | MEhA | DOhE | JIhE
+	| PIhO | GAU  | ZUhE | MEhE | RAI
+	deriving Show
 
 data Lerfu = Lerfu
 
