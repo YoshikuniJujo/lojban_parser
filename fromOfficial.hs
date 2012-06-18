@@ -526,6 +526,123 @@ guha :: GUhA = &cmavo_l
 
 i_ :: () = &cmavo_l i &post_word		{ () }
 
+ja :: JA = &cmavo_l
+	( j e h i	{ JEhI }
+	/ j e		{ JE }
+	/ j o		{ JO }
+	/ j a		{ JA }
+	/ j u		{ JU } )
+	&post_word
+
+jai :: () = &cmavo_l j a i &post_word		{ () }
+johi :: () = &cmavo_l j o h i &post_word	{ () }
+
+joi :: JOI = &cmavo_l
+	( f a h u	{ FAhU }
+	/ p i h u	{ PIhU }
+	/ j o i		{ JOI }
+	/ c e h o	{ CEhO }
+	/ c e		{ CE }
+	/ j o h u	{ JOhU }
+	/ k u h a	{ KUhA }
+	/ j o h e	{ JOhE }
+	/ j u h e	{ JUhE } )
+	&post_word
+
+ke :: () = &cmavo_l k e &post_word		{ () }
+kehe :: () = &cmavo_l k e h e &post_word	{ () }
+kei :: () = &cmavo_l k e i &post_word		{ () }
+ki :: () = &cmavo_l k i &post_word		{ () }
+
+koha :: KOhA = &cmavo_l
+	( d a h u	{ DAhU }
+	/ d a h e	{ DAhE }
+	/ d i h u	{ DIhU }
+	/ d i h e	{ DIhE }
+	/ d e h u	{ DEhU }
+	/ d e h e	{ DEhE }
+	/ d e i		{ DEI }
+	/ d o h i	{ DOhI }
+	/ m i h o	{ MIhO }
+	/ m a h a	{ MAhA }
+	/ m i h a	{ MIhA }
+	/ d o h o	{ DOhO }
+	/ k o h a	{ KOhA }
+	/ f o h u	{ FOhU }
+	/ k o h e	{ KOhE }
+	/ k o h i	{ KOhI }
+	/ k o h o	{ KOhO }
+	/ k o h u	{ KOhU }
+	/ f o h a	{ FOhA }
+	/ f o h e	{ FOhE }
+	/ f o h i	{ FOhI }
+	/ f o h o	{ FOhO }
+	/ v o h a	{ VOhA }
+	/ v o h e	{ VOhE }
+	/ v o h i	{ VOhI }
+	/ v o h o	{ VOhO }
+	/ v o h u	{ VOhU }
+	/ r u		{ RU }
+	/ r i		{ RI }
+	/ r a		{ RA }
+	/ t a		{ TA }
+	/ t u		{ TU }
+	/ t i		{ TI }
+	/ z i h o	{ ZIhO }
+	/ k e h a	{ KEhA }
+	/ m a		{ MA }
+	/ z u h i	{ ZUhI }
+	/ z o h e	{ ZOhE }
+	/ c e h u	{ CEhU }
+	/ d a		{ DA }
+	/ d e		{ DE }
+	/ d i		{ DI }
+	/ k o		{ KO }
+	/ m i		{ MI }
+	/ d o		{ DO } )
+	&post_word
+
+ku :: () = &cmavo_l k u &post_word		{ () }
+kuhe :: () = &cmavo_l k u h e &post_word	{ () }
+kuho :: () = &cmavo_l k u h o &post_word	{ () }
+
+le :: LE = &cmavo_l
+	( l e i		{ LEI }
+	/ l o i		{ LOI }
+	/ l e h i	{ LEhI }
+	/ l o h i	{ LOhI }
+	/ l e h e	{ LEhE }
+	/ l o h e	{ LOhE }
+	/ l o		{ LO }
+	/ l e		{ LE } )
+	&post_word
+
+lehu :: () = &cmavo_l l e h u &post_word	{ () }
+li :: () = &cmavo_l l i &post_word		{ () }
+lihu :: () = &cmavo_l l i h u &post_word	{ () }
+loho :: () = &cmavo_l l o h o &post_word	{ () }
+lohu :: () = &cmavo_l l o h u &post_word	{ () }
+lu :: () = &cmavo_l l u &post_word		{ () }
+luhu :: () = &cmavo_l l u h u &post_word	{ () }
+maho :: () = &cmavo_l m a h o &post_word	{ () }
+
+mai :: MAI = &cmavo_l
+	( m o h o	{ MOhO }
+	/ m a i		{ MAI } )
+	&post_word
+
+me :: () = &cmavo_l m e &post_word		{ () }
+mehu :: () = &cmavo_l m e h u &post_word	{ () }
+mohe :: () = &cmavo_l m o h e &post_word	{ () }
+mohi :: () = &cmavo_l m o h i &post_word	{ () }
+moi :: MOI = &cmavo_l
+	( m e i		{ MEI }
+	/ m o i		{ MOI }
+	/ s i h e	{ SIhE }
+	/ c u h o	{ CUhO }
+	/ v a h e	{ VAhE } )
+	&post_word
+
 |]
 
 data A = A | E | JI | O | U deriving Show
@@ -572,6 +689,20 @@ data GOhA
 	| BUhI | COhE deriving Show
 
 data GUhA = GUhE | GUhI | GUhO | GUhA | GUhU deriving Show
+data JA = JEhI | JE | JO | JA | JU deriving Show
+data JOI = FAhU | PIhU | JOI | CEhO | CE | JOhU | KUhA | JOhE | JUhE deriving Show
+
+data KOhA
+	= DAhU | DAhE | DIhU | DIhE | DEhU | DEhE | DEI  | DOhI | MIhO | MAhA
+	| MIhA | DOhO | KOhA | FOhU | KOhE | KOhI | KOhO | KOhU | FOhA | FOhE
+	| FOhI | FOhO | VOhA | VOhE | VOhI | VOhO | VOhU | RU   | RI   | RA
+	| TA   | TU   | TI   | ZIhO | KEhA | MA   | ZUhI | ZOhE | CEhU | DA
+	| DE   | DI   | KO   | MI   | DO
+	deriving Show
+
+data LE = LEI | LOI | LEhI | LOhI | LEhE | LOhE | LO | LE deriving Show
+data MAI = MOhO | MAI deriving Show
+data MOI = MEI | MOI | SIhE | CUhO | VAhE deriving Show
 
 main :: IO ()
 main = interact $ either show show . parseString words "<stdin>"
