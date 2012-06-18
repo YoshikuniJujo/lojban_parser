@@ -11,7 +11,8 @@ import Data.Maybe
 
 cmene :: String = cmene_l
 brivla :: String = gismu / lujvo / fuhivla
-cmavo :: () = bu
+cmavo :: ()
+	= a_   { () } / bai  { () } / bu   { () }
 
 -------------------------------------------------------------------- 1388
 
@@ -252,7 +253,7 @@ spaces :: () = !y initial_spaces				{ () }
 initial_spaces :: ()
 	= (comma* space_char { () } / !ybu y { () })+ eof?	{ () }
 	/ eof
-ybu :: Lerfu = y space_char* bu					{ Lerfu }
+ybu :: Lerfu = y space_char* bu					{ Lerfu 'y' }
 lujvo :: String = !gismu !fuhivla brivla_l
 
 -------------------------------------------------------------------- 1646
@@ -326,7 +327,204 @@ bai :: BAI = &cmavo_l
 	/ r a i		{ RAI  } )
 	&post_word
 
-bu :: () = &cmavo_l (b u) &post_word	{ () }
+bahe :: BAhE = &cmavo_l
+	( b a h e	{ BAhE }
+	/ z a h e	{ ZAhE } )
+	&post_word
+
+be :: () = &cmavo_l b e &post_word		{ () }
+bei :: () = &cmavo_l b e i &post_word		{ () }
+beho :: () = &cmavo_l b e h o &post_word	{ () }
+bihe :: () = &cmavo_l b i h e &post_word	{ () }
+bihi :: () = &cmavo_l b i h i &post_word	{ () }
+bo :: () = &cmavo_l b o &post_word		{ () }
+boi :: () = &cmavo_l b o i &post_word		{ () }
+bu :: () = &cmavo_l (b u) &post_word		{ () }
+
+by :: Lerfu
+	= ybu
+	/ &cmavo_l
+	( j o h o	{ JOhO }
+	/ r u h o	{ RUhO }
+	/ g e h o	{ GEhO }
+	/ j e h o	{ JEhO }
+	/ l o h a	{ LOhA }
+	/ n a h a	{ NAhA }
+	/ s e h e	{ SEhE }
+	/ t o h a	{ TOhA }
+	/ g a h e	{ GAhE }
+	/ y h y		{ Lerfu '\'' }
+	/ b y		{ Lerfu 'b' }
+	/ c y		{ Lerfu 'c' }
+	/ d y		{ Lerfu 'd' }
+	/ f y		{ Lerfu 'f' }
+	/ g y		{ Lerfu 'g' }
+	/ j y		{ Lerfu 'j' }
+	/ k y		{ Lerfu 'k' }
+	/ l y		{ Lerfu 'l' }
+	/ m y		{ Lerfu 'm' }
+	/ n y		{ Lerfu 'n' }
+	/ p y		{ Lerfu 'p' }
+	/ r y		{ Lerfu 'r' }
+	/ s y		{ Lerfu 's' }
+	/ t y		{ Lerfu 't' }
+	/ v y		{ Lerfu 'v' }
+	/ x y		{ Lerfu 'x' }
+	/ z y		{ Lerfu 'z' } )
+	&post_word
+
+caha :: CAhA = &cmavo_l
+	( c a h a	{ CAhA }
+	/ p u h i	{ PUhI }
+	/ n u h o	{ NUhO }
+	/ k a h e	{ KAhE } )
+	&post_word
+
+cai :: CAI = &cmavo_l
+	( p e i		{ PEI }
+	/ c a i		{ CAI }
+	/ c u h i	{ CUhI }
+	/ s a i		{ SAI }
+	/ r u h e	{ RUhE } )
+	&post_word
+
+cei :: () = &cmavo_l c e i &post_word		{ () }
+cehe :: () = &cmavo_l c e h e &post_word	{ () }
+co :: () = &cmavo_l c o &post_word		{ () }
+
+coi :: COI = &cmavo_l
+	( j u h i	{ JUhI }
+	/ c o i		{ COI }
+	/ f i h i	{ FIhI }
+	/ t a h a	{ TAhA }
+	/ m u h o	{ MUhO }
+	/ f e h o	{ FEhO }
+	/ c o h o	{ COhO }
+	/ p e h u	{ PEhU }
+	/ k e h o	{ KEhO }
+	/ n u h e	{ NUhE }
+	/ r e h i	{ REhI }
+	/ b e h e	{ BEhE }
+	/ j e h e	{ JEhE }
+	/ m i h e	{ MIhE }
+	/ k i h e	{ KIhE }
+	/ v i h o	{ VIhO } )
+	&post_word
+
+cu :: () = &cmavo_l c u &post_word		{ () }
+
+cuhe :: CUhE = &cmavo_l
+	( c u h e	{ CUhE }
+	/ n a u		{ NAU } )
+	&post_word
+
+daho :: () = &cmavo_l d a h o &post_word	{ () }
+doi :: () = &cmavo_l d o i &post_word		{ () }
+dohu :: () = &cmavo_l d o h u &post_word	{ () }
+
+fa :: FA = &cmavo_l 
+	( f a i		{ FAI }
+	/ f a		{ FA }
+	/ f e		{ FE }
+	/ f o		{ FO }
+	/ f u		{ FU }
+	/ f i h a	{ FIhA }
+	/ f i		{ FI } )
+	&post_word
+
+faha :: FAhA = &cmavo_l
+	( d u h a	{ DUhA }
+	/ b e h a	{ BEhA }
+	/ n e h u	{ NEhU }
+	/ v u h a	{ VUhA }
+	/ g a h u	{ GAhU }
+	/ t i h a	{ TIhA }
+	/ n i h a	{ NIhA }
+	/ c a h u	{ CAhU }
+	/ z u h a	{ ZUhA }
+	/ r i h u	{ RIhU }
+	/ r u h u	{ RUhU }
+	/ r e h o	{ REhO }
+	/ t e h e	{ TEhE }
+	/ b u h u	{ BUhU }
+	/ n e h a	{ NEhA }
+	/ p a h o	{ PAhO }
+	/ n e h i	{ NEhI }
+	/ t o h o	{ TOhO }
+	/ z o h i	{ ZOhI }
+	/ z e h o	{ ZEhO }
+	/ z o h a	{ ZOhA }
+	/ f a h a	{ FAhA } )
+	&post_word
+
+faho :: () = &cmavo_l f a h o &post_word	{ () }
+fehe :: () = &cmavo_l f e h e &post_word	{ () }
+fehu :: () = &cmavo_l f e h u &post_word	{ () }
+fiho :: () = &cmavo_l f i h o &post_word	{ () }
+foi :: () = &cmavo_l f o i &post_word		{ () }
+fuha :: () = &cmavo_l f u h a &post_word	{ () }
+fuhe :: () = &cmavo_l f u h e &post_word	{ () }
+fuho :: () = &cmavo_l f u h o &post_word	{ () }
+
+ga :: GA = &cmavo_l
+	( g e h i	{ GEhI }
+	/ g e		{ GE }
+	/ g o		{ GO }
+	/ g a		{ GA }
+	/ g u		{ GU } )
+	&post_word
+
+gaho :: GAhO = &cmavo_l
+	( k e h i	{ KEhI }
+	/ g a h o	{ GAhO } )
+	&post_word
+
+gehu :: () = &cmavo_l g e h u &post_word	{ () }
+gi :: () = &cmavo_l g i &post_word		{ () }
+
+giha :: GIhA = &cmavo_l
+	( g i h e	{ GIhE }
+	/ g i h i	{ GIhI }
+	/ g i h o	{ GIhO }
+	/ g i h a	{ GIhA }
+	/ g i h u	{ GIhU } )
+	&post_word
+
+goi :: GOI = &cmavo_l
+	( n o h u	{ NOhU }
+	/ n e		{ NE }
+	/ g o i		{ GOI }
+	/ p o h u	{ POhU }
+	/ p e		{ PE }
+	/ p o h e	{ POhE }
+	/ p o		{ PO } )
+	&post_word
+
+goha :: GOhA = &cmavo_l
+	( m o		{ MO }
+	/ n e i		{ NEI }
+	/ g o h u	{ GOhU }
+	/ g o h o	{ GOhO }
+	/ g o h i	{ GOhI }
+	/ n o h a	{ NOhA }
+	/ g o h e	{ GOhE }
+	/ g o h a	{ GOhA }
+	/ d u		{ DU }
+	/ b u h a	{ BUhA }
+	/ b u h e	{ BUhE }
+	/ b u h i	{ BUhI }
+	/ c o h e	{ COhE } )
+	&post_word
+
+guha :: GUhA = &cmavo_l
+	( g u h e	{ GUhE }
+	/ g u h i	{ GUhI }
+	/ g u h o	{ GUhO }
+	/ g u h a	{ GUhA }
+	/ g u h u	{ GUhU } )
+	&post_word
+
+i_ :: () = &cmavo_l i &post_word		{ () }
 
 |]
 
@@ -340,8 +538,40 @@ data BAI
 	| FAhE | BEhI | TIhI | JAhE | GAhA | VAhO | JIhO | MEhA | DOhE | JIhE
 	| PIhO | GAU  | ZUhE | MEhE | RAI
 	deriving Show
+data BAhE = BAhE | ZAhE deriving Show
 
-data Lerfu = Lerfu
+data Lerfu
+	= Lerfu Char | JOhO | RUhO | JEhO | LOhA | NAhA | SEhE | GEhO | TOhA
+	| GAhE
+	deriving Show
+
+data CAhA = CAhA | PUhI | NUhO | KAhE deriving Show
+data CAI = PEI | CAI | CUhI | SAI | RUhE deriving Show
+
+data COI
+	= JUhI | COI  | FIhI | TAhA | MUhO | FEhO | COhO | PEhU | KEhO | NUhE
+	| REhI | BEhE | JEhE | MIhE | KIhE | VIhO
+	deriving Show
+
+data CUhE = CUhE | NAU deriving Show
+data FA = FAI | FA | FE | FO | FU | FIhA | FI deriving Show
+
+data FAhA
+	= DUhA | BEhA | NEhU | VUhA | GAhU | TIhA | NIhA | CAhU | ZUhA | RIhU
+	| RUhU | REhO | TEhE | BUhU | NEhA | PAhO | NEhI | TOhO | ZOhI | ZEhO
+	| ZOhA | FAhA
+	deriving Show
+
+data GA = GEhI | GE | GO | GA | GU deriving Show
+data GAhO = KEhI | GAhO deriving Show
+data GIhA = GIhE | GIhI | GIhO | GIhA | GIhU deriving Show
+data GOI = NOhU | NE | GOI | POhU | PE | POhE | PO deriving Show
+
+data GOhA
+	= MO | NEI | GOhU | GOhO | GOhI | NOhA | GOhE | GOhA | DU | BUhA | BUhE
+	| BUhI | COhE deriving Show
+
+data GUhA = GUhE | GUhI | GUhO | GUhA | GUhU deriving Show
 
 main :: IO ()
 main = interact $ either show show . parseString words "<stdin>"
