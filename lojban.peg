@@ -1413,15 +1413,20 @@ CVCy-lujvo <-
 	CVC-rafsi y h? initial-rafsi* brivla-core /
 	stressed-CVC-rafsi y short-final-rafsi
 
-cmavo-form <- !h !cluster onset (nucleus h)* (!stressed nucleus / nucleus !cluster) / y+ / digit
+cmavo-form <-
+	!h !cluster onset (nucleus h)* (!stressed nucleus / nucleus !cluster) /
+	y+ / digit
 
 ;-------------------------------------------------------------------
 
 brivla <- !cmavo initial-rafsi* brivla-core
 
-brivla-core <- fuhivla / gismu / CVV-final-rafsi / stressed-initial-rafsi short-final-rafsi
+brivla-core <-
+	fuhivla / gismu / CVV-final-rafsi /
+	stressed-initial-rafsi short-final-rafsi
 
-stressed-initial-rafsi <- stressed-extended-rafsi / stressed-y-rafsi / stressed-y-less-rafsi
+stressed-initial-rafsi <-
+	stressed-extended-rafsi / stressed-y-rafsi / stressed-y-less-rafsi
 
 initial-rafsi <- extended-rafsi / y-rafsi / !any-extended-rafsi y-less-rafsi
 
@@ -1459,11 +1464,13 @@ gismu <- stressed-long-rafsi &final-syllable vowel &post-word
 
 CVV-final-rafsi <- consonant stressed-vowel h &final-syllable vowel &post-word
 
-short-final-rafsi <- &final-syllable (consonant diphthong / initial-pair vowel) &post-word
+short-final-rafsi <-
+	&final-syllable (consonant diphthong / initial-pair vowel) &post-word
 
 stressed-y-rafsi <- (stressed-long-rafsi / stressed-CVC-rafsi) y
 
-stressed-y-less-rafsi <- stressed-CVC-rafsi !y / stressed-CCV-rafsi / stressed-CVV-rafsi
+stressed-y-less-rafsi <-
+	stressed-CVC-rafsi !y / stressed-CCV-rafsi / stressed-CVV-rafsi
 
 stressed-long-rafsi <- (stressed-CCV-rafsi / stressed-CVC-rafsi) consonant
 
@@ -1471,11 +1478,13 @@ stressed-CVC-rafsi <- consonant stressed-vowel consonant
 
 stressed-CCV-rafsi <- initial-pair stressed-vowel
 
-stressed-CVV-rafsi <- consonant (unstressed-vowel h stressed-vowel / stressed-diphthong) r-hyphen?
+stressed-CVV-rafsi <- consonant
+	(unstressed-vowel h stressed-vowel / stressed-diphthong) r-hyphen?
 
 y-rafsi <- (long-rafsi / CVC-rafsi) y h?
 
-y-less-rafsi <- !y-rafsi (CVC-rafsi !y / CCV-rafsi / CVV-rafsi) !any-extended-rafsi
+y-less-rafsi <-
+	!y-rafsi (CVC-rafsi !y / CCV-rafsi / CVV-rafsi) !any-extended-rafsi
 
 long-rafsi <- (CCV-rafsi / CVC-rafsi) consonant
 
@@ -1483,7 +1492,8 @@ CVC-rafsi <- consonant unstressed-vowel consonant
 
 CCV-rafsi <- initial-pair unstressed-vowel
 
-CVV-rafsi <- consonant (unstressed-vowel h unstressed-vowel / unstressed-diphthong) r-hyphen?
+CVV-rafsi <- consonant
+	(unstressed-vowel h unstressed-vowel / unstressed-diphthong) r-hyphen?
 
 r-hyphen <- r &consonant / n &r
 
