@@ -635,6 +635,7 @@ me :: () = &cmavo_l m e &post_word		{ () }
 mehu :: () = &cmavo_l m e h u &post_word	{ () }
 mohe :: () = &cmavo_l m o h e &post_word	{ () }
 mohi :: () = &cmavo_l m o h i &post_word	{ () }
+
 moi :: MOI = &cmavo_l
 	( m e i		{ MEI }
 	/ m o i		{ MOI }
@@ -642,6 +643,23 @@ moi :: MOI = &cmavo_l
 	/ c u h o	{ CUhO }
 	/ v a h e	{ VAhE } )
 	&post_word
+
+na :: NA = &cmavo_l
+	( j a h a	{ JAhA }
+	/ n a		{ NA } )
+	&post_word
+
+nai :: () = &cmavo_l n a i &post_word		{ () }
+
+nahe :: NAhE = &cmavo_l
+	( t o h e	{ TOhE }
+	/ j e h a	{ JEhA }
+	/ n a h e	{ NAhE }
+	/ n o h e	{ NOhE } )
+	&post_word
+
+nahu :: () = &cmavo_l n a h u &post_word	{ () }
+nihe :: () = &cmavo_l n i h e &post_word	{ () }
 
 |]
 
@@ -703,6 +721,57 @@ data KOhA
 data LE = LEI | LOI | LEhI | LOhI | LEhE | LOhE | LO | LE deriving Show
 data MAI = MOhO | MAI deriving Show
 data MOI = MEI | MOI | SIhE | CUhO | VAhE deriving Show
+data NA = JAhA | NA deriving Show
+data NAhE = TOhE | JEhA | NAhE | NOhE deriving Show
+data NIhO = NIhO | NOhI deriving Show
+data NOI = VOI | NOI | POI deriving Show
+
+data NU	= NI | DUhU | SIhO | NU | LIhI | KA | JEI | SUhU | ZUhO | MUhE | PUhU
+	| ZAhI
+	deriving Show
+
+data PA	= DAU  | FEI  | GAI  | JAU  | REI  | VAI  | PIhE | PI   | FIhU | ZAhU
+	| MEhI | NIhU | KIhO | CEhI | MAhU | RAhE | DAhA | SOhA | JIhI | SUhO
+	| SUhE | RO   | RAU  | SOhU | SOhI | SOhE | SOhO | MOhA | DUhE | TEhO
+	| KAhO | CIhI | TUhO | XO   | PAI  | NOhO | NO   | PA   | RE   | CI
+	| VO   | MU   | XA   | ZE   | BI   | SO
+	deriving Show
+
+data PU = BA | PU | CA deriving Show
+data ROI = REhU | ROI deriving Show
+data SE = SE | TE | VE | XE deriving Show
+data SEI = SEI | TIhO deriving Show
+data TAhE = RUhI | TAhE | DIhI | NAhO deriving Show
+data TO = TOhI | TO deriving Show
+
+data UI	= IhA  | IE   | AhE  | UhI  | IhO  | IhE  | AhA  | IA   | OhI  | OhE
+	| EhE  | OI   | UO   | EhI  | UhO  | AU   | UA   | AhI  | IhU  | II
+	| UhA  | UI   | AhO  | AI   | AhU  | IU   | EI   | OhO  | EhA  | UU
+	| OhA  | OhU  | UhU  | EhO  | IO   | EhU  | UE   | IhI  | UhE  | BAhA
+	| JAhO | CAhE | SUhA | TIhE | KAhU | SEhO | ZAhA | PEhI | RUhA | JUhA
+	| TAhO | RAhU | LIhA | BAhU | MUhA | DOhA | TOhU | VAhI | PAhE | ZUhU
+	| SAhE | LAhA | KEhU | SAhU | DAhI | JEhU | SAhA | KAU  | TAhU | NAhI
+	| JOhA | BIhU | LIhO | PAU  | MIhU | KUhI | JIhA | SIhA | POhO | PEhA
+	| ROhI | ROhE | ROhO | ROhU | ROhA | REhE | LEhO | JUhO | FUhI | DAI
+	| GAhI | ZOhO | BEhU | RIhE | SEhI | SEhA | VUhE | KIhA | XU   | GEhE
+	| BUhO
+	deriving Show
+
+data VA = VI | VA | VU deriving Show
+
+data VUhU
+	= GEhA | FUhU | PIhI | FEhI | VUhU | SUhI | JUhU | GEI  | PAhI | FAhI
+	| TEhA | CUhA | VAhA | NEhO | DEhO | FEhA | SAhO | REhA | RIhO | SAhI
+	| PIhA | SIhI
+	deriving Show
+
+data VEhA = VEhU | VEhA | VEhI | VEhE deriving Show
+data VIhA = VIhI | VIhA | VIhU | VIhE deriving Show
+data ZAhO = COhI | PUhO | COhU | MOhU | CAhO | COhA | DEhA | BAhO | DIhA | ZAhO
+	deriving Show
+data ZEhA = ZEhU | ZEhA | ZEhI | ZEhE deriving Show
+data ZI = ZU | ZA | ZI deriving Show
+data ZOI = ZOI | LAhO deriving Show
 
 main :: IO ()
 main = interact $ either show show . parseString words "<stdin>"

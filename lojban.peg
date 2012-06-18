@@ -1835,7 +1835,9 @@ NIhO <- &cmavo ( n i h o / n o h i ) &post-word
 
 NOI <- &cmavo ( v o i / n o i / p o i ) &post-word
 
-NU <- &cmavo ( n i / d u h u / s i h o / n u / l i h i / k a / j e i / s u h u / z u h o / m u h e / p u h u / z a h i ) &post-word
+NU <- &cmavo
+	( n i / d u h u / s i h o / n u / l i h i / k a / j e i / s u h u
+	/ z u h o / m u h e / p u h u / z a h i ) &post-word
 
 NUhA <- &cmavo ( n u h a ) &post-word
 
@@ -1915,7 +1917,11 @@ VEI <- &cmavo ( v e i ) &post-word
 
 VEhO <- &cmavo ( v e h o ) &post-word
 
-VUhU <- &cmavo ( g e h a / f u h u / p i h i / f e h i / v u h u / s u h i / j u h u / g e i / p a h i / f a h i / t e h a / c u h a / v a h a / n e h o / d e h o / f e h a / s a h o / r e h a / r i h o / s a h i / p i h a / s i h i ) &post-word
+VUhU <- &cmavo
+	( g e h a / f u h u / p i h i / f e h i / v u h u / s u h i / j u h u
+	/ g e i / p a h i / f a h i / t e h a / c u h a / v a h a / n e h o
+	/ d e h o / f e h a / s a h o / r e h a / r i h o / s a h i / p i h a
+	/ s i h i ) &post-word
 
 VEhA <- &cmavo ( v e h u / v e h a / v e h i / v e h e ) &post-word
 
@@ -1927,7 +1933,9 @@ XI <- &cmavo ( x i ) &post-word
 
 Y <- &cmavo ( y+ ) &post-word
 
-ZAhO <- &cmavo ( c o h i / p u h o / c o h u / m o h u / c a h o / c o h a / d e h a / b a h o / d i h a / z a h o ) &post-word
+ZAhO <- &cmavo
+	( c o h i / p u h o / c o h u / m o h u / c a h o / c o h a / d e h a
+	/ b a h o / d i h a / z a h o ) &post-word
 
 ZEhA <- &cmavo ( z e h u / z e h a / z e h i / z e h e ) &post-word
 
