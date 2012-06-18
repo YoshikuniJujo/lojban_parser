@@ -804,7 +804,7 @@ toi :: () = &cmavo_l t o i &post_word			{ () }
 tuhe :: () = &cmavo_l t u h e &post_word		{ () }
 tuhu :: () = &cmavo_l t u h u &post_word		{ () }
 
-ui :: UI = &cmavo
+ui :: UI = &cmavo_l
 	( i h a		{ IhA }
 	/ i e		{ IE }
 	/ a h e		{ AhE }
@@ -907,6 +907,97 @@ ui :: UI = &cmavo
 	/ g e h e	{ GEhE }
 	/ b u h o	{ BUhO } )
 	&post_word
+
+va :: VA = &cmavo_l
+	( v i		{ VI }
+	/ v a		{ VA }
+	/ v u		{ VU } )
+	&post_word
+
+vau :: () = &cmavo_l v a u &post_word		{ () }
+vei :: () = &cmavo_l v e i &post_word		{ () }
+veho :: () = &cmavo_l v e h o &post_word	{ () }
+
+vuhu :: VUhU = &cmavo_l
+	( g e h a	{ GEhA }
+	/ f u h u	{ FUhU }
+	/ p i h i	{ PIhI }
+	/ f e h i	{ FEhI }
+	/ v u h u	{ VUhU }
+	/ s u h i	{ SUhI }
+	/ j u h u	{ JUhU }
+	/ g e i		{ GEI }
+	/ p a h i	{ PAhI }
+	/ f a h i	{ FAhI }
+	/ t e h a	{ TEhA }
+	/ c u h a	{ CUhA }
+	/ v a h a	{ VAhA }
+	/ n e h o	{ NEhO }
+	/ d e h o	{ DEhO }
+	/ f e h a	{ FEhA }
+	/ s a h o	{ SAhO }
+	/ r e h a	{ REhA }
+	/ r i h o	{ RIhO }
+	/ s a h i	{ SAhI }
+	/ p i h a	{ PIhA }
+	/ s i h i	{ SIhI } )
+	&post_word
+
+veha :: VEhA = &cmavo_l
+	( v e h u	{ VEhU }
+	/ v e h a	{ VEhA }
+	/ v e h i	{ VEhI }
+	/ v e h e	{ VEhE } )
+	&post_word
+
+viha :: VIhA = &cmavo_l
+	( v i h i	{ VIhI }
+	/ v i h a	{ VIhA }
+	/ v i h u	{ VIhU }
+	/ v i h e	{ VIhE } )
+	&post_word
+
+vuho :: () = &cmavo_l v u h o &post_word		{ () }
+xi :: () = &cmavo_l x i &post_word			{ () }
+y_ :: () = &cmavo_l y+ &post_word			{ () }
+
+zaho :: ZAhO = &cmavo_l
+	( c o h i	{ COhI }
+	/ p u h o	{ PUhO }
+	/ c o h u	{ COhU }
+	/ m o h u	{ MOhU }
+	/ c a h o	{ CAhO }
+	/ c o h a	{ COhA }
+	/ d e h a	{ DEhA }
+	/ b a h o	{ BAhO }
+	/ d i h a	{ DIhA }
+	/ z a h o	{ ZAhO } )
+	&post_word
+
+zeha :: ZEhA = &cmavo_l
+	( z e h u	{ ZEhU }
+	/ z e h a	{ ZEhA }
+	/ z e h i	{ ZEhI }
+	/ z e h e	{ ZEhE } )
+	&post_word
+
+zei :: () = &cmavo_l z e i &post_word		{ () }
+
+zi :: ZI = &cmavo_l
+	( z u		{ ZU }
+	/ z a		{ ZA }
+	/ z i		{ ZI } )
+	&post_word
+
+zihe :: () = &cmavo_l z i h e &post_word	{ () }
+zo :: () = &cmavo_l z o &post_word		{ () }
+
+zoi :: ZOI = &cmavo_l
+	( z o i		{ ZOI }
+	/ l a h o	{ LAhO } )
+	&post_word
+
+zohu :: () = &cmavo_l z o h u &post_word	{ () }
 
 |]
 
