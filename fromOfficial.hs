@@ -3,7 +3,9 @@
 import Prelude hiding (words)
 
 import Text.Peggy
+import Data.List
 import Data.Maybe
+import Data.Char
 
 [peggy|
 
@@ -89,11 +91,15 @@ _ZEI_clause :: () = _ZEI_pre _ZEI_post		{ () }
 _ZEI_pre :: () = _ZEI spaces?			{ () }
 _ZEI_post :: () = spaces?			{ () }
 
-{-
 --	delimited quote marker
-_ZOI_clause :: ZOI = _ZOI_pre _ZOI_post				{ $1 }
-_ZOI_pre :: ZOI = pre_clause _ZOI
--}
+_ZOI_clause :: Clause DelimitedQuote = _ZOI_pre _ZOI_post		{ Raw $1 }
+_ZOI_pre :: DelimitedQuote
+	= pre_clause _ZOI spaces? "\x00" zoi_word* "\x00" spaces?
+	{ DelimitedQuote $2 $4 }
+_ZOI_post :: () = post_clause						{ () }
+_ZOI_no_SA_handling :: ()
+	= pre_clause _ZOI spaces? "\x00" zoi_word* "\x00" spaces?	{ () }
+zoi_word :: Char = !"\x00" .
 
 --	prenex terminator (not elidable)
 _ZOhU_clause :: Clause Unit = _ZOhU_pre _ZOhU_post		{ Raw () }
@@ -1145,6 +1151,8 @@ _ZOhU :: () = &cmavo z o h u &post_word	{ () }
 data TanruUnit = TUBRIVLA (Clause BRIVLA)
 	deriving Show
 
+data DelimitedQuote = DelimitedQuote ZOI String deriving Show
+
 data Clause a
 	= Raw a | Pre [BAhE] a | Post a [Indicator] | PrePost [BAhE] a [Indicator]
 	deriving Show
@@ -1268,6 +1276,28 @@ data ZOI = ZOI | LAhO deriving Show
 
 main :: IO ()
 main = interact $ (++ "\n") . either show show .
-	parseString tanru_unit_2 "<stdin>"
+	parseString tanru_unit_2 "<stdin>" . preprocess
 
 type Unit = ()
+
+preprocess :: String -> String
+preprocess "" = ""
+preprocess ('l' : 'a' : '\'' : 'o' : rest_) =
+	"la'o \0 " ++ q ++ " \0 " ++ preprocess rest''
+	where
+	rest = dropWhile isSpace rest_
+	(d, '.' : rest') = span (/= '.') rest
+	(q, rest'') = spanTo ('.' : d) rest'
+preprocess ('z' : 'o' : 'i' : rest_) =
+	"zoi \0 " ++ q ++ " \0 " ++ preprocess rest''
+	where
+	rest = dropWhile isSpace rest_
+	(d, '.' : rest') = span (/= '.') rest
+	(q, rest'') = spanTo ('.' : d) rest'
+preprocess (x : xs) = x : preprocess xs
+
+spanTo :: Eq a => [a] -> [a] -> ([a], [a])
+spanTo d [] = ([], [])
+spanTo d lst@(x : xs)
+	| isPrefixOf d lst = ([], drop (length d) lst)
+	| otherwise = let (pre, post) = spanTo d xs in (x : pre, post)
