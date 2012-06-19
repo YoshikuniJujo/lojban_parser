@@ -401,6 +401,26 @@ _KUhE_pre :: [BAhE] = pre_clause _KUhE spaces?			{ $1 }
 --	*** KUhO: right terminator, NOI relative clauses
 _KUhO_pre :: [BAhE] = pre_clause _KUhO spaces?			{ $1 }
 
+--	*** LA: name descriptors
+_LA_pre :: ([BAhE], LA) = pre_clause _LA spaces?		{ ($1, $2) }
+
+--	*** LAU: lerfu prefixes
+_LAU_pre :: ([BAhE], LAU) = pre_clause _LAU spaces?		{ ($1, $2) }
+
+--	*** LAhE: sumti qualifiers
+_LAhE_pre :: ([BAhE], LAhE) = pre_clause _LAhE spaces?		{ ($1, $2) }
+
+--	*** LE: sumti descriptors
+_LE_pre :: ([BAhE], LE) = pre_clause _LE spaces?		{ ($1, $2) }
+
+--	*** LEhU: posibbly ungrammatical text right quote
+_LEhU_Pre :: [BAhE] = pre_clause _LEhU spaces?			{ $1 }
+
+--	*** LI: convert number to sumti
+_LI_pre :: [BAhE] = pre_clause _LI spaces?			{ $1 }
+
+--	*** LIhU: grammatical text right quote
+
 --	attached to words to negate them
 _NAI_clause :: Clause Unit = _NAI_pre _NAI_post			{ Raw () }
 _NAI_pre :: () = pre_clause _NAI spaces?			{ () }
