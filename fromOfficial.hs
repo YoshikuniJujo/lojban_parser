@@ -6,6 +6,7 @@ import Text.Peggy
 import Data.List
 import Data.Maybe
 import Data.Char
+import Control.Arrow
 
 [peggy|
 
@@ -119,13 +120,13 @@ zei_clause_no_pre :: ()
 bu_clause_no_pre :: ()
 	= pre_zei_bu (bu_tail? zei_tail)* bu_tail post_clause	{ () }
 
-zei_tail :: () = (_ZEI_clause lojban_word)+		{ () }
+zei_tail :: [String] = (_ZEI_clause lojban_word)+	{ map snd $1 }
 bu_tail :: () = _BU_clause+				{ () }
 
-pre_zei_bu :: ()
+pre_zei_bu :: ([BAhE], Word)
 	= (!_BU_clause !_ZEI_clause !_SI_clause !_SA_clause !_SU_clause
 		!_FAhO_clause any_word_SA_handling) si_clause?
-	{ () }
+	{ $1 }
 
 -- General Morphology Issues 498
 
@@ -141,9 +142,11 @@ post_clause_ind :: ()
 	= spaces? si_clause? !_ZEI_clause !_BU_clause	{ () }
 pre_clause :: [BAhE] = _BAhE_clause?			{ fromMaybe [] $1 }
 
-any_word_SA_handling :: ()
-	= _BRIVLA_pre					{ () }
-	/ known_cmavo_SA / _CMAVO_pre / _CMENE_pre	{ () }
+any_word_SA_handling :: ([BAhE], Word)
+	= _BRIVLA_pre	{ second WBRIVLA $1 }
+	/ known_cmavo_SA{ ([], WA A) }
+	/ _CMAVO_pre	{ ([], WA A) }
+	/ _CMENE_pre	{ second WCMENE $1 }
 
 known_cmavo_SA :: ()
 	= _A_pre { () }
@@ -156,14 +159,14 @@ known_cmavo_SA :: ()
 -- Handling of SI and interactions with zo and lo'u...le'u
 
 si_clause :: ()
-	= ((erasable_clause / si_word / _SA_clause) si_clause? _SI_clause)+
+	= ((erasable_clause / si_word { () } / _SA_clause) si_clause? _SI_clause)+
 	{ () }
 
 erasable_clause :: ()
 	= bu_clause_no_pre !_ZEI_clause !_BU_clause		{ () }
 	/ zei_clause_no_pre !_ZEI_clause !_BU_clause		{ () }
 
-si_word :: () = pre_zei_bu
+si_word :: ([BAhE], Word) = pre_zei_bu
 
 --- SELMAHO --------------------------------------------------------------- 553
 
@@ -174,9 +177,9 @@ _BRIVLA_pre :: ([BAhE], BRIVLA)
 	= pre_clause _BRIVLA spaces?		{ ($1, $2) }
 _BRIVLA_post :: [Indicators] = post_clause
 
-_CMENE_pre :: CMENE = pre_clause _CMENE spaces?			{ $2 }
+_CMENE_pre :: ([BAhE], CMENE) = pre_clause _CMENE spaces?	{ ($1, $2) }
 
-_CMAVO_pre :: () = pre_clause _CMAVO spaces?			{ () }
+_CMAVO_pre :: ([BAhE], Word) = pre_clause _CMAVO spaces?	{ ($1, $2) }
 
 --	eks; basic afterthought logical connectives
 _A_pre :: A = pre_clause _A spaces?				{ $2 }
@@ -259,18 +262,18 @@ _UI_post :: () = post_clause_ind					{ () }
 _UI_no_SA_handling :: () = pre_clause _UI post_clause_ind		{ () }
 
 --	lujvo glue
-_ZEI_clause :: Clause Unit = _ZEI_pre _ZEI_post				{ Raw () }
-_ZEI_clause_no_SA :: () = _ZEI_pre_no_SA _ZEI _ZEI_post			{ () }
-_ZEI_pre :: () = pre_clause _ZEI spaces?				{ () }
-_ZEI_pre_no_SA :: () = pre_clause					{ () }
-_ZEI_post :: () = spaces?						{ () }
-_ZEI_no_SA_handling :: () = pre_clause _ZEI post_clause			{ () }
+_ZEI_clause :: Clause Unit = _ZEI_pre _ZEI_post		{ prePost () $1 [] }
+_ZEI_clause_no_SA :: () = _ZEI_pre_no_SA _ZEI _ZEI_post	{ () }
+_ZEI_pre :: [BAhE] = pre_clause _ZEI spaces?		{ $1 }
+_ZEI_pre_no_SA :: () = pre_clause			{ () }
+_ZEI_post :: () = spaces?				{ () }
+_ZEI_no_SA_handling :: () = pre_clause _ZEI post_clause	{ () }
 
---	time distance tense
-_ZI_clause :: Clause ZI = _ZI_pre _ZI_post				{ Raw $1 }
-_ZI_pre :: ZI = pre_clause _ZI spaces?					{ $2 }
-_ZI_post :: () = post_clause						{ () }
-_ZI_no_SA_handling :: () = pre_clause _ZI post_clause			{ () }
+--	*** ZI: time distance tense ***
+_ZI_clause :: Clause ZI = _ZI_pre _ZI_post	{ prePost (snd $1) (fst $1) $2 }
+_ZI_pre :: ([BAhE], ZI) = pre_clause _ZI spaces?{ ($1, $2) }
+_ZI_post :: [Indicators] = post_clause
+_ZI_no_SA_handling :: () = pre_clause _ZI post_clause	{ () }
 
 --	*** ZIhE: conjoins relative clauses ***
 _ZIhE_clause :: Clause Unit = _ZIhE_pre _ZIhE_post	{ prePost () $1 $2 }
@@ -308,32 +311,48 @@ _ZOhU_no_SA_handling :: () = pre_clause _ZOhU post_clause
 
 _CMENE :: CMENE = cmene						{ CMENE $1 }
 _BRIVLA :: BRIVLA = (gismu / lujvo / fuhivla)			{ BRIVLA $1 }
-_CMAVO :: ()
-	= _A   	{ () } / _BAI  { () } / _BAhE { () } / _BE   { () } / _BEI  { () }
-	/ _BEhO { () } / _BIhE { () } / _BIhI { () } / _BO   { () } / _BOI  { () }
-	/ _BU   { () } / _BY   { () } / _CAhA { () } / _CAI  { () } / _CEI  { () }
-	/ _CEhE { () } / _CO   { () } / _COI  { () } / _CU   { () } / _CUhE { () }
-	/ _DAhO { () } / _DOI  { () } / _DOhU { () } / _FA   { () } / _FAhA { () }
-	/ _FAhO { () } / _FEhE { () } / _FEhU { () } / _FIhO { () } / _FOI  { () }
-	/ _FUhA { () } / _FUhE { () } / _FUhO { () } / _GA   { () } / _GAhO { () }
-	/ _GEhU { () } / _GI   { () } / _GIhA { () } / _GOI  { () } / _GOhA { () }
-	/ _GUhA { () } / _I    { () } / _JA   { () } / _JAI  { () } / _JOhI { () }
-	/ _JOI  { () } / _KE   { () } / _KEhE { () } / _KEI  { () } / _KI   { () }
-	/ _KOhA { () } / _KU   { () } / _KUhE { () } / _KUhO { () } / _LA   { () }
-	/ _LAU  { () } / _LAhE { () } / _LE   { () } / _LEhU { () } / _LI   { () }
-	/ _LIhU { () } / _LOhO { () } / _LOhU { () } / _LU   { () } / _LUhU { () }
-	/ _MAhO { () } / _MAI  { () } / _ME   { () } / _MEhU { () } / _MOhE { () }
-	/ _MOhI { () } / _MOI  { () } / _NA   { () } / _NAI  { () } / _NAhE { () }
-	/ _NAhU { () } / _NIhE { () } / _NIhO { () } / _NOI  { () } / _NU   { () }
-	/ _NUhA { () } / _NUhI { () } / _NUhU { () } / _PA   { () } / _PEhE { () }
-	/ _PEhO { () } / _PU   { () } / _RAhO { () } / _ROI  { () } / _SA   { () }
-	/ _SE   { () } / _SEI  { () } / _SEhU { () } / _SI   { () } / _SOI  { () }
-	/ _SU   { () } / _TAhE { () } / _TEhU { () } / _TEI  { () } / _TO   { () }
-	/ _TOI  { () } / _TUhE { () } / _TUhU { () } / _UI   { () } / _VA   { () }
-	/ _VAU  { () } / _VEI  { () } / _VEhO { () } / _VUhU { () } / _VEhA { () }
-	/ _VIhA { () } / _VUhO { () } / _XI   { () } / _ZAhO { () } / _ZEhA { () }
-	/ _ZEI  { () } / _ZI   { () } / _ZIhE { () } / _ZO   { () } / _ZOI  { () }
-	/ _ZOhU { () } / cmavo { () }
+_CMAVO :: Word
+	= _A   	{ WA    $1 } / _BAI  { WBAI  $1 } / _BAhE { WBAhE $1 }
+	/ _BE   { WBE      } / _BEI  { WBEI     } / _BEhO { WBEhO    }
+	/ _BIhE { WBIhE    } / _BIhI { WBIhI    } / _BO   { WBO      }
+	/ _BOI  { WBOI     } / _BU   { WBU      } / _BY   { WBY   $1 }
+	/ _CAhA { WCAhA $1 } / _CAI  { WCAI  $1 } / _CEI  { WCEI     }
+	/ _CEhE { WCEhE    } / _CO   { WCO      } / _COI  { WCOI  $1 }
+	/ _CU   { WCU      } / _CUhE { WCUhE $1 } / _DAhO { WDAhO    }
+	/ _DOI  { WDOI     } / _DOhU { WDOhU    } / _FA   { WFA   $1 }
+	/ _FAhA { WFAhA $1 } / _FAhO { WFAhO    } / _FEhE { WFEhE    }
+	/ _FEhU { WFEhU    } / _FIhO { WFIhO    } / _FOI  { WFOI     }
+	/ _FUhA { WFUhA    } / _FUhE { WFUhE    } / _FUhO { WFUhO    }
+	/ _GA   { WGA   $1 } / _GAhO { WGAhO $1 } / _GEhU { WGEhU    }
+	/ _GI   { WGI      } / _GIhA { WGIhA $1 } / _GOI  { WGOI  $1 }
+	/ _GOhA { WGOhA $1 } / _GUhA { WGUhA $1 } / _I    { WI       }
+	/ _JA   { WJA   $1 } / _JAI  { WJAI     } / _JOhI { WJOhI    }
+	/ _JOI  { WJOI  $1 } / _KE   { WKE      } / _KEhE { WKEhE    }
+	/ _KEI  { WKEI     } / _KI   { WKI      } / _KOhA { WKOhA $1 }
+	/ _KU   { WKU      } / _KUhE { WKUhE    } / _KUhO { WKUhO    }
+	/ _LA   { WLA   $1 } / _LAU  { WLAU  $1 } / _LAhE { WLAhE $1 }
+	/ _LE   { WLE   $1 } / _LEhU { WLEhU    } / _LI   { WLI      }
+	/ _LIhU { WLIhU    } / _LOhO { WLOhO    } / _LOhU { WLOhU    }
+	/ _LU   { WLU      } / _LUhU { WLUhU    } / _MAhO { WMAhO    }
+	/ _MAI  { WMAI  $1 } / _ME   { WME      } / _MEhU { WMEhU    }
+	/ _MOhE { WMOhE    } / _MOhI { WMOhI    } / _MOI  { WMOI  $1 }
+	/ _NA   { WNA   $1 } / _NAI  { WNAI     } / _NAhE { WNAhE $1 }
+	/ _NAhU { WNAhU    } / _NIhE { WNIhE    } / _NIhO { WNIhO $1 }
+	/ _NOI  { WNOI  $1 } / _NU   { WNU   $1 } / _NUhA { WNUhA    }
+	/ _NUhI { WNUhI    } / _NUhU { WNUhU    } / _PA   { WPA   $1 }
+	/ _PEhE { WPEhE    } / _PEhO { WPEhO    } / _PU   { WPU   $1 }
+	/ _RAhO { WRAhO    } / _ROI  { WROI  $1 } / _SA   { WSA      }
+	/ _SE   { WSE   $1 } / _SEI  { WSEI  $1 } / _SEhU { WSEhU    }
+	/ _SI   { WSI      } / _SOI  { WSOI     } / _SU   { WSU      }
+	/ _TAhE { WTAhE $1 } / _TEhU { WTEhU    } / _TEI  { WTEI     }
+	/ _TO   { WTO   $1 } / _TOI  { WTOI     } / _TUhE { WTUhE    }
+	/ _TUhU { WTUhU    } / _UI   { WUI   $1 } / _VA   { WVA   $1 }
+	/ _VAU  { WVAU     } / _VEI  { WVEI     } / _VEhO { WVEhO    }
+	/ _VUhU { WVUhU $1 } / _VEhA { WVEhA $1 } / _VIhA { WVIhA $1 }
+	/ _VUhO { WVUhO    } / _XI   { WXI      } / _ZAhO { WZAhO $1 }
+	/ _ZEhA { WZEhA $1 } / _ZEI  { WZEI     } / _ZI   { WZI   $1 }
+	/ _ZIhE { WZIhE    } / _ZO   { WZO      } / _ZOI  { WZOI  $1 }
+	/ _ZOhU { WZOhU    } / cmavo { WCMAVO $1 }
 
 -------------------------------------------------------------------- 1388
 
@@ -1393,6 +1412,36 @@ data Indicator
 	| ICAINAI (Clause CAI) (Clause ())
 	| IDAhO (Clause ())
 	| IFUhO (Clause ())
+	deriving Show
+
+data Word
+	= WBRIVLA BRIVLA
+	| WCMENE CMENE
+	| WA A       | WBAI BAI   | WBAhE BAhE | WBE        | WBEI
+	| WBEhO      | WBIhE      | WBIhI      | WBO        | WBOI
+	| WBU        | WBY Lerfu  | WCAhA CAhA | WCAI CAI   | WCEI
+	| WCEhE      | WCO        | WCOI COI   | WCU        | WCUhE CUhE
+	| WDAhO      | WDOI       | WDOhU      | WFA FA     | WFAhA FAhA
+	| WFAhO      | WFEhE      | WFEhU      | WFIhO      | WFOI
+	| WFUhA      | WFUhE      | WFUhO      | WGA GA     | WGAhO GAhO
+	| WGEhU      | WGI        | WGIhA GIhA | WGOI GOI   | WGOhA GOhA
+	| WGUhA GUhA | WI         | WJA JA     | WJAI       | WJOhI
+	| WJOI JOI   | WKE        | WKEhE      | WKEI       | WKI
+	| WKOhA KOhA | WKU        | WKUhE      | WKUhO      | WLA LA
+	| WLAU LAU   | WLAhE LAhE | WLE LE     | WLEhU      | WLI
+	| WLIhU      | WLOhO      | WLOhU      | WLU        | WLUhU
+	| WMAhO      | WMAI MAI   | WME        | WMEhU      | WMOhE
+	| WMOhI      | WMOI MOI   | WNA NA     | WNAI       | WNAhE NAhE
+	| WNAhU      | WNIhE      | WNIhO NIhO | WNOI NOI   | WNU NU
+	| WNUhA      | WNUhI      | WNUhU      | WPA PA     | WPEhE
+	| WPEhO      | WPU PU     | WRAhO      | WROI ROI   | WSA
+	| WSE SE     | WSEI SEI   | WSEhU      | WSI        | WSOI
+	| WSU        | WTAhE TAhE | WTEhU      | WTEI       | WTO TO
+	| WTOI       | WTUhE      | WTUhU      | WUI UI     | WVA VA
+	| WVAU       | WVEI       | WVEhO      | WVUhU VUhU | WVEhA VEhA
+	| WVIhA VIhA | WVUhO      | WXI        | WZAhO ZAhO | WZEhA ZEhA
+	| WZEI       | WZI ZI     | WZIhE      | WZO        | WZOI ZOI
+	| WZOhU      | WCMAVO String
 	deriving Show
 
 data BRIVLA = BRIVLA String deriving Show
