@@ -11,7 +11,7 @@ import Data.Char
 
 test_parser :: (Maybe Prenex, (Maybe Term, Selbri)) = statement eof	{ $1 }
 
---- GRAMMAR --- 23
+--* GRAMMAR *************************************************************** 23
 
 statement :: (Maybe Prenex, (Maybe Term, Selbri))
 	= prenex? sentence
@@ -47,10 +47,23 @@ sumti_4 :: Sumti
 	= sumti_5
 
 sumti_5 :: Sumti
-	= sumti_6
+	= sumti_6 relative_clauses?	{ maybe $1 (SRelative $1) $2 }
 
 sumti_6 :: Sumti
-	= _KOhA_clause			{ SKOhA $1 }
+	= _ZO_clause			{ SQuote $1 }
+	/ _ZOI_clause			{ SQuote $1 }
+	/ _KOhA_clause			{ SKOhA $1 }
+
+relative_clauses :: Relative
+	= relative_clause (_ZIhE_clause relative_clause)*
+		{ if null $2 then $1 else RMany $1 $2 }
+
+relative_clause :: Relative
+	= relative_clause_1
+
+relative_clause_1 :: Relative
+	= _GOI_clause term		{ RelativePhrase $1 $2 }
+--	/ _NOI_clause subsentence
 
 selbri :: Selbri
 	= selbri_1
@@ -82,11 +95,8 @@ tanru_unit_1 :: TanruUnit
 tanru_unit_2 :: TanruUnit
 	= _BRIVLA_clause	{ TUBRIVLA $1 }
 
--- text ::
-
 indicators :: Indicators = _FUhE_clause? indicator+
 	{ maybe (Ind $2) (const $ IFUhE $2) $1 }
---	{ (isJust $1, $2) }
 indicator :: Indicator =
 	( (_UI_clause { Left $1 } / _CAI_clause { Right $1 }) _NAI_clause?
 				{ case ($1, $2) of
@@ -155,7 +165,7 @@ erasable_clause :: ()
 
 si_word :: () = pre_zei_bu
 
---- SELMAHO --- 553
+--- SELMAHO --------------------------------------------------------------- 553
 
 _BRIVLA_clause :: Clause BRIVLA
 	= _BRIVLA_pre _BRIVLA_post		{ prePost (snd $1) (fst $1) $2 }
@@ -210,6 +220,12 @@ _FUhO_pre :: () = pre_clause _FUhO spaces?			{ () }
 _FUhO_post :: () = post_clause					{ () }
 _FUhO_no_SA_handling :: () = pre_clause _FUhO post_clause	{ () }
 
+--	*** GOI: attaches a sumti modifier to a sumti
+_GOI_clause :: Clause GOI = _GOI_pre _GOI_post	{ prePost (snd $1) (fst $1) $2 }
+_GOI_pre :: ([BAhE], GOI) = pre_clause _GOI spaces?	{ ($1, $2) }
+_GOI_post :: [Indicators] = post_clause
+_GOI_no_SA_handling :: () = pre_clause _GOI post_clause	{ () }
+
 --	sumti anaphora
 _KOhA_clause :: Clause KOhA = _KOhA_pre _KOhA_post
 	{ prePost (snd $1) (fst $1) $2 }
@@ -256,37 +272,39 @@ _ZI_pre :: ZI = pre_clause _ZI spaces?					{ $2 }
 _ZI_post :: () = post_clause						{ () }
 _ZI_no_SA_handling :: () = pre_clause _ZI post_clause			{ () }
 
---	conjoins relative clauses
-_ZIhE_clause :: Clause Unit = _ZIhE_pre _ZIhE_post			{ Raw () }
-_ZIhE_pre :: () = pre_clause _ZIhE spaces?				{ () }
-_ZIhE_post :: () = post_clause						{ () }
+--	*** ZIhE: conjoins relative clauses ***
+_ZIhE_clause :: Clause Unit = _ZIhE_pre _ZIhE_post	{ prePost () $1 $2 }
+_ZIhE_pre :: [BAhE] = pre_clause _ZIhE spaces?		{ $1 }
+_ZIhE_post :: [Indicators] = post_clause
 _ZIhE_no_SA_handling :: () = pre_clause _ZIhE post_clause		{ () }
 
---	single word metalinguistic quote marker
-_ZO_clause :: Clause Quote = _ZO_pre _ZO_post				{ Raw $1 }
-_ZO_pre :: Quote = pre_clause _ZO spaces? lojban_word spaces?
-	{  SingleWordQuote $4 }
-_ZO_post :: () = post_clause						{ () }
+--	*** ZO: single word metalinguistic quote marker ***
+_ZO_clause :: Clause Quote = _ZO_pre _ZO_post	{ prePost (snd $1) (fst $1) $2 }
+_ZO_pre :: ([BAhE], Quote) = pre_clause _ZO spaces? lojban_word spaces?
+						{ ($1, SingleWordQuote $4) }
+_ZO_post :: [Indicators] = post_clause
 _ZO_no_SA_handling :: () = pre_clause _ZO spaces? lojban_word spaces?	{ () }
 
---	delimited quote marker
-_ZOI_clause :: Clause Quote = _ZOI_pre _ZOI_post			{ Raw $1 }
-_ZOI_pre :: Quote
+--	*** ZOI: delimited quote marker ***
+
+_ZOI_clause :: Clause Quote = _ZOI_pre _ZOI_post{ prePost (snd $1) (fst $1) $2 }
+_ZOI_pre :: ([BAhE], Quote)
 	= pre_clause _ZOI spaces? "\x00" zoi_word* "\x00" spaces?
-	{ DelimitedQuote $2 $4 }
-_ZOI_post :: () = post_clause						{ () }
+						{ ($1, DelimitedQuote $2 $4) }
+_ZOI_post :: [Indicators] = post_clause
 _ZOI_no_SA_handling :: ()
 	= pre_clause _ZOI spaces? "\x00" zoi_word* "\x00" spaces?	{ () }
 zoi_word :: Char = !"\x00" .
 
---	prenex terminator (not elidable)
+--	*** ZOhU: prenex terminator (not elidable) ***
+
 _ZOhU_clause :: Clause Unit = _ZOhU_pre _ZOhU_post	{ prePost () $1 $2 }
 _ZOhU_pre :: [BAhE] = pre_clause _ZOhU spaces?		{ $1 }
 _ZOhU_post :: [Indicators] = post_clause
 _ZOhU_no_SA_handling :: () = pre_clause _ZOhU post_clause
 							{ () }
 
---- MORPHOLOGY --- 1334
+--* MORPHOLOGY ************************************************************ 1334
 
 _CMENE :: CMENE = cmene						{ CMENE $1 }
 _BRIVLA :: BRIVLA = (gismu / lujvo / fuhivla)			{ BRIVLA $1 }
@@ -1333,7 +1351,15 @@ data Prenex = Prenex Term (Clause ())
 data Term = TSumti Sumti
 	deriving Show
 
-data Sumti = SKOhA (Clause KOhA)
+data Sumti
+	= SQuote (Clause Quote)
+	| SKOhA (Clause KOhA)
+	| SRelative Sumti Relative
+	deriving Show
+
+data Relative
+	= RelativePhrase (Clause GOI) Term
+	| RMany Relative [(Clause (), Relative)]
 	deriving Show
 
 data Selbri = STanruUnit TanruUnit
