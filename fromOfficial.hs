@@ -9,9 +9,41 @@ import Data.Char
 
 [peggy|
 
-test_parser :: TanruUnit = tanru_unit_2	eof { $1 }
+test_parser :: Selbri = selbri eof	{ $1 }
 
 --- GRAMMAR --- 23
+
+{-
+sumti_6 :: Sumti
+	= _KOhA_clause			{ SKOhA $1 }
+-}
+
+selbri :: Selbri
+	= selbri_1
+
+selbri_1 :: Selbri
+	= selbri_2
+
+selbri_2 :: Selbri
+	= selbri_3
+
+selbri_3 :: Selbri
+	= selbri_4
+
+selbri_4 :: Selbri
+	= selbri_5
+
+selbri_5 :: Selbri
+	= selbri_6
+
+selbri_6 :: Selbri
+	= tanru_unit		{ STanruUnit $1 }
+
+tanru_unit :: TanruUnit
+	= tanru_unit_1
+
+tanru_unit_1 :: TanruUnit
+	= tanru_unit_2
 
 tanru_unit_2 :: TanruUnit
 	= _BRIVLA_clause	{ TUBRIVLA $1 }
@@ -57,11 +89,11 @@ pre_zei_bu :: ()
 -- 3. BAhE is eaten *before* a word.
 
 -- Handling of what can go after a cmavo
-{-
--}
 post_clause :: [(Bool, [Indicator])]
 	= spaces? si_clause? !_ZEI_clause !_BU_clause indicators*
 	{ $3 }
+post_clause_ind :: ()
+	= spaces? si_clause? !_ZEI_clause !_BU_clause	{ () }
 pre_clause :: [BAhE] = _BAhE_clause?			{ fromMaybe [] $1 }
 
 any_word_SA_handling :: ()
@@ -91,10 +123,7 @@ si_word :: () = pre_zei_bu
 --- SELMAHO --- 553
 
 _BRIVLA_clause :: Clause BRIVLA
-	= _BRIVLA_pre _BRIVLA_post	{ case ($1, $2) of
-						(([], br), []) -> Raw br
-						((bahe, br), []) -> Pre bahe br
-						(([], br), ui) -> Post br ui }
+	= _BRIVLA_pre _BRIVLA_post		{ prePost (snd $1) (fst $1) $2 }
 --	/ zei_clause
 _BRIVLA_pre :: ([BAhE], BRIVLA)
 	= pre_clause _BRIVLA spaces?		{ ($1, $2) }
@@ -122,8 +151,8 @@ _BU_post :: () = spaces?			{ () }
 --	afterthought intensity marker
 _CAI_clause :: Clause CAI = _CAI_pre _CAI_post			{ Raw $1 }
 _CAI_pre :: CAI = pre_clause _CAI spaces?			{ $2 }
-_CAI_post :: () = post_clause					{ () }
-_CAI_no_SA_handling :: () = pre_clause _CAI post_clause		{ () }
+_CAI_post :: () = post_clause_ind				{ () }
+_CAI_no_SA_handling :: () = pre_clause _CAI post_clause_ind	{ () }
 
 --	cancel anaphoracataphora assignments
 _DAhO_clause :: Clause Unit = _DAhO_pre _DAhO_post		{ Raw () }
@@ -146,11 +175,14 @@ _FUhO_pre :: () = pre_clause _FUhO spaces?			{ () }
 _FUhO_post :: () = post_clause					{ () }
 _FUhO_no_SA_handling :: () = pre_clause _FUhO post_clause	{ () }
 
+--	sumti anaphora
+-- _KOhA_clause :: Clause KohA
+
 --	attached to words to negate them
-_NAI_clause :: Clause Unit = _NAI_pre _NAI_post			{ Post () $2 }
+_NAI_clause :: Clause Unit = _NAI_pre _NAI_post			{ Raw () }
 _NAI_pre :: () = pre_clause _NAI spaces?			{ () }
-_NAI_post :: [(Bool, [Indicator])] = post_clause
-_NAI_no_SA_handling :: () = pre_clause _NAI post_clause		{ () }
+_NAI_post :: () = post_clause_ind
+_NAI_no_SA_handling :: () = pre_clause _NAI post_clause_ind	{ () }
 
 --	metalinguistic eraser to the beginning of the current utterance
 _SA_clause :: () = _SA_pre _SA_post		{ () }
@@ -168,8 +200,8 @@ _SU_post :: () = post_clause			{ () }
 --	attitudinals, observationals, discursives
 _UI_clause :: Clause UI = _UI_pre _UI_post				{ Raw $1 }
 _UI_pre :: UI = pre_clause _UI spaces?					{ $2 }
-_UI_post :: () = post_clause						{ () }
-_UI_no_SA_handling :: () = pre_clause _UI post_clause			{ () }
+_UI_post :: () = post_clause_ind					{ () }
+_UI_no_SA_handling :: () = pre_clause _UI post_clause_ind		{ () }
 
 --	lujvo glue
 _ZEI_clause :: Clause Unit = _ZEI_pre _ZEI_post				{ Raw () }
@@ -1255,6 +1287,12 @@ _ZOhU :: () = &cmavo z o h u &post_word	{ () }
 
 |]
 
+data Sumti = SKOhA (Clause KOhA)
+	deriving Show
+
+data Selbri = STanruUnit TanruUnit
+	deriving Show
+
 data TanruUnit = TUBRIVLA (Clause BRIVLA)
 	deriving Show
 
@@ -1421,3 +1459,10 @@ spanTo d [] = ([], [])
 spanTo d lst@(x : xs)
 	| isPrefixOf d lst = ([], drop (length d) lst)
 	| otherwise = let (pre, post) = spanTo d xs in (x : pre, post)
+
+prePost :: a -> [BAhE] -> [(Bool, [Indicator])] -> Clause a
+prePost x pre post = case (pre, post) of
+	([], []) -> Raw x
+	(_, []) -> Pre pre x
+	([], _) -> Post x post
+	_ -> PrePost pre x post
