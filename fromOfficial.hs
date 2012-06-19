@@ -9,14 +9,48 @@ import Data.Char
 
 [peggy|
 
-test_parser :: Selbri = selbri eof	{ $1 }
+test_parser :: (Maybe Prenex, (Maybe Term, Selbri)) = statement eof	{ $1 }
 
 --- GRAMMAR --- 23
 
-{-
+statement :: (Maybe Prenex, (Maybe Term, Selbri))
+	= prenex? sentence
+
+prenex :: Prenex
+	= terms _ZOhU_clause		{ Prenex $1 $2 }
+
+sentence :: (Maybe Term, Selbri)
+	= terms? selbri
+
+terms :: Term
+	= term
+
+term :: Term
+	= term_1
+
+term_1 :: Term
+	= sumti		{ TSumti $1 }
+
+sumti :: Sumti
+	= sumti_1
+
+sumti_1 :: Sumti
+	= sumti_2
+
+sumti_2 :: Sumti
+	= sumti_3
+
+sumti_3 :: Sumti
+	= sumti_4
+
+sumti_4 :: Sumti
+	= sumti_5
+
+sumti_5 :: Sumti
+	= sumti_6
+
 sumti_6 :: Sumti
 	= _KOhA_clause			{ SKOhA $1 }
--}
 
 selbri :: Selbri
 	= selbri_1
@@ -50,8 +84,9 @@ tanru_unit_2 :: TanruUnit
 
 -- text ::
 
-indicators :: (Bool, [Indicator]) = _FUhE_clause? indicator+
-	{ (isJust $1, $2) }
+indicators :: Indicators = _FUhE_clause? indicator+
+	{ maybe (Ind $2) (const $ IFUhE $2) $1 }
+--	{ (isJust $1, $2) }
 indicator :: Indicator =
 	( (_UI_clause { Left $1 } / _CAI_clause { Right $1 }) _NAI_clause?
 				{ case ($1, $2) of
@@ -89,7 +124,7 @@ pre_zei_bu :: ()
 -- 3. BAhE is eaten *before* a word.
 
 -- Handling of what can go after a cmavo
-post_clause :: [(Bool, [Indicator])]
+post_clause :: [Indicators]
 	= spaces? si_clause? !_ZEI_clause !_BU_clause indicators*
 	{ $3 }
 post_clause_ind :: ()
@@ -127,7 +162,7 @@ _BRIVLA_clause :: Clause BRIVLA
 --	/ zei_clause
 _BRIVLA_pre :: ([BAhE], BRIVLA)
 	= pre_clause _BRIVLA spaces?		{ ($1, $2) }
-_BRIVLA_post :: [(Bool, [Indicator])] = post_clause
+_BRIVLA_post :: [Indicators] = post_clause
 
 _CMENE_pre :: CMENE = pre_clause _CMENE spaces?			{ $2 }
 
@@ -176,7 +211,11 @@ _FUhO_post :: () = post_clause					{ () }
 _FUhO_no_SA_handling :: () = pre_clause _FUhO post_clause	{ () }
 
 --	sumti anaphora
--- _KOhA_clause :: Clause KohA
+_KOhA_clause :: Clause KOhA = _KOhA_pre _KOhA_post
+	{ prePost (snd $1) (fst $1) $2 }
+_KOhA_pre :: ([BAhE], KOhA) = pre_clause _KOhA spaces?		{ ($1, $2) }
+_KOhA_post :: [Indicators] = post_clause
+_KOhA_no_SA_handling :: () = pre_clause _KOhA spaces?		{ () }
 
 --	attached to words to negate them
 _NAI_clause :: Clause Unit = _NAI_pre _NAI_post			{ Raw () }
@@ -241,10 +280,11 @@ _ZOI_no_SA_handling :: ()
 zoi_word :: Char = !"\x00" .
 
 --	prenex terminator (not elidable)
-_ZOhU_clause :: Clause Unit = _ZOhU_pre _ZOhU_post		{ Raw () }
-_ZOhU_pre :: () = pre_clause _ZOhU spaces?			{ () }
-_ZOhU_post :: () = post_clause					{ () }
-_ZOhU_no_SA_handling :: () = pre_clause _ZOhU post_clause	{ () }
+_ZOhU_clause :: Clause Unit = _ZOhU_pre _ZOhU_post	{ prePost () $1 $2 }
+_ZOhU_pre :: [BAhE] = pre_clause _ZOhU spaces?		{ $1 }
+_ZOhU_post :: [Indicators] = post_clause
+_ZOhU_no_SA_handling :: () = pre_clause _ZOhU post_clause
+							{ () }
 
 --- MORPHOLOGY --- 1334
 
@@ -1287,6 +1327,12 @@ _ZOhU :: () = &cmavo z o h u &post_word	{ () }
 
 |]
 
+data Prenex = Prenex Term (Clause ())
+	deriving Show
+
+data Term = TSumti Sumti
+	deriving Show
+
 data Sumti = SKOhA (Clause KOhA)
 	deriving Show
 
@@ -1304,9 +1350,16 @@ data Quote
 data Clause a
 	= Raw a
 	| Pre [BAhE] a
-	| Post a [(Bool, [Indicator])]
-	| PrePost [BAhE] a [(Bool, [Indicator])]
+	| Post a [Indicators]
+	| PrePost [BAhE] a [Indicators]
 	deriving Show
+
+-- type Indicators = (Bool, [Indicator])
+data Indicators
+	= Ind [Indicator]
+	| IFUhE [Indicator]
+	deriving Show
+
 data Indicator
 	= IUI (Clause UI)
 	| IUINAI (Clause UI) (Clause ())
@@ -1460,7 +1513,7 @@ spanTo d lst@(x : xs)
 	| isPrefixOf d lst = ([], drop (length d) lst)
 	| otherwise = let (pre, post) = spanTo d xs in (x : pre, post)
 
-prePost :: a -> [BAhE] -> [(Bool, [Indicator])] -> Clause a
+prePost :: a -> [BAhE] -> [Indicators] -> Clause a
 prePost x pre post = case (pre, post) of
 	([], []) -> Raw x
 	(_, []) -> Pre pre x
