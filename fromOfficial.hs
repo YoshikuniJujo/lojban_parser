@@ -113,14 +113,18 @@ indicator :: Indicator =
 -- Magic Words
 -- ******************
 
--- zei_clause :: String = pre_clause zei_clause_no_pre	{ $2 }
-zei_clause_no_pre :: ()
-	= pre_zei_bu (zei_tail? bu_tail)* zei_tail post_clause	{ () }
+zei_clause :: ([BAhE], BRIVLA, [Indicators])
+	= pre_clause zei_clause_no_pre
+	{ let (pre, zei, post) = $2 in ($1 ++ pre, zei, post) }
+zei_clause_no_pre :: ([BAhE], BRIVLA, [Indicators])
+	= pre_zei_bu (zei_tail? bu_tail)* zei_tail post_clause
+	{ (fst $1, ZEI (snd $1) (map (fromMaybe [] . fst) $2) $3, $4) }
 
 bu_clause_no_pre :: ()
 	= pre_zei_bu (bu_tail? zei_tail)* bu_tail post_clause	{ () }
 
-zei_tail :: [String] = (_ZEI_clause lojban_word)+	{ map snd $1 }
+zei_tail :: [String] = (_ZEI_clause (lojban_word spaces?))+
+	{ map (fst . snd) $1 }
 bu_tail :: () = _BU_clause+				{ () }
 
 pre_zei_bu :: ([BAhE], Word)
@@ -144,12 +148,17 @@ pre_clause :: [BAhE] = _BAhE_clause?			{ fromMaybe [] $1 }
 
 any_word_SA_handling :: ([BAhE], Word)
 	= _BRIVLA_pre	{ second WBRIVLA $1 }
-	/ known_cmavo_SA{ ([], WA A) }
-	/ _CMAVO_pre	{ ([], WA A) }
+	/ known_cmavo_SA
+	/ _CMAVO_pre
 	/ _CMENE_pre	{ second WCMENE $1 }
 
-known_cmavo_SA :: ()
-	= _A_pre { () }
+known_cmavo_SA :: ([BAhE], Word)
+	= _A_pre    { second WA    $1 } / _BAI_pre  { second WBAI  $1 }
+	/ _BAhE_pre { ([], WBAhE $1)  } / _BE_pre   { ($1, WBE)       }
+	/ _BEI_pre  { ($1, WBEI)      } / _BEhO_pre { ($1, WBEhO)     }
+	/ _BIhE_pre { ($1, WBIhE)     }
+--	/ _HOGE_pre { second WHOGE $1 } / _HOGE_pre { second WHOGE $1 }
+--	/ _HOGE_pre { ($1, WHOGE)     }
 
 -- Handling of spaces and things like spaces.
 --- SPACE --- 534
@@ -171,8 +180,9 @@ si_word :: ([BAhE], Word) = pre_zei_bu
 --- SELMAHO --------------------------------------------------------------- 553
 
 _BRIVLA_clause :: Clause BRIVLA
-	= _BRIVLA_pre _BRIVLA_post		{ prePost (snd $1) (fst $1) $2 }
---	/ zei_clause
+	= _BRIVLA_pre _BRIVLA_post
+				{ prePost (snd $1) (fst $1) $2 }
+	/ zei_clause		{ let (pre, b, post) = $1 in prePost b pre post }
 _BRIVLA_pre :: ([BAhE], BRIVLA)
 	= pre_clause _BRIVLA spaces?		{ ($1, $2) }
 _BRIVLA_post :: [Indicators] = post_clause
@@ -181,14 +191,29 @@ _CMENE_pre :: ([BAhE], CMENE) = pre_clause _CMENE spaces?	{ ($1, $2) }
 
 _CMAVO_pre :: ([BAhE], Word) = pre_clause _CMAVO spaces?	{ ($1, $2) }
 
---	eks; basic afterthought logical connectives
-_A_pre :: A = pre_clause _A spaces?				{ $2 }
+--	*** A: eks; basic afterthought logical connectives ***
+_A_pre :: ([BAhE], A) = pre_clause _A spaces?			{ ($1, $2) }
 
---	next word intensifier
+--	*** BAI: modal operators ***
+_BAI_pre :: ([BAhE], BAI) = pre_clause _BAI spaces?		{ ($1, $2) }
+
+--	*** BAhE: next word intensifier ***
 _BAhE_clause :: [BAhE] = (_BAhE_pre _BAhE_post)+		{ map fst $1 }
 _BAhE_pre :: BAhE = _BAhE spaces?				{ $1 }
 _BAhE_post :: () = si_clause? !_ZEI_clause !_BU_clause		{ () }
 _BAhE_no_SA_handling :: () = _BAhE spaces? _BAhE_post		{ () }
+
+--	*** BE: sumti link to attach sumti to a selbri
+_BE_pre :: [BAhE] = pre_clause _BE spaces?			{ $1 }
+
+--	*** BEI: multiple sumti separator between BE, BEI
+_BEI_pre :: [BAhE] = pre_clause _BEI spaces?			{ $1 }
+
+--	*** BEhO: terminates BEBEI specified descriptors
+_BEhO_pre :: [BAhE] = pre_clause _BEhO spaces?			{ $1 }
+
+--	*** BIhE: prefix for high-priority MEX operator
+_BIhE_pre :: [BAhE] = pre_clause _BIhE spaces?			{ $1 }
 
 --	turns any word into a BY lerfu word
 _BU_clause :: () = _BU_pre _BU_post		{ () }
@@ -1444,7 +1469,10 @@ data Word
 	| WZOhU      | WCMAVO String
 	deriving Show
 
-data BRIVLA = BRIVLA String deriving Show
+data BRIVLA
+	= BRIVLA String
+	| ZEI Word [[String]] [String]
+	deriving Show
 data CMENE = CMENE String deriving Show
 
 data A = A | E | JI | O | U deriving Show
