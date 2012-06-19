@@ -166,6 +166,20 @@ known_cmavo_SA :: ([BAhE], Word)
 	/ _CUhE_pre { second WCUhE $1 } / _DAhO_pre { ($1, WDAhO)     }
 	/ _DOI_pre  { ($1, WDOI)      } / _DOhU_pre { ($1, WDOhU)     }
 	/ _FA_pre   { second WFA $1   } / _FAhA_pre { second WFAhA $1 }
+	/ _FEhE_pre { ($1, WFEhE)     } / _FEhU_pre { ($1, WFEhU)     }
+	/ _FIhO_pre { ($1, WFIhO)     } / _FOI_pre  { ($1, WFOI)      }
+	/ _FUhA_pre { ($1, WFUhA)     } / _FUhE_pre { ($1, WFUhE)     }
+	/ _FUhO_pre { ($1, WFUhO)     } / _GA_pre   { second WGA $1   }
+	/ _GAhO_pre { second WGAhO $1 } / _GEhU_pre { ($1, WGEhU)     }
+	/ _GI_pre   { ($1, WGI)       } / _GIhA_pre { second WGIhA $1 }
+	/ _GOI_pre  { second WGOI $1  } / _GOhA_pre { second WGOhA $1 }
+	/ _GUhA_pre { second WGUhA $1 } / _I_pre    { ($1, WI)        }
+	/ _JA_pre   { second WJA $1   } / _JAI_pre  { ($1, WJAI)      }
+	/ _JOI_pre  { second WJOI $1  } / _JOhI_pre { ($1, WJOhI)     }
+	/ _KE_pre   { ($1, WKE)       } / _KEI_pre  { ($1, WKEI)      }
+	/ _KEhE_pre { ($1, WKEhE)     } / _KI_pre   { ($1, WKI)       }
+	/ _KOhA_pre { second WKOhA $1 } / _KU_pre   { ($1, WKU)       }
+	/ _KUhE_pre { ($1, WKUhE)     } / _KUhO_pre { ($1, WKUhO)     }
 
 -- Handling of spaces and things like spaces.
 --- SPACE --- 534
@@ -290,30 +304,102 @@ _FAhA_pre :: ([BAhE], FAhA) = pre_clause _FAhA spaces?	{ ($1, $2) }
 --	*** FAhO: normally elided 'done pause' to indicate end of utterance string ***
 _FAhO_clause :: () = pre_clause _FAhO spaces?	{ () }
 
+--	*** FEhE: space interval mod flag ***
+_FEhE_pre :: [BAhE] = pre_clause _FEhE spaces?	{ $1 }
+
+--	*** FEhU: ends bridi to modal conversion ***
+_FEhU_pre :: [BAhE] = pre_clause _FEhU spaces?	{ $1 }
+
+--	*** FIhO: marks bridi to modal conversion ***
+_FIhO_pre :: [BAhE] = pre_clause _FIhO spaces?	{ $1 }
+
+--	*** FOI: end compound lerfu ***
+_FOI_pre :: [BAhE] = pre_clause _FOI spaces?	{ $1 }
+
+--	*** FUhA: reverse Polish flag ***
+_FUhA_pre :: [BAhE] = pre_clause _FUhA spaces?	{ $1 }
+
 --	*** FUhE: open long scope for indicator ***
 _FUhE_clause :: Clause Unit = _FUhE_pre _FUhE_post	{ prePost () $1 [] }
 _FUhE_pre :: [BAhE] = pre_clause _FUhE spaces?			{ $1 }
 _FUhE_post :: () = !_BU_clause spaces? !_ZEI_clause !_BU_clause	{ () }
 _FUhE_no_SA_handling :: () = pre_clause _FUhE post_clause	{ () }
 
---	*** FUhO: close long scope for indicator
-_FUhO_clause :: Clause Unit = _FUhO_pre _FUhO_post	{ prePost () $1 $2 }
+--	*** FUhO: close long scope for indicator ***
+_FUhO_clause :: Clause Unit = _FUhO_pre _FUhO_post	{ prePost () $1 [] }
 _FUhO_pre :: [BAhE] = pre_clause _FUhO spaces?		{ $1 }
-_FUhO_post :: [Indicators] = post_clause
+_FUhO_post :: () = post_clause_ind
 _FUhO_no_SA_handling :: () = pre_clause _FUhO post_clause	{ () }
 
---	*** GOI: attaches a sumti modifier to a sumti
+--	*** GA: geks; forethought logical connectives ***
+_GA_pre :: ([BAhE], GA) = pre_clause _GA spaces?	{ ($1, $2) }
+
+--	*** GAhO: openclosed interval markers for BIhI ***
+_GAhO_pre :: ([BAhE], GAhO) = pre_clause _GAhO spaces?	{ ($1, $2) }
+
+---	*** GEhU: marker ending GOI relative clauses ***
+_GEhU_pre :: [BAhE] = pre_clause _GAhO spaces?		{ $1 }
+
+---	*** GI: forethought medial marker ***
+_GI_pre :: [BAhE] = pre_clause _GI spaces?		{ $1 }
+
+--	*** GIhA: logical connective for bridi-tails ***
+_GIhA_pre :: ([BAhE], GIhA) = pre_clause _GIhA spaces?	{ ($1, $2) }
+
+--	*** GOI: attaches a sumti modifier to a sumti ***
 _GOI_clause :: Clause GOI = _GOI_pre _GOI_post	{ prePost (snd $1) (fst $1) $2 }
 _GOI_pre :: ([BAhE], GOI) = pre_clause _GOI spaces?	{ ($1, $2) }
 _GOI_post :: [Indicators] = post_clause
 _GOI_no_SA_handling :: () = pre_clause _GOI post_clause	{ () }
 
---	sumti anaphora
+--	*** GOhA: pro-bridi ***
+_GOhA_pre :: ([BAhE], GOhA) = pre_clause _GOhA spaces?	{ ($1, $2) }
+
+--	*** GUhA: GEK for tanru units, corresponds to JEKs ***
+_GUhA_pre :: ([BAhE], GUhA) = pre_clause _GUhA spaces?	{ ($1, $2) }
+
+--	*** I: sentence link ***
+_I_pre :: [BAhE] = pre_clause _I spaces?		{ $1 }
+
+--	*** JA: jeks; logical connectives within tanru ***
+_JA_pre :: ([BAhE], JA) = pre_clause _JA spaces?	{ ($1, $2) }
+
+--	*** JAI: modal conversion flag ***
+_JAI_pre :: [BAhE] = pre_clause _JAI spaces?		{ $1 }
+
+--	*** JOhI: flags an array operand ***
+_JOhI_pre :: [BAhE] = pre_clause _JOhI spaces?		{ $1 }
+
+--	*** JOI: non-logical connectives ***
+_JOI_pre :: ([BAhE], JOI) = pre_clause _JOI spaces?	{ ($1, $2) }
+
+--	*** KE: left long scope marker ***
+_KE_pre :: [BAhE] = pre_clause _KE spaces?		{ $1 }
+
+--	*** KEhE: right terminator for KE groups ***
+_KEhE_pre :: [BAhE] = pre_clause _KEhE spaces?		{ $1 }
+
+--	*** KEI: right terminator, NU abstractions ***
+_KEI_pre :: [BAhE] = pre_clause _KEI spaces?		{ $1 }
+
+--	*** KI: multiple utterance scope for tenses ***
+_KI_pre :: [BAhE] = pre_clause _KI spaces?		{ $1 }
+
+--	*** KOhA: sumti anaphora ***
 _KOhA_clause :: Clause KOhA = _KOhA_pre _KOhA_post
 	{ prePost (snd $1) (fst $1) $2 }
 _KOhA_pre :: ([BAhE], KOhA) = pre_clause _KOhA spaces?		{ ($1, $2) }
 _KOhA_post :: [Indicators] = post_clause
 _KOhA_no_SA_handling :: () = pre_clause _KOhA spaces?		{ () }
+
+--	*** KU: right terminator for descritions, etc.
+_KU_pre :: [BAhE] = pre_clause _KU spaces?			{ $1 }
+
+--	*** KUhE: MEX forethought delimiter
+_KUhE_pre :: [BAhE] = pre_clause _KUhE spaces?			{ $1 }
+
+--	*** KUhO: right terminator, NOI relative clauses
+_KUhO_pre :: [BAhE] = pre_clause _KUhO spaces?			{ $1 }
 
 --	attached to words to negate them
 _NAI_clause :: Clause Unit = _NAI_pre _NAI_post			{ Raw () }
