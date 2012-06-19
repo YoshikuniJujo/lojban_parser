@@ -160,9 +160,12 @@ known_cmavo_SA :: ([BAhE], Word)
 	/ _BO_pre   { ($1, WBO)       } / _BOI_pre  { ($1, WBOI)      }
 	/ _BOI_pre  { ($1, WBOI)      } / _BU_pre   { ($1, WBU)       }
 	/ _BY_pre   { second WBY $1   } / _CAI_pre  { second WCAI $1  }
-	/ _CAhA_pre { second WCAhA $1 }
---	/ _HOGE_pre { second WHOGE $1 } / _HOGE_pre { second WHOGE $1 }
---	/ _HOGE_pre { ($1, WHOGE)     }
+	/ _CAhA_pre { second WCAhA $1 } / _CEI_pre  { ($1, WCEI)      }
+	/ _CEhE_pre { ($1, WCEhE)     } / _CO_pre   { ($1, WCO )      }
+	/ _COI_pre  { second WCOI $1  } / _CU_pre   { ($1, WCU )      }
+	/ _CUhE_pre { second WCUhE $1 } / _DAhO_pre { ($1, WDAhO)     }
+	/ _DOI_pre  { ($1, WDOI)      } / _DOhU_pre { ($1, WDOhU)     }
+	/ _FA_pre   { second WFA $1   } / _FAhA_pre { second WFAhA $1 }
 
 -- Handling of spaces and things like spaces.
 --- SPACE --- 534
@@ -248,27 +251,55 @@ _CAI_pre :: ([BAhE], CAI) = pre_clause _CAI spaces?	{ ($1, $2) }
 _CAI_post :: () = post_clause_ind
 _CAI_no_SA_handling :: () = pre_clause _CAI post_clause_ind	{ () }
 
---	*** CEI: pro-bridi assignment operator
+--	*** CEI: pro-bridi assignment operator ***
+_CEI_pre :: [BAhE] = pre_clause _CEI spaces?	{ $1 }
 
---	cancel anaphoracataphora assignments
-_DAhO_clause :: Clause Unit = _DAhO_pre _DAhO_post		{ Raw () }
-_DAhO_pre :: () = pre_clause _DAhO spaces?			{ () }
-_DAhO_post :: () = post_clause					{ () }
+--	*** CEhE: afterthought term list connective ***
+_CEhE_pre :: [BAhE] = pre_clause _CEhE spaces?	{ $1 }
+
+---	*** CO: tanru inversion ***
+_CO_pre :: [BAhE] = pre_clause _CO spaces?	{ $1 }
+
+---	*** COI: vocative marker permitted inside name ***
+_COI_pre :: ([BAhE], COI) = pre_clause _COI spaces?	{ ($1, $2) }
+
+---	*** CU: separator between head sumti and selbri ***
+_CU_pre :: [BAhE] = pre_clause _CU spaces?	{ $1 }
+
+---	*** CUhE: tensemodal question ***
+_CUhE_pre :: ([BAhE], CUhE) = pre_clause _CUhE spaces?	{ ($1, $2) }
+
+--	*** DAhO: cancel anaphoracataphora assignments ***
+_DAhO_clause :: Clause Unit = _DAhO_pre _DAhO_post	{ prePost () $1 $2 }
+_DAhO_pre :: [BAhE] = pre_clause _DAhO spaces?		{ $1 }
+_DAhO_post :: [Indicators] = post_clause
 _DAhO_no_SA_handling :: () = pre_clause _DAhO post_clause	{ () }
 
---	normally elided 'done pause' to indicate end of utterance string
+--	*** DOI: vocative marker ***
+_DOI_pre :: [BAhE] = pre_clause _DOI spaces?		{ $1 }
+
+--	*** DOhU: terminator for DOI_marked vocatives ***
+_DOhU_pre :: [BAhE] = pre_clause _DOhU spaces?		{ $1 }
+
+--	*** FA: modifier head generic case tag ***
+_FA_pre :: ([BAhE], FA) = pre_clause _FA spaces?	{ ($1, $2) }
+
+--	*** FAhA: superdirections in space ***
+_FAhA_pre :: ([BAhE], FAhA) = pre_clause _FAhA spaces?	{ ($1, $2) }
+
+--	*** FAhO: normally elided 'done pause' to indicate end of utterance string ***
 _FAhO_clause :: () = pre_clause _FAhO spaces?	{ () }
 
---	open long scope for indicator
-_FUhE_clause :: Clause Unit = _FUhE_pre _FUhE_post		{ Raw () }
-_FUhE_pre :: () = pre_clause _FUhE spaces?			{ () }
+--	*** FUhE: open long scope for indicator ***
+_FUhE_clause :: Clause Unit = _FUhE_pre _FUhE_post	{ prePost () $1 [] }
+_FUhE_pre :: [BAhE] = pre_clause _FUhE spaces?			{ $1 }
 _FUhE_post :: () = !_BU_clause spaces? !_ZEI_clause !_BU_clause	{ () }
 _FUhE_no_SA_handling :: () = pre_clause _FUhE post_clause	{ () }
 
---	close long scope for indicator
-_FUhO_clause :: Clause Unit = _FUhO_pre _FUhO_post		{ Raw () }
-_FUhO_pre :: () = pre_clause _FUhO spaces?			{ () }
-_FUhO_post :: () = post_clause					{ () }
+--	*** FUhO: close long scope for indicator
+_FUhO_clause :: Clause Unit = _FUhO_pre _FUhO_post	{ prePost () $1 $2 }
+_FUhO_pre :: [BAhE] = pre_clause _FUhO spaces?		{ $1 }
+_FUhO_post :: [Indicators] = post_clause
 _FUhO_no_SA_handling :: () = pre_clause _FUhO post_clause	{ () }
 
 --	*** GOI: attaches a sumti modifier to a sumti
