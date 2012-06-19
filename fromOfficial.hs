@@ -286,7 +286,29 @@ _UI_pre :: UI = pre_clause _UI spaces?					{ $2 }
 _UI_post :: () = post_clause_ind					{ () }
 _UI_no_SA_handling :: () = pre_clause _UI post_clause_ind		{ () }
 
---	lujvo glue
+--	*** XI: subscripting operator
+_XI_clause :: Clause Unit = _XI_pre _XI_post	{ prePost () $1 $2 }
+_XI_pre :: [BAhE] = pre_clause _XI spaces?	{ $1 }
+_XI_post :: [Indicators] = post_clause
+_XI_no_SA_handling :: () = pre_clause _XI post_clause	{ () }
+
+--	*** Y: hesitation
+
+--	*** ZAhO: event properties - inchoative, etc. ***
+_ZAhO_clause :: Clause ZAhO = _ZAhO_pre _ZAhO_post	
+	{ prePost (snd $1) (fst $1) $2 }
+_ZAhO_pre :: ([BAhE], ZAhO) = pre_clause _ZAhO spaces?		{ ($1, $2) }
+_ZAhO_post :: [Indicators] = post_clause
+_ZAhO_no_SA_handling :: () = pre_clause _ZAhO post_clause	{ () }
+
+--	*** ZEhA: time interval size tense ***
+_ZEhA_clause :: Clause ZEhA = _ZEhA_pre _ZEhA_post
+	{ prePost (snd $1) (fst $1) $2 }
+_ZEhA_pre :: ([BAhE], ZEhA) = pre_clause _ZEhA spaces?	{ ($1, $2) }
+_ZEhA_post :: [Indicators] = post_clause
+_ZEhA_no_SA_handling :: () = pre_clause _ZEhA post_clause{ () }
+
+--	*** ZEI: lujvo glue ***
 _ZEI_clause :: Clause Unit = _ZEI_pre _ZEI_post		{ prePost () $1 [] }
 _ZEI_clause_no_SA :: () = _ZEI_pre_no_SA _ZEI _ZEI_post	{ () }
 _ZEI_pre :: [BAhE] = pre_clause _ZEI spaces?		{ $1 }
