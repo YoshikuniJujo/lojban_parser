@@ -156,7 +156,11 @@ known_cmavo_SA :: ([BAhE], Word)
 	= _A_pre    { second WA    $1 } / _BAI_pre  { second WBAI  $1 }
 	/ _BAhE_pre { ([], WBAhE $1)  } / _BE_pre   { ($1, WBE)       }
 	/ _BEI_pre  { ($1, WBEI)      } / _BEhO_pre { ($1, WBEhO)     }
-	/ _BIhE_pre { ($1, WBIhE)     }
+	/ _BIhE_pre { ($1, WBIhE)     } / _BIhI_pre { ($1, WBIhI)     }
+	/ _BO_pre   { ($1, WBO)       } / _BOI_pre  { ($1, WBOI)      }
+	/ _BOI_pre  { ($1, WBOI)      } / _BU_pre   { ($1, WBU)       }
+	/ _BY_pre   { second WBY $1   } / _CAI_pre  { second WCAI $1  }
+	/ _CAhA_pre { second WCAhA $1 }
 --	/ _HOGE_pre { second WHOGE $1 } / _HOGE_pre { second WHOGE $1 }
 --	/ _HOGE_pre { ($1, WHOGE)     }
 
@@ -215,17 +219,36 @@ _BEhO_pre :: [BAhE] = pre_clause _BEhO spaces?			{ $1 }
 --	*** BIhE: prefix for high-priority MEX operator
 _BIhE_pre :: [BAhE] = pre_clause _BIhE spaces?			{ $1 }
 
---	turns any word into a BY lerfu word
-_BU_clause :: () = _BU_pre _BU_post		{ () }
--- _BU_pre :: () = pre_clause _BU spaces?
-_BU_pre :: () = _BU spaces?			{ () }
-_BU_post :: () = spaces?			{ () }
+---	*** BIhI: interval component of JOI ***
+_BIhI_pre :: [BAhE] = pre_clause _BIhI spaces?			{ $1 }
 
---	afterthought intensity marker
-_CAI_clause :: Clause CAI = _CAI_pre _CAI_post			{ Raw $1 }
-_CAI_pre :: CAI = pre_clause _CAI spaces?			{ $2 }
-_CAI_post :: () = post_clause_ind				{ () }
+---	*** BO: joins two units with shortest scope ***
+_BO_pre :: [BAhE] = pre_clause _BO spaces?			{ $1 }
+
+---	*** BOI: number or lerfu-string terminator
+_BOI_pre :: [BAhE] = pre_clause _BOI spaces?			{ $1 }
+
+---	*** BU: terns any word into a BY lerfu word ***
+_BU_clause :: Clause Unit = _BU_pre _BU_post		{ prePost () $1 [] }
+_BU_clause_no_SA :: () = _BU_pre_no_SA _BU _BU_post	{ () }
+_BU_pre :: [BAhE] = pre_clause _BU spaces?		{ $1 }
+_BU_pre_no_SA :: () = pre_clause			{ () }
+_BU_post :: () = spaces?				{ () }
+_BU_no_SA_handling :: () = pre_clause _BU spaces?	{ () }
+
+---	*** BY: individual lerfu words
+_BY_pre :: ([BAhE], Lerfu) = pre_clause _BY spaces?		{ ($1, $2) }
+
+---	*** CAhA: specifies actualitypotentiality of tense ***
+_CAhA_pre :: ([BAhE], CAhA) = pre_clause _CAhA spaces?		{ ($1, $2) }
+
+--	*** CAI: afterthought intensity marker ***
+_CAI_clause :: Clause CAI = _CAI_pre _CAI_post	{ prePost (snd $1) (fst $1) [] }
+_CAI_pre :: ([BAhE], CAI) = pre_clause _CAI spaces?	{ ($1, $2) }
+_CAI_post :: () = post_clause_ind
 _CAI_no_SA_handling :: () = pre_clause _CAI post_clause_ind	{ () }
+
+--	*** CEI: pro-bridi assignment operator
 
 --	cancel anaphoracataphora assignments
 _DAhO_clause :: Clause Unit = _DAhO_pre _DAhO_post		{ Raw () }
