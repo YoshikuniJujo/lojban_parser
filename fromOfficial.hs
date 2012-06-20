@@ -429,10 +429,16 @@ _DAhO_post :: [Indicators] = post_clause
 _DAhO_no_SA_handling :: () = pre_clause _DAhO post_clause	{ () }
 
 --	*** DOI: vocative marker ***
+_DOI_clause :: Clause Unit = _DAhO_pre _DAhO_post	{ prePost () $1 $2 }
 _DOI_pre :: [BAhE] = pre_clause _DOI spaces?		{ $1 }
+_DOI_post :: [Indicators] = post_clause
+_DOI_no_SA_handling :: () = pre_clause _DOI post_clause	{ () }
 
 --	*** DOhU: terminator for DOI_marked vocatives ***
+_DOhU_clause :: Clause Unit = _DOhU_pre _DOhU_post	{ prePost () $1 $2 }
 _DOhU_pre :: [BAhE] = pre_clause _DOhU spaces?		{ $1 }
+_DOhU_post :: [Indicators] = post_clause
+_DOhU_post_no_SA_handling :: () = pre_clause _DOhU post_clause	{ () }
 
 --	*** FA: modifier head generic case tag ***
 _FA_pre :: ([BAhE], FA) = pre_clause _FA spaces?	{ ($1, $2) }
@@ -501,16 +507,28 @@ _GUhA_pre :: ([BAhE], GUhA) = pre_clause _GUhA spaces?	{ ($1, $2) }
 _I_pre :: [BAhE] = pre_clause _I spaces?		{ $1 }
 
 --	*** JA: jeks; logical connectives within tanru ***
+_JA_clause :: Clause JA = _JA_pre _JA_post	{ prePost (snd $1) (fst $1) $2 }
 _JA_pre :: ([BAhE], JA) = pre_clause _JA spaces?	{ ($1, $2) }
+_JA_post :: [Indicators] = post_clause
+_JA_no_SA_handling :: () = pre_clause _JA post_clause	{ () }
 
 --	*** JAI: modal conversion flag ***
+_JAI_clause :: Clause Unit = _JAI_pre _JAI_post		{ prePost () $1 $2 }
 _JAI_pre :: [BAhE] = pre_clause _JAI spaces?		{ $1 }
+_JAI_post :: [Indicators] = post_clause
+_JAI_no_SA_handling :: () = pre_clause _JAI post_clause	{ () }
 
 --	*** JOhI: flags an array operand ***
+_JOhI_clause :: Clause Unit = _JOhI_pre _JOhI_post	{ prePost () $1 $2 }
 _JOhI_pre :: [BAhE] = pre_clause _JOhI spaces?		{ $1 }
+_JOhI_post :: [Indicators] = post_clause
+_JOhI_no_SA_handling :: () = pre_clause _JOhI post_clause	{ () }
 
 --	*** JOI: non-logical connectives ***
+_JOI_clause :: Clause JOI = _JOI_pre _JOI_post	{ prePost (snd $1) (fst $1) $2 }
 _JOI_pre :: ([BAhE], JOI) = pre_clause _JOI spaces?	{ ($1, $2) }
+_JOI_post :: [Indicators] = post_clause
+_JOI_no_SA_handling :: () = pre_clause _JOI post_clause	{ () }
 
 --	*** KE: left long scope marker ***
 _KE_clause :: Clause Unit = _KE_pre _KE_post		{ prePost () $1 $2 }
