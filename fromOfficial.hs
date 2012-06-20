@@ -712,55 +712,84 @@ _TUhU_pre :: [BAhE] = pre_clause _TUhU spaces?		{ $1 }
 
 --	*** UI: attitudinals, observationals, discursives ***
 _UI_clause :: Clause UI = _UI_pre _UI_post	{ prePost (snd $1) (fst $1) [] }
-_UI_pre :: ([BAhE], UI) = pre_clause _UI spaces?{ ($1, $2) }
+_UI_pre :: ([BAhE], UI) = pre_clause _UI spaces?		{ ($1, $2) }
 _UI_post :: () = post_clause_ind
-_UI_no_SA_handling :: () = pre_clause _UI post_clause_ind		{ () }
+_UI_no_SA_handling :: () = pre_clause _UI post_clause_ind	{ () }
 
 --	*** VA: distance in space-time ***
+_VA_clause :: Clause VA = _VA_pre _VA_post	{ prePost (snd $1) (fst $1) $2 }
 _VA_pre :: ([BAhE], VA) = pre_clause _VA spaces?	{ ($1, $2) }
+_VA_post :: [Indicators] = post_clause
+_VA_no_SA_handling :: () = pre_clause _VA post_clause	{ () }
 
 --	*** VAU: end simple bridi or bridi-tail ***
+_VAU_clause :: Clause Unit = _VAU_pre _VAU_post		{ prePost () $1 $2 }
 _VAU_pre :: [BAhE] = pre_clause _VAU spaces?		{ $1 }
+_VAU_post :: [Indicators] = post_clause
+_VAU_no_SA_handling :: () = pre_clause _VAU post_clause	{ () }
 
 --	*** VEI: left MEX bracket ***
+_VEI_clause :: Clause Unit = _VEI_pre _VEI_post		{ prePost () $1 $2 }
 _VEI_pre :: [BAhE] = pre_clause _VEI spaces?		{ $1 }
+_VEI_post :: [Indicators] = post_clause
+_VEI_no_SA_handling :: () = pre_clause _VEI post_clause	{ () }
 
 --	*** VEhO: right MEX bracket ***
+_VEhO_clause :: Clause Unit = _VEhO_pre _VEhO_post	{ prePost () $1 $2 }
 _VEhO_pre :: [BAhE] = pre_clause _VEhO spaces?		{ $1 }
+_VEhO_post :: [Indicators] = post_clause
+_VEhO_no_SA_handling :: () = pre_clause _VEhO post_clause	{ () }
 
 --	*** VUhU: MEX operator
-_VUhU_pre :: ([BAhE], VUhU) = pre_clause _VUhU spaces?	{ ($1, $2) }
+_VUhU_clause :: Clause VUhU
+	= _VUhU_pre _VUhU_post			{ prePost (snd $1) (fst $1) $2 }
+_VUhU_pre :: ([BAhE], VUhU) = pre_clause _VUhU spaces?		{ ($1, $2) }
+_VUhU_post :: [Indicators] = post_clause
+_VUhU_no_SA_handling :: () = pre_clause _VUhU post_clause	{ () }
 
 --	*** VEhA: space-time interval size
-_VEhA_pre :: ([BAhE], VEhA) = pre_clause _VEhA spaces?	{ ($1, $2) }
+_VEhA_clause :: Clause VEhA
+	= _VEhA_pre _VEhA_post			{ prePost (snd $1) (fst $1) $2 }
+_VEhA_pre :: ([BAhE], VEhA) = pre_clause _VEhA spaces?		{ ($1, $2) }
+_VEhA_post :: [Indicators] = post_clause
+_VEhA_no_SA_handling :: () = pre_clause _VEhA post_clause	{ () }
 
 --	*** VIhA: space-time dimensionality marker
-_VIhA_pre :: ([BAhE], VIhA) = pre_clause _VIhA spaces?	{ ($1, $2) }
+_VIhA_clause :: Clause VIhA
+	= _VIhA_pre _VIhA_post			{ prePost (snd $1) (fst $1) $2 }
+_VIhA_pre :: ([BAhE], VIhA) = pre_clause _VIhA spaces?		{ ($1, $2) }
+_VIhA_post :: [Indicators] = post_clause
+_VIhA_no_SA_handling :: () = pre_clause _VIhA post_clause	{ () }
 
 --	*** VUhO: glue between logically connected sumti and relative clauses
+_VUhO_clause :: Clause Unit = _VUhO_pre _VUhO_post	{ prePost () $1 $2 }
 _VUhO_pre :: [BAhE] = pre_clause _VUhO spaces?		{ $1 }
+_VUhO_post :: [Indicators] = post_clause
+_VUhO_no_SA_handling :: () = pre_clause _VUhO post_clause	{ () }
 
 --	*** XI: subscripting operator
-_XI_clause :: Clause Unit = _XI_pre _XI_post	{ prePost () $1 $2 }
-_XI_pre :: [BAhE] = pre_clause _XI spaces?	{ $1 }
+_XI_clause :: Clause Unit = _XI_pre _XI_post		{ prePost () $1 $2 }
+_XI_pre :: [BAhE] = pre_clause _XI spaces?		{ $1 }
 _XI_post :: [Indicators] = post_clause
 _XI_no_SA_handling :: () = pre_clause _XI post_clause	{ () }
 
 --	*** Y: hesitation
+-- Very very special case. Handled in the morphology section.
+-- _Y_clause :: () = spaces? _Y spaces?	{ () }
 
 --	*** ZAhO: event properties - inchoative, etc. ***
-_ZAhO_clause :: Clause ZAhO = _ZAhO_pre _ZAhO_post	
-	{ prePost (snd $1) (fst $1) $2 }
+_ZAhO_clause :: Clause ZAhO
+	= _ZAhO_pre _ZAhO_post			{ prePost (snd $1) (fst $1) $2 }
 _ZAhO_pre :: ([BAhE], ZAhO) = pre_clause _ZAhO spaces?		{ ($1, $2) }
 _ZAhO_post :: [Indicators] = post_clause
 _ZAhO_no_SA_handling :: () = pre_clause _ZAhO post_clause	{ () }
 
 --	*** ZEhA: time interval size tense ***
-_ZEhA_clause :: Clause ZEhA = _ZEhA_pre _ZEhA_post
-	{ prePost (snd $1) (fst $1) $2 }
-_ZEhA_pre :: ([BAhE], ZEhA) = pre_clause _ZEhA spaces?	{ ($1, $2) }
+_ZEhA_clause :: Clause ZEhA
+	= _ZEhA_pre _ZEhA_post			{ prePost (snd $1) (fst $1) $2 }
+_ZEhA_pre :: ([BAhE], ZEhA) = pre_clause _ZEhA spaces?		{ ($1, $2) }
 _ZEhA_post :: [Indicators] = post_clause
-_ZEhA_no_SA_handling :: () = pre_clause _ZEhA post_clause{ () }
+_ZEhA_no_SA_handling :: () = pre_clause _ZEhA post_clause	{ () }
 
 --	*** ZEI: lujvo glue ***
 _ZEI_clause :: Clause Unit = _ZEI_pre _ZEI_post		{ prePost () $1 [] }
@@ -780,7 +809,7 @@ _ZI_no_SA_handling :: () = pre_clause _ZI post_clause	{ () }
 _ZIhE_clause :: Clause Unit = _ZIhE_pre _ZIhE_post	{ prePost () $1 $2 }
 _ZIhE_pre :: [BAhE] = pre_clause _ZIhE spaces?		{ $1 }
 _ZIhE_post :: [Indicators] = post_clause
-_ZIhE_no_SA_handling :: () = pre_clause _ZIhE post_clause		{ () }
+_ZIhE_no_SA_handling :: () = pre_clause _ZIhE post_clause	{ () }
 
 --	*** ZO: single word metalinguistic quote marker ***
 _ZO_clause :: Clause Quote = _ZO_pre _ZO_post	{ prePost (snd $1) (fst $1) $2 }
@@ -794,11 +823,13 @@ _ZO_no_SA_handling :: () = pre_clause _ZO spaces? lojban_word spaces?	{ () }
 _ZOI_clause :: Clause Quote = _ZOI_pre _ZOI_post
 					{ prePost (snd $1) (fst $ fst $1) $2 }
 _ZOI_pre :: (([BAhE], ZOI), Quote)
-	= pre_clause _ZOI spaces? "\x00" zoi_word* "\x00" spaces?
-					{ (($1, $2), DelimitedQuote $2 $4) }
+	= pre_clause _ZOI spaces? zoi_open zoi_word* zoi_close spaces?
+					{ (($1, $2), DelimitedQuote $2 $5) }
 _ZOI_post :: [Indicators] = post_clause
 _ZOI_no_SA_handling :: ()
-	= pre_clause _ZOI spaces? "\x00" zoi_word* "\x00" spaces?	{ () }
+	= pre_clause _ZOI spaces? zoi_open zoi_word* zoi_close spaces?	{ () }
+zoi_open :: () = "\x00"
+zoi_close :: () = "\x00"
 zoi_word :: Char = !"\x00" .
 
 --	*** ZOhU: prenex terminator (not elidable) ***
@@ -806,8 +837,7 @@ zoi_word :: Char = !"\x00" .
 _ZOhU_clause :: Clause Unit = _ZOhU_pre _ZOhU_post	{ prePost () $1 $2 }
 _ZOhU_pre :: [BAhE] = pre_clause _ZOhU spaces?		{ $1 }
 _ZOhU_post :: [Indicators] = post_clause
-_ZOhU_no_SA_handling :: () = pre_clause _ZOhU post_clause
-							{ () }
+_ZOhU_no_SA_handling :: () = pre_clause _ZOhU post_clause	{ () }
 
 --* MORPHOLOGY ************************************************************ 1334
 
