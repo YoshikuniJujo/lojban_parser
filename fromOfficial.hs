@@ -755,25 +755,47 @@ _SU_pre :: [BAhE] = pre_clause _SU spaces?	{ $1 }
 _SU_post :: [Indicators] = post_clause
 
 --	*** TAhE: tense interval properties ***
-_TAhE_pre :: ([BAhE], TAhE) = pre_clause _TAhE spaces?	{ ($1, $2) }
+_TAhE_clause :: Clause TAhE
+	= _TAhE_pre _TAhE_post			{ prePost (snd $1) (fst $1) $2 }
+_TAhE_pre :: ([BAhE], TAhE) = pre_clause _TAhE spaces?		{ ($1, $2) }
+_TAhE_post :: [Indicators] = post_clause
+_TAhE_no_SA_handling :: () = pre_clause _TAhE post_clause	{ () }
 
 --	*** TEhU: closing gap for MEX constructs ***
+_TEhU_clause :: Clause Unit = _TEhU_pre _TEhU_post	{ prePost () $1 $2 }
 _TEhU_pre :: [BAhE] = pre_clause _TEhU spaces?		{ $1 }
+_TEhU_post :: [Indicators] = post_clause
+_TEhU_no_SA_handling :: () = pre_clause _TEhU post_clause	{ () }
 
 --	*** TEI: start compound lerfu ***
+_TEI_clause :: Clause Unit = _TEI_pre _TEI_post		{ prePost () $1 $2 }
 _TEI_pre :: [BAhE] = pre_clause _TEI spaces?		{ $1 }
+_TEI_post :: [Indicators] = post_clause
+_TEI_no_SA_handling :: () = pre_clause _TEI post_clause	{ () }
 
 --	*** TO: left discursive parenthesis ***
-_TO_pre :: ([BAhE], TO) = pre_clause _TO spaces?	{ ($1, $2) }
+_TO_clause :: Clause TO = _TO_pre _TO_post	{ prePost (snd $1) (fst $1) $2 }
+_TO_pre :: ([BAhE], TO) = pre_clause _TO spaces?{ ($1, $2) }
+_TO_post :: [Indicators] = post_clause
+_TO_no_SA_handling :: () = pre_clause _TO post_clause	{ () }
 
 --	*** TOI: right discursive parenthesis ***
+_TOI_clause :: Clause Unit = _TOI_pre _TOI_post		{ prePost () $1 $2 }
 _TOI_pre :: [BAhE] = pre_clause _TOI spaces?		{ $1 }
+_TOI_post :: [Indicators] = post_clause
+_TOI_no_SA_handling :: () = pre_clause _TOI post_clause	{ () }
 
 --	*** TUhE: multiple utterance scope mark ***
+_TUhE_clause :: Clause Unit = _TUhE_pre _TUhE_post	{ prePost () $1 $2 }
 _TUhE_pre :: [BAhE] = pre_clause _TUhE spaces?		{ $1 }
+_TUhE_post :: [Indicators] = post_clause
+_TUhE_no_SA_handling :: () = pre_clause _TUhE post_clause	{ () }
 
 --	*** TUhU: multiple utterance end scope mark ***
+_TUhU_clause :: Clause Unit = _TUhU_pre _TUhU_post	{ prePost () $1 $2 }
 _TUhU_pre :: [BAhE] = pre_clause _TUhU spaces?		{ $1 }
+_TUhU_post :: [Indicators] = post_clause
+_TUhU_no_SA_handling :: () = pre_clause _TUhU post_clause	{ () }
 
 --	*** UI: attitudinals, observationals, discursives ***
 _UI_clause :: Clause UI = _UI_pre _UI_post	{ prePost (snd $1) (fst $1) [] }
