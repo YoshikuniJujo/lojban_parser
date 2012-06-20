@@ -53,7 +53,8 @@ sumti_5 :: Sumti
 sumti_6 :: Sumti
 	= _ZO_clause			{ SQuote $1 }
 	/ _ZOI_clause			{ SQuote $1 }
-	/ _KOhA_clause			{ SKOhA $1 }
+	/ lerfu_string			{ SLerfuStr (fst $1) (snd $1) }
+	/ _KOhA_clause free*		{ SKOhA $1 (Free $2) }
 
 relative_clauses :: Relative
 	= relative_clause (_ZIhE_clause relative_clause)*
@@ -96,6 +97,28 @@ tanru_unit_1 :: TanruUnit
 tanru_unit_2 :: TanruUnit
 	= _BRIVLA_clause	{ TUBRIVLA $1 }
 
+-- 245
+
+-- 355
+number :: (Clause PA, [Either (Clause PA) (Clause Lerfu)]) = _PA_clause
+	( _PA_clause	{ Left $1 }
+	/ lerfu_word	{ Right $1 } )*
+
+lerfu_string :: (Clause Lerfu, [Either (Clause PA) (Clause Lerfu)]) = lerfu_word
+	( _PA_clause	{ Left $1 }
+	/ lerfu_word	{ Right $1 } )*
+
+lerfu_word :: Clause Lerfu
+	= _BY_clause
+--	/ _LAU_clause lerfu_word
+--	/ _TEI_clause lerfu_string _FOI_clause
+
+free :: (Clause Lerfu, [Either (Clause PA) (Clause Lerfu)]) = xi_clause
+
+-- 459
+xi_clause :: (Clause Lerfu, [Either (Clause PA) (Clause Lerfu)])
+	= _XI_clause lerfu_string	{ $2 }
+
 indicators :: Indicators = _FUhE_clause? indicator+
 	{ maybe (Ind $2) (const $ IFUhE $2) $1 }
 indicator :: Indicator =
@@ -120,8 +143,14 @@ zei_clause_no_pre :: ([BAhE], BRIVLA, [Indicators])
 	= pre_zei_bu (zei_tail? bu_tail)* zei_tail post_clause
 	{ (fst $1, ZEI (snd $1) (map (fromMaybe [] . fst) $2) $3, $4) }
 
-bu_clause_no_pre :: ()
-	= pre_zei_bu (bu_tail? zei_tail)* bu_tail post_clause	{ () }
+bu_clause :: Clause Lerfu = pre_clause bu_clause_no_pre
+	{ let (pre, l, post) = $2
+		in prePost (LBU (fst l) (snd l)) ($1 ++ pre) post }
+bu_clause_no_pre :: ([BAhE], (Word, [(Bool, [String])]), [Indicators])
+	= pre_zei_bu (bu_tail? zei_tail)* bu_tail post_clause
+	{ (fst $1, (snd $1, map (first isJust) $2), $4) }
+bu_clause_no_SA :: ()
+	= pre_zei_bu_no_SA (bu_tail? zei_tail)* bu_tail		{ () }
 
 zei_tail :: [String] = (_ZEI_clause (lojban_word spaces?))+
 	{ map (fst . snd) $1 }
@@ -131,6 +160,12 @@ pre_zei_bu :: ([BAhE], Word)
 	= (!_BU_clause !_ZEI_clause !_SI_clause !_SA_clause !_SU_clause
 		!_FAhO_clause any_word_SA_handling) si_clause?
 	{ $1 }
+pre_zei_bu_no_SA :: ()
+	= _LOhU_pre	{ () }
+	/ _ZO_pre	{ () }
+	/ _ZOI_pre	{ () }
+	/ !_ZEI_clause !_BU_clause !_FAhO_clause !_SI_clause !_SA_clause
+		!_SU_clause (lojban_word spaces?) si_clause?	{ () }
 
 -- General Morphology Issues 498
 
@@ -288,7 +323,14 @@ _BU_post :: () = spaces?				{ () }
 _BU_no_SA_handling :: () = pre_clause _BU spaces?	{ () }
 
 ---	*** BY: individual lerfu words
+_BY_clause :: Clause Lerfu
+	= _BY_pre _BY_post		{ prePost (snd $1) (fst $1) $2 }
+	/ bu_clause
 _BY_pre :: ([BAhE], Lerfu) = pre_clause _BY spaces?		{ ($1, $2) }
+_BY_post :: [Indicators] = post_clause
+_BY_no_SA_handling :: ()
+	= pre_clause _BY post_clause	{ () }
+	/ bu_clause_no_SA
 
 ---	*** CAhA: specifies actualitypotentiality of tense ***
 _CAhA_pre :: ([BAhE], CAhA) = pre_clause _CAhA spaces?		{ ($1, $2) }
@@ -526,7 +568,10 @@ _NUhI_pre :: [BAhE] = pre_clause _NUhI spaces?			{ $1 }
 _NUhU_pre :: [BAhE] = pre_clause _NUhU spaces?			{ $1 }
 
 --	*** PA: numbers and numeric punctuation ***
-_PA_pre :: ([BAhE], PA) = pre_clause _PA spaces?		{ ($1, $2) }
+_PA_clause :: Clause PA = _PA_pre _PA_post	{ prePost (snd $1) (fst $1) $2 }
+_PA_pre :: ([BAhE], PA) = pre_clause _PA spaces?{ ($1, $2) }
+_PA_post :: [Indicators] = post_clause
+_PA_no_SA_handling :: () = pre_clause _PA post_clause	{ () }
 
 --	*** PEhE: afterthought termset connective prefix ***
 _PEhE_pre :: [BAhE] = pre_clause _PEhE spaces?			{ $1 }
@@ -1751,10 +1796,14 @@ data Prenex = Prenex Term (Clause ())
 data Term = TSumti Sumti
 	deriving Show
 
+data Free = Free [(Clause Lerfu, [Either (Clause PA) (Clause Lerfu)])]
+	deriving Show
+
 data Sumti
 	= SQuote (Clause Quote)
-	| SKOhA (Clause KOhA)
+	| SKOhA (Clause KOhA) Free
 	| SRelative Sumti Relative
+	| SLerfuStr (Clause Lerfu) [Either (Clause PA) (Clause Lerfu)]
 	deriving Show
 
 data Relative
@@ -1846,6 +1895,7 @@ data BAhE = BAhE | ZAhE deriving Show
 data Lerfu
 	= Lerfu Char | JOhO | RUhO | JEhO | LOhA | NAhA | SEhE | GEhO | TOhA
 	| GAhE
+	| LBU Word [(Bool, [String])]
 	deriving Show
 
 data CAhA = CAhA | PUhI | NUhO | KAhE deriving Show

@@ -456,7 +456,9 @@ free <-
 	TO-clause text TOI-clause? /
 	xi-clause
 
-xi-clause <- XI-clause free* (number / lerfu-string) BOI-clause? / XI-clause free* VEI-clause free* mex VEhO-clause?
+xi-clause <-
+	XI-clause free* (number / lerfu-string) BOI-clause? /
+	XI-clause free* VEI-clause free* mex VEhO-clause?
 
 vocative <-
 	(COI-clause NAI-clause?)+ DOI-clause /
