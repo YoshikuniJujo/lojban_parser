@@ -691,7 +691,10 @@ _MOI_post :: [Indicators] = post_clause
 _MOI_no_SA_handling :: () = pre_clause _MOI post_clause	{ () }
 
 --	*** NA: bridi negation ***
-_NA_pre :: ([BAhE], NA) = pre_clause _NA spaces?		{ ($1, $2) }
+_NA_clause :: Clause NA = _NA_pre _NA_post	{ prePost (snd $1) (fst $1) $2 }
+_NA_pre :: ([BAhE], NA) = pre_clause _NA spaces?	{ ($1, $2) }
+_NA_post :: [Indicators] = post_clause
+_NA_no_SA_handling :: () = pre_clause _NA post_clause	{ () }
 
 --	*** NAI: attached to words to negate them ***
 _NAI_clause :: Clause Unit = _NAI_pre _NAI_post		{ prePost () $1 [] }
@@ -700,31 +703,60 @@ _NAI_post :: () = post_clause_ind
 _NAI_no_SA_handling :: () = pre_clause _NAI post_clause_ind	{ () }
 
 --	*** NAhE: scalar negation ***
+_NAhE_clause :: Clause NAhE
+	= _NAhE_pre _NAhE_post			{ prePost (snd $1) (fst $1) $2 }
 _NAhE_pre :: ([BAhE], NAhE) = pre_clause _NAhE spaces?		{ ($1, $2) }
+_NAhE_post :: [Indicators] = post_clause
+_NAhE_no_SA_handling :: () = pre_clause _NAhE post_clause	{ () }
 
 --	*** NAhU: change a selbri into an operator ***
-_NAhU_pre :: [BAhE] = pre_clause _NAhU spaces?			{ $1 }
+_NAhU_clause :: Clause Unit = _NAhU_pre _NAhU_post	{ prePost () $1 $2 }
+_NAhU_pre :: [BAhE] = pre_clause _NAhU spaces?		{ $1 }
+_NAhU_post :: [Indicators] = post_clause
+_NAhU_no_SA_handling :: () = pre_clause _NAhU post_clause	{ () }
 
 --	*** NIhE: change selbri to operand; inverse of MOI ***
-_NIhE_pre :: [BAhE] = pre_clause _NIhE spaces?			{ $1 }
+_NIhE_clause :: Clause Unit = _NIhE_pre _NIhE_post	{ prePost () $1 $2 }
+_NIhE_pre :: [BAhE] = pre_clause _NIhE spaces?		{ $1 }
+_NIhE_post :: [Indicators] = post_clause
+_NIhE_no_SA_handling :: () = pre_clause _NIhE post_clause	{ () }
 
 --	*** NIhO: new paragraph; change of subject ***
+_NIhO_clause ::Clause NIhO
+	= _NIhO_pre _NIhO_post			{ prePost (snd $1) (fst $1) $2 }
 _NIhO_pre :: ([BAhE], NIhO) = pre_clause _NIhO spaces?		{ ($1, $2) }
+_NIhO_post :: [Indicators] = post_clause
+_NIhO_no_SA_handling :: () = pre_clause _NIhO post_clause	{ () }
 
 --	*** NOI: attaches a subordinate clause to a sumti ***
-_NOI_pre :: ([BAhE], NOI) = pre_clause _NOI spaces?		{ ($1, $2) }
+_NOI_clause :: Clause NOI = _NOI_pre _NOI_post	{ prePost (snd $1) (fst $1) $2 }
+_NOI_pre :: ([BAhE], NOI) = pre_clause _NOI spaces?	{ ($1, $2) }
+_NOI_post :: [Indicators] = post_clause
+_NOI_no_SA_handling :: () = pre_clause _NOI post_clause	{ () }
 
 --	*** NU: abstraction ***
-_NU_pre :: ([BAhE], NU) = pre_clause _NU spaces?		{ ($1, $2) }
+_NU_clause :: Clause NU = _NU_pre _NU_post	{ prePost (snd $1) (fst $1) $2 }
+_NU_pre :: ([BAhE], NU) = pre_clause _NU spaces?	{ ($1, $2) }
+_NU_post :: [Indicators] = post_clause
+_NU_no_SA_handling :: () = pre_clause _NU post_clause	{ () }
 
 --	*** NUhA: change operator to selbri; inverse of MOhE ***
-_NUhA_pre :: [BAhE] = pre_clause _NUhA spaces?			{ $1 }
+_NUhA_clause :: Clause Unit = _NUhA_pre _NUhA_post	{ prePost () $1 $2 }
+_NUhA_pre :: [BAhE] = pre_clause _NUhA spaces?		{ $1 }
+_NUhA_post :: [Indicators] = post_clause
+_NUhA_no_SA_handling :: () = pre_clause _NUhA post_clause	{ () }
 
 --	*** NUhI: marks the start of a termset ***
-_NUhI_pre :: [BAhE] = pre_clause _NUhI spaces?			{ $1 }
+_NUhI_clause :: Clause Unit = _NUhI_pre _NUhI_post	{ prePost () $1 $2 }
+_NUhI_pre :: [BAhE] = pre_clause _NUhI spaces?		{ $1 }
+_NUhI_post :: [Indicators] = post_clause
+_NUhI_no_SA_handling :: () = pre_clause _NUhI post_clause	{ () }
 
 --	*** NUhU: marks the middle and end of a termset ***
+_NUhU_clause :: Clause Unit = _NUhU_pre _NUhU_post	{ prePost () $1 $2 }
 _NUhU_pre :: [BAhE] = pre_clause _NUhU spaces?			{ $1 }
+_NUhU_post :: [Indicators] = post_clause
+_NUhU_no_SA_handling :: () = pre_clause _NUhU post_clause	{ () }
 
 --	*** PA: numbers and numeric punctuation ***
 _PA_clause :: Clause PA = _PA_pre _PA_post	{ prePost (snd $1) (fst $1) $2 }
