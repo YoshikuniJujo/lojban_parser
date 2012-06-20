@@ -373,31 +373,54 @@ _BY_no_SA_handling :: ()
 	= pre_clause _BY post_clause	{ () } / bu_clause_no_SA
 
 ---	*** CAhA: specifies actualitypotentiality of tense ***
+_CAhA_clause :: Clause CAhA
+	= _CAhA_pre _CAhA_post			{ prePost (snd $1) (fst $1) $2 }
 _CAhA_pre :: ([BAhE], CAhA) = pre_clause _CAhA spaces?		{ ($1, $2) }
+_CAhA_post :: [Indicators] = post_clause
+_CAhA_no_SA_handling :: () = pre_clause _CAhA post_clause	{ () }
 
 --	*** CAI: afterthought intensity marker ***
 _CAI_clause :: Clause CAI = _CAI_pre _CAI_post	{ prePost (snd $1) (fst $1) [] }
-_CAI_pre :: ([BAhE], CAI) = pre_clause _CAI spaces?	{ ($1, $2) }
+_CAI_pre :: ([BAhE], CAI) = pre_clause _CAI spaces?		{ ($1, $2) }
 _CAI_post :: () = post_clause_ind
 _CAI_no_SA_handling :: () = pre_clause _CAI post_clause_ind	{ () }
 
 --	*** CEI: pro-bridi assignment operator ***
-_CEI_pre :: [BAhE] = pre_clause _CEI spaces?	{ $1 }
+_CEI_clause :: Clause Unit = _CEI_pre _CEI_post		{ prePost () $1 $2 }
+_CEI_pre :: [BAhE] = pre_clause _CEI spaces?		{ $1 }
+_CEI_post :: [Indicators] = post_clause
+_CEI_no_SA_handling :: () = pre_clause _CEI post_clause	{ () }
 
 --	*** CEhE: afterthought term list connective ***
-_CEhE_pre :: [BAhE] = pre_clause _CEhE spaces?	{ $1 }
+_CEhE_clause :: Clause Unit = _CEhE_pre _CEhE_post	{ prePost () $1 $2 }
+_CEhE_pre :: [BAhE] = pre_clause _CEhE spaces?		{ $1 }
+_CEhE_post :: [Indicators] = post_clause
+_CEhE_no_SA_handling :: () = pre_clause _CEhE post_clause	{ () }
 
 ---	*** CO: tanru inversion ***
-_CO_pre :: [BAhE] = pre_clause _CO spaces?	{ $1 }
+_CO_clause :: Clause Unit = _CO_pre _CO_post		{ prePost () $1 $2 }
+_CO_pre :: [BAhE] = pre_clause _CO spaces?		{ $1 }
+_CO_post :: [Indicators] = post_clause
+_CO_no_SA_handling :: () = pre_clause _CO post_clause	{ () }
 
 ---	*** COI: vocative marker permitted inside name ***
+_COI_clause :: Clause COI = _COI_pre _COI_post	{ prePost (snd $1) (fst $1) $2 }
 _COI_pre :: ([BAhE], COI) = pre_clause _COI spaces?	{ ($1, $2) }
+_COI_post :: [Indicators] = post_clause
+_COI_no_SA_handling :: () = pre_clause _COI post_clause	{ () }
 
 ---	*** CU: separator between head sumti and selbri ***
-_CU_pre :: [BAhE] = pre_clause _CU spaces?	{ $1 }
+_CU_clause :: Clause Unit = _CU_pre _CU_post		{ prePost () $1 $2 }
+_CU_pre :: [BAhE] = pre_clause _CU spaces?		{ $1 }
+_CU_post :: [Indicators] = post_clause
+_CU_no_SA_handling :: () = pre_clause _CU post_clause	{ () }
 
 ---	*** CUhE: tensemodal question ***
-_CUhE_pre :: ([BAhE], CUhE) = pre_clause _CUhE spaces?	{ ($1, $2) }
+_CUhE_clause :: Clause CUhE
+	= _CUhE_pre _CUhE_post			{ prePost (snd $1) (fst $1) $2 }
+_CUhE_pre :: ([BAhE], CUhE) = pre_clause _CUhE spaces?		{ ($1, $2) }
+_CUhE_post :: [Indicators] = post_clause
+_CUhE_no_SA_handling :: () = pre_clause _CUhE post_clause	{ () }
 
 --	*** DAhO: cancel anaphoracataphora assignments ***
 _DAhO_clause :: Clause Unit = _DAhO_pre _DAhO_post	{ prePost () $1 $2 }
