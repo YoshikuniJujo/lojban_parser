@@ -513,32 +513,53 @@ _JOhI_pre :: [BAhE] = pre_clause _JOhI spaces?		{ $1 }
 _JOI_pre :: ([BAhE], JOI) = pre_clause _JOI spaces?	{ ($1, $2) }
 
 --	*** KE: left long scope marker ***
+_KE_clause :: Clause Unit = _KE_pre _KE_post		{ prePost () $1 $2 }
 _KE_pre :: [BAhE] = pre_clause _KE spaces?		{ $1 }
+_KE_post :: [Indicators] = post_clause
+_KE_no_SA_handling :: () = pre_clause _KE post_clause	{ () }
 
 --	*** KEhE: right terminator for KE groups ***
+_KEhE_clause :: Clause Unit = _KEhE_pre _KEhE_post	{ prePost () $1 $2 }
 _KEhE_pre :: [BAhE] = pre_clause _KEhE spaces?		{ $1 }
+_KEhE_post :: [Indicators] = post_clause
+_KEhE_no_SA_handling :: () = pre_clause _KEhE post_clause	{ () }
 
 --	*** KEI: right terminator, NU abstractions ***
+_KEI_clause :: Clause Unit = _KEI_pre _KEI_post		{ prePost () $1 $2 }
 _KEI_pre :: [BAhE] = pre_clause _KEI spaces?		{ $1 }
+_KEI_post :: [Indicators] = post_clause
+_KEI_no_SA_handling :: () = pre_clause _KEI post_clause	{ () }
 
 --	*** KI: multiple utterance scope for tenses ***
+_KI_clause :: Clause Unit = _KI_pre _KI_post		{ prePost () $1 $2 }
 _KI_pre :: [BAhE] = pre_clause _KI spaces?		{ $1 }
+_KI_post :: [Indicators] = post_clause
+_KI_no_SA_handling :: () = pre_clause _KI post_clause	{ () }
 
 --	*** KOhA: sumti anaphora ***
-_KOhA_clause :: Clause KOhA = _KOhA_pre _KOhA_post
-	{ prePost (snd $1) (fst $1) $2 }
-_KOhA_pre :: ([BAhE], KOhA) = pre_clause _KOhA spaces?		{ ($1, $2) }
+_KOhA_clause :: Clause KOhA
+	= _KOhA_pre _KOhA_post			{ prePost (snd $1) (fst $1) $2 }
+_KOhA_pre :: ([BAhE], KOhA) = pre_clause _KOhA spaces?	{ ($1, $2) }
 _KOhA_post :: [Indicators] = post_clause
-_KOhA_no_SA_handling :: () = pre_clause _KOhA spaces?		{ () }
+_KOhA_no_SA_handling :: () = pre_clause _KOhA spaces?	{ () }
 
 --	*** KU: right terminator for descritions, etc. ***
-_KU_pre :: [BAhE] = pre_clause _KU spaces?			{ $1 }
+_KU_clause :: Clause Unit = _KU_pre _KU_post		{ prePost () $1 $2 }
+_KU_pre :: [BAhE] = pre_clause _KU spaces?		{ $1 }
+_KU_post :: [Indicators] = post_clause
+_KU_no_SA_handling :: () = pre_clause _KU post_clause	{ () }
 
 --	*** KUhE: MEX forethought delimiter ***
-_KUhE_pre :: [BAhE] = pre_clause _KUhE spaces?			{ $1 }
+_KUhE_clause :: Clause Unit = _KUhE_pre _KUhE_post	{ prePost () $1 $2 }
+_KUhE_pre :: [BAhE] = pre_clause _KUhE spaces?		{ $1 }
+_KUhE_post :: [Indicators] = post_clause
+_KUhE_no_SA_handling :: () = pre_clause _KUhE post_clause	{ () }
 
 --	*** KUhO: right terminator, NOI relative clauses ***
-_KUhO_pre :: [BAhE] = pre_clause _KUhO spaces?			{ $1 }
+_KUhO_clause :: Clause Unit = _KUhO_pre _KUhO_post	{ prePost () $1 $2 }
+_KUhO_pre :: [BAhE] = pre_clause _KUhO spaces?		{ $1 }
+_KUhO_post :: [Indicators] = post_clause
+_KUhO_no_SA_handling :: () = pre_clause _KUhO post_clause	{ () }
 
 --	*** LA: name descriptors ***
 _LA_clause :: Clause LA = _LA_pre _LA_post	{ prePost (snd $1) (fst $1) $2 }
@@ -610,25 +631,46 @@ _LUhU_post :: [Indicators] = post_clause
 _LUhU_no_SA_handling :: () = pre_clause _LUhU post_clause	{ () }
 
 --	*** MAhO: change MEX expressions to MEX operators ***
-_MAhO_pre :: [BAhE] = pre_clause _MAhO spaces?			{ $1 }
+_MAhO_clause :: Clause Unit = _MAhO_pre _MAhO_post	{ prePost () $1 $2 }
+_MAhO_pre :: [BAhE] = pre_clause _MAhO spaces?		{ $1 }
+_MAhO_post :: [Indicators] = post_clause
+_MAhO_no_SA_handling :: () = pre_clause _MAhO post_clause	{ () }
 
 --	*** MAI: change numbers to utterance ordinals ***
-_MAI_pre :: ([BAhE], MAI) = pre_clause _MAI spaces?		{ ($1, $2) }
+_MAI_clause :: Clause MAI = _MAI_pre _MAI_post	{ prePost (snd $1) (fst $1) $2 }
+_MAI_pre :: ([BAhE], MAI) = pre_clause _MAI spaces?	{ ($1, $2) }
+_MAI_post :: [Indicators] = post_clause
+_MAI_no_SA_handling :: () = pre_clause _MAI post_clause	{ () }
 
 --	*** ME: change numbers to utterance ordinals ***
-_ME_pre :: [BAhE] = pre_clause _ME spaces?			{ $1 }
+_ME_clause :: Clause Unit = _ME_pre _ME_post		{ prePost () $1 $2 }
+_ME_pre :: [BAhE] = pre_clause _ME spaces?		{ $1 }
+_ME_post :: [Indicators] = post_clause
+_ME_no_SA_handling :: () = pre_clause _ME post_clause	{ () }
 
 --	*** MEhU: terminator for ME ***
-_MEhU_pre :: [BAhE] = pre_clause _MEhU spaces?			{ $1 }
+_MEhU_clause :: Clause Unit = _MEhU_pre _MEhU_post	{ prePost () $1 $2 }
+_MEhU_pre :: [BAhE] = pre_clause _MEhU spaces?		{ $1 }
+_MEhU_post :: [Indicators] = post_clause
+_MEhU_no_SA_handling :: () = pre_clause _MEhU post_clause	{ () }
 
 --	*** MOhE: change sumti to operand, inverse of LI ***
-_MOhE_pre :: [BAhE] = pre_clause _MOhE spaces?			{ $1 }
+_MOhE_clause :: Clause Unit = _MOhE_pre _MOhE_post	{ prePost () $1 $2 }
+_MOhE_pre :: [BAhE] = pre_clause _MOhE spaces?		{ $1 }
+_MOhE_post :: [Indicators] = post_clause
+_MOhE_no_SA_handling :: () = pre_clause _MOhE post_clause	{ () }
 
 --	*** MOhI: motion tense marker ***
-_MOhI_pre :: [BAhE] = pre_clause _MOhI spaces?			{ $1 }
+_MOhI_clause :: Clause Unit = _MOhI_pre _MOhI_post	{ prePost () $1 $2 }
+_MOhI_pre :: [BAhE] = pre_clause _MOhI spaces?		{ $1 }
+_MOhI_post :: [Indicators] = post_clause
+_MOhI_no_SA_handling :: () = pre_clause _MOhI post_clause	{ () }
 
 --	*** MOI: change number to selbri ***
-_MOI_pre :: ([BAhE], MOI) = pre_clause _MOI spaces?		{ ($1, $2) }
+_MOI_clause :: Clause MOI = _MOI_pre _MOI_post	{ prePost (snd $1) (fst $1) $2 }
+_MOI_pre :: ([BAhE], MOI) = pre_clause _MOI spaces?	{ ($1, $2) }
+_MOI_post :: [Indicators] = post_clause
+_MOI_no_SA_handling :: () = pre_clause _MOI post_clause	{ () }
 
 --	*** NA: bridi negation ***
 _NA_pre :: ([BAhE], NA) = pre_clause _NA spaces?		{ ($1, $2) }
