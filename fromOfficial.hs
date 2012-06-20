@@ -209,6 +209,11 @@ known_cmavo_SA :: ([BAhE], Word)
 	/ _VEI_pre  { ($1, WVEI)      } / _VEhA_pre { second WVEhA $1 }
 	/ _VEhO_pre { ($1, WVEhO)     } / _VIhA_pre { second WVIhA $1 }
 	/ _VUhO_pre { ($1, WVUhO)     } / _VUhU_pre { second WVUhU $1 }
+	/ _XI_pre   { ($1, WXI)       } / _ZAhO_pre { second WZAhO $1 }
+	/ _ZEI_pre  { ($1, WZEI)      } / _ZEhA_pre { second WZEhA $1 }
+	/ _ZI_pre   { second WZI $1   } / _ZIhE_pre { ($1, WZIhE)     }
+	/ _ZO_pre   { (fst $1, WZO)   } / _ZOI_pre  { second WZOI $ fst $1 }
+	/ _ZOhU_pre { ($1, WZOhU)     }
 
 -- Handling of spaces and things like spaces.
 --- SPACE --- 534
@@ -665,10 +670,11 @@ _ZO_no_SA_handling :: () = pre_clause _ZO spaces? lojban_word spaces?	{ () }
 
 --	*** ZOI: delimited quote marker ***
 
-_ZOI_clause :: Clause Quote = _ZOI_pre _ZOI_post{ prePost (snd $1) (fst $1) $2 }
-_ZOI_pre :: ([BAhE], Quote)
+_ZOI_clause :: Clause Quote = _ZOI_pre _ZOI_post
+					{ prePost (snd $1) (fst $ fst $1) $2 }
+_ZOI_pre :: (([BAhE], ZOI), Quote)
 	= pre_clause _ZOI spaces? "\x00" zoi_word* "\x00" spaces?
-						{ ($1, DelimitedQuote $2 $4) }
+					{ (($1, $2), DelimitedQuote $2 $4) }
 _ZOI_post :: [Indicators] = post_clause
 _ZOI_no_SA_handling :: ()
 	= pre_clause _ZOI spaces? "\x00" zoi_word* "\x00" spaces?	{ () }
