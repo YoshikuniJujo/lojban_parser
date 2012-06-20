@@ -441,7 +441,10 @@ _DOhU_post :: [Indicators] = post_clause
 _DOhU_post_no_SA_handling :: () = pre_clause _DOhU post_clause	{ () }
 
 --	*** FA: modifier head generic case tag ***
+_FA_clause :: Clause FA = _FA_pre _FA_post	{ prePost (snd $1) (fst $1) $2 }
 _FA_pre :: ([BAhE], FA) = pre_clause _FA spaces?	{ ($1, $2) }
+_FA_post :: [Indicators] = post_clause
+_FA_no_SA_handling :: () = pre_clause _FA post_clause	{ () }
 
 --	*** FAhA: superdirections in space ***
 _FAhA_pre :: ([BAhE], FAhA) = pre_clause _FAhA spaces?	{ ($1, $2) }
@@ -800,10 +803,10 @@ _SEI_post :: [Indicators] = post_clause
 _SEI_no_SA_handling :: () = pre_clause _SEI post_clause	{ () }
 
 --	*** SEhU: metalinguistic bridi end marker ***
-_SEhU_pre :: Clause Unit = _SEhU_pre _SEhU_post		{ prePost () $1 $2 }
+_SEhU_clause :: Clause Unit = _SEhU_pre _SEhU_post	{ prePost () $1 $2 }
 _SEhU_pre :: [BAhE] = pre_clause _SEhU spaces?		{ $1 }
 _SEhU_post :: [Indicators] = post_clause
-_SEhU_no_SA_handling :: () = pre_clause SEhU post_clause	{ () }
+_SEhU_no_SA_handling :: () = pre_clause _SEhU post_clause	{ () }
 
 --	*** SI: metalinguistic single word eraser ***
 _SI_clause :: () = spaces? _SI spaces?		{ () }
