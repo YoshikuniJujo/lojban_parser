@@ -274,27 +274,38 @@ si_word :: ([BAhE], Word) = pre_zei_bu
 
 _BRIVLA_clause :: Clause BRIVLA
 	= _BRIVLA_pre _BRIVLA_post	{ prePost (snd $1) (fst $1) $2 }
-	/ zei_clause		{ let (pre, b, post) = $1 in prePost b pre post }
+	/ zei_clause			{ let (pre, b, post) = $1 in
+						prePost b pre post }
 _BRIVLA_pre :: ([BAhE], BRIVLA)
 	= pre_clause _BRIVLA spaces?	{ ($1, $2) }
 _BRIVLA_post :: [Indicators] = post_clause
 _BRIVLA_no_SA_handling :: ()
-	= pre_clause _BRIVLA post_clause	{ () }
-	/ zei_clause_no_SA			{ () }
+	= pre_clause _BRIVLA post_clause{ () }
+	/ zei_clause_no_SA		{ () }
 
-_CMENE_clause :: Clause CMENE = _CMENE_pre _CMENE_post
-	{ prePost (snd $1) (fst $1) $2 }
+_CMENE_clause :: Clause CMENE
+	= _CMENE_pre _CMENE_post	{ prePost (snd $1) (fst $1) $2 }
 _CMENE_pre :: ([BAhE], CMENE) = pre_clause _CMENE spaces?	{ ($1, $2) }
 _CMENE_post :: [Indicators] = post_clause
 _CMENE_no_SA_handling :: () = pre_clause _CMENE post_clause	{ () }
 
+_CMAVO_clause :: Clause Word
+	= _CMAVO_pre _CMAVO_post	{ prePost (snd $1) (fst $1) $2 }
 _CMAVO_pre :: ([BAhE], Word) = pre_clause _CMAVO spaces?	{ ($1, $2) }
+_CMAVO_post :: [Indicators] = post_clause
+_CMAVO_no_SA_handling :: () = pre_clause _CMAVO post_clause	{ () }
 
 --	*** A: eks; basic afterthought logical connectives ***
-_A_pre :: ([BAhE], A) = pre_clause _A spaces?			{ ($1, $2) }
+_A_clause :: Clause A = _A_pre _A_post		{ prePost (snd $1) (fst $1) $2 }
+_A_pre :: ([BAhE], A) = pre_clause _A spaces?	{ ($1, $2) }
+_A_post :: [Indicators] = post_clause
+_A_no_SA_handling :: () = pre_clause _A post_clause	{ () }
 
 --	*** BAI: modal operators ***
-_BAI_pre :: ([BAhE], BAI) = pre_clause _BAI spaces?		{ ($1, $2) }
+_BAI_clause :: Clause BAI = _BAI_pre _BAI_post	{ prePost (snd $1) (fst $1) $2 }
+_BAI_pre :: ([BAhE], BAI) = pre_clause _BAI spaces?	{ ($1, $2) }
+_BAI_post :: [Indicators] = post_clause
+_BAI_no_SA_handling :: () = pre_clause _BAI post_clause	{ () }
 
 --	*** BAhE: next word intensifier ***
 _BAhE_clause :: [BAhE] = (_BAhE_pre _BAhE_post)+		{ map fst $1 }
@@ -303,25 +314,46 @@ _BAhE_post :: () = si_clause? !_ZEI_clause !_BU_clause		{ () }
 _BAhE_no_SA_handling :: () = _BAhE spaces? _BAhE_post		{ () }
 
 --	*** BE: sumti link to attach sumti to a selbri
-_BE_pre :: [BAhE] = pre_clause _BE spaces?			{ $1 }
+_BE_clause :: Clause Unit = _BE_pre _BE_post	{ prePost () $1 $2 }
+_BE_pre :: [BAhE] = pre_clause _BE spaces?		{ $1 }
+_BE_post :: [Indicators] = post_clause
+_BE_no_SA_handling :: () = pre_clause _BE post_clause	{ () }
 
 --	*** BEI: multiple sumti separator between BE, BEI
-_BEI_pre :: [BAhE] = pre_clause _BEI spaces?			{ $1 }
+_BEI_clause :: Clause Unit = _BEI_pre _BEI_post	{ prePost () $1 $2 }
+_BEI_pre :: [BAhE] = pre_clause _BEI spaces?		{ $1 }
+_BEI_post :: [Indicators] = post_clause
+_BEI_no_SA_handling :: () = pre_clause _BEI post_clause	{ () }
 
 --	*** BEhO: terminates BEBEI specified descriptors
-_BEhO_pre :: [BAhE] = pre_clause _BEhO spaces?			{ $1 }
+_BEhO_clause :: Clause Unit = _BEhO_pre _BEhO_post	{ prePost () $1 $2 }
+_BEhO_pre :: [BAhE] = pre_clause _BEhO spaces?		{ $1 }
+_BEhO_post :: [Indicators] = post_clause
+_BEhO_no_SA_handling :: () = pre_clause _BEhO post_clause	{ () }
 
 --	*** BIhE: prefix for high-priority MEX operator
-_BIhE_pre :: [BAhE] = pre_clause _BIhE spaces?			{ $1 }
+_BIhE_clause :: Clause Unit = _BIhE_pre _BIhE_post	{ prePost () $1 $2 }
+_BIhE_pre :: [BAhE] = pre_clause _BIhE spaces?		{ $1 }
+_BIhE_post :: [Indicators] = post_clause
+_BIhE_no_SA_handling :: () = pre_clause _BIhE post_clause	{ () }
 
 ---	*** BIhI: interval component of JOI ***
-_BIhI_pre :: [BAhE] = pre_clause _BIhI spaces?			{ $1 }
+_BIhI_clause :: Clause Unit = _BIhI_pre _BIhI_post	{ prePost () $1 $2 }
+_BIhI_pre :: [BAhE] = pre_clause _BIhI spaces?		{ $1 }
+_BIhI_post :: [Indicators] = post_clause
+_BIhI_no_SA_handling :: () = pre_clause _BIhI post_clause	{ () }
 
 ---	*** BO: joins two units with shortest scope ***
-_BO_pre :: [BAhE] = pre_clause _BO spaces?			{ $1 }
+_BO_clause :: Clause Unit = _BO_pre _BO_post		{ prePost () $1 $2 }
+_BO_pre :: [BAhE] = pre_clause _BO spaces?		{ $1 }
+_BO_post :: [Indicators] = post_clause
+_BO_no_SA_handling :: () = pre_clause _BO post_clause	{ () }
 
----	*** BOI: number or lerfu-string terminator
-_BOI_pre :: [BAhE] = pre_clause _BOI spaces?			{ $1 }
+---	*** BOI: number or lerfu-string terminator ***
+_BOI_clause :: Clause Unit = _BOI_pre _BOI_post		{ prePost () $1 $2 }
+_BOI_pre :: [BAhE] = pre_clause _BOI spaces?		{ $1 }
+_BOI_post :: [Indicators] = post_clause
+_BOI_no_SA_handling :: () = pre_clause _BOI post_clause	{ () }
 
 ---	*** BU: terns any word into a BY lerfu word ***
 _BU_clause :: Clause Unit = _BU_pre _BU_post		{ prePost () $1 [] }
@@ -333,13 +365,12 @@ _BU_no_SA_handling :: () = pre_clause _BU spaces?	{ () }
 
 ---	*** BY: individual lerfu words
 _BY_clause :: Clause Lerfu
-	= _BY_pre _BY_post		{ prePost (snd $1) (fst $1) $2 }
+	= _BY_pre _BY_post			{ prePost (snd $1) (fst $1) $2 }
 	/ bu_clause
-_BY_pre :: ([BAhE], Lerfu) = pre_clause _BY spaces?		{ ($1, $2) }
+_BY_pre :: ([BAhE], Lerfu) = pre_clause _BY spaces?	{ ($1, $2) }
 _BY_post :: [Indicators] = post_clause
 _BY_no_SA_handling :: ()
-	= pre_clause _BY post_clause	{ () }
-	/ bu_clause_no_SA
+	= pre_clause _BY post_clause	{ () } / bu_clause_no_SA
 
 ---	*** CAhA: specifies actualitypotentiality of tense ***
 _CAhA_pre :: ([BAhE], CAhA) = pre_clause _CAhA spaces?		{ ($1, $2) }
