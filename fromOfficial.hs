@@ -504,7 +504,10 @@ _GOhA_pre :: ([BAhE], GOhA) = pre_clause _GOhA spaces?	{ ($1, $2) }
 _GUhA_pre :: ([BAhE], GUhA) = pre_clause _GUhA spaces?	{ ($1, $2) }
 
 --	*** I: sentence link ***
+-- _I_clause :: Clause Unit = sentence_sa* _I_pre _I_post
 _I_pre :: [BAhE] = pre_clause _I spaces?		{ $1 }
+_I_post :: [Indicators] = post_clause
+_I_no_SA_handling :: () = pre_clause _I post_clause	{ () }
 
 --	*** JA: jeks; logical connectives within tanru ***
 _JA_clause :: Clause JA = _JA_pre _JA_post	{ prePost (snd $1) (fst $1) $2 }
@@ -785,19 +788,31 @@ _SA_pre :: [BAhE] = pre_clause _SA spaces?	{ $1 }
 _SA_post :: () = spaces?			{ () }
 
 --	*** SE: conversions ***
+_SE_clause :: Clause SE = _SE_pre _SE_post	{ prePost (snd $1) (fst $1) $2 }
 _SE_pre :: ([BAhE], SE) = pre_clause _SE spaces?	{ ($1, $2) }
+_SE_post :: [Indicators] = post_clause
+_SE_no_SA_handling :: () = pre_clause _SE post_clause	{ () }
 
 --	*** SEI: metalinguistic bridi insert marker ***
+_SEI_clause :: Clause SEI = _SEI_pre _SEI_post	{ prePost (snd $1) (fst $1) $2 }
 _SEI_pre :: ([BAhE], SEI) = pre_clause _SEI spaces?	{ ($1, $2) }
+_SEI_post :: [Indicators] = post_clause
+_SEI_no_SA_handling :: () = pre_clause _SEI post_clause	{ () }
 
 --	*** SEhU: metalinguistic bridi end marker ***
+_SEhU_pre :: Clause Unit = _SEhU_pre _SEhU_post		{ prePost () $1 $2 }
 _SEhU_pre :: [BAhE] = pre_clause _SEhU spaces?		{ $1 }
+_SEhU_post :: [Indicators] = post_clause
+_SEhU_no_SA_handling :: () = pre_clause SEhU post_clause	{ () }
 
 --	*** SI: metalinguistic single word eraser ***
 _SI_clause :: () = spaces? _SI spaces?		{ () }
 
 --	*** SOI: reciprocal sumti marker ***
-_SOI_pre :: [BAhE] = pre_clause _SOI spaces?	{ $1 }
+_SOI_clause :: Clause Unit = _SOI_pre _SOI_post		{ prePost () $1 $2 }
+_SOI_pre :: [BAhE] = pre_clause _SOI spaces?		{ $1 }
+_SOI_post :: [Indicators] = post_clause
+_SOI_no_SA_handling :: () = pre_clause _SOI post_clause	{ () }
 
 --	*** SU: metalinguistic eraser of the entire text ***
 _SU_clause :: Clause Unit = _SU_pre _SU_post	{ prePost () $1 $2 }
