@@ -447,25 +447,44 @@ _FA_post :: [Indicators] = post_clause
 _FA_no_SA_handling :: () = pre_clause _FA post_clause	{ () }
 
 --	*** FAhA: superdirections in space ***
-_FAhA_pre :: ([BAhE], FAhA) = pre_clause _FAhA spaces?	{ ($1, $2) }
+_FAhA_clause :: Clause FAhA
+	= _FAhA_pre _FAhA_post			{ prePost (snd $1) (fst $1) $2 }
+_FAhA_pre :: ([BAhE], FAhA) = pre_clause _FAhA spaces?		{ ($1, $2) }
+_FAhA_post :: [Indicators] = post_clause
+_FAhA_no_SA_handling :: () = pre_clause _FAhA post_clause	{ () }
 
 --	*** FAhO: normally elided 'done pause' to indicate end of utterance string ***
 _FAhO_clause :: () = pre_clause _FAhO spaces?	{ () }
 
 --	*** FEhE: space interval mod flag ***
-_FEhE_pre :: [BAhE] = pre_clause _FEhE spaces?	{ $1 }
+_FEhE_clause :: Clause Unit = _FEhE_pre _FEhE_post	{ prePost () $1 $2 }
+_FEhE_pre :: [BAhE] = pre_clause _FEhE spaces?		{ $1 }
+_FEhE_post :: [Indicators] = post_clause
+_FEhE_no_SA_handling :: () = pre_clause _FEhE post_clause	{ () }
 
 --	*** FEhU: ends bridi to modal conversion ***
-_FEhU_pre :: [BAhE] = pre_clause _FEhU spaces?	{ $1 }
+_FEhU_clause :: Clause Unit = _FEhU_pre _FEhU_post	{ prePost () $1 $2 }
+_FEhU_pre :: [BAhE] = pre_clause _FEhU spaces?		{ $1 }
+_FEhU_post :: [Indicators] = post_clause
+_FEhU_no_SA_handling :: () = pre_clause _FEhU post_clause	{ () }
 
 --	*** FIhO: marks bridi to modal conversion ***
-_FIhO_pre :: [BAhE] = pre_clause _FIhO spaces?	{ $1 }
+_FIhO_clause :: Clause Unit = _FIhO_pre _FIhO_post	{ prePost () $1 $2 }
+_FIhO_pre :: [BAhE] = pre_clause _FIhO spaces?		{ $1 }
+_FIhO_post :: [Indicators] = post_clause
+_FIhO_no_SA_handling :: () = pre_clause _FIhO post_clause	{ () }
 
 --	*** FOI: end compound lerfu ***
-_FOI_pre :: [BAhE] = pre_clause _FOI spaces?	{ $1 }
+_FOI_clause :: Clause Unit = _FOI_pre _FOI_post		{ prePost () $1 $2 }
+_FOI_pre :: [BAhE] = pre_clause _FOI spaces?		{ $1 }
+_FOI_post :: [Indicators] = post_clause
+_FOI_no_SA_handling :: () = pre_clause _FOI post_clause	{ () }
 
 --	*** FUhA: reverse Polish flag ***
-_FUhA_pre :: [BAhE] = pre_clause _FUhA spaces?	{ $1 }
+_FUhA_clause :: Clause Unit = _FUhA_pre _FUhA_post	{ prePost () $1 $2 }
+_FUhA_pre :: [BAhE] = pre_clause _FUhA spaces?		{ $1 }
+_FUhA_post :: [Indicators] = post_clause
+_FUhA_no_SA_handling :: () = pre_clause _FUhA post_clause	{ () }
 
 --	*** FUhE: open long scope for indicator ***
 _FUhE_clause :: Clause Unit = _FUhE_pre _FUhE_post	{ prePost () $1 [] }
