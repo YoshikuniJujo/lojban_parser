@@ -189,6 +189,12 @@ known_cmavo_SA :: ([BAhE], Word)
 	/ _MAhO_pre { ($1, WMAhO)     } / _ME_pre   { ($1, WME)       }
 	/ _MEhU_pre { ($1, WMEhU)     } / _MOI_pre  { second WMOI $1  }
 	/ _MOhE_pre { ($1, WMOhE)     } / _MOhI_pre { ($1, WMOhI)     }
+	/ _NA_pre   { second WNA $1   } / _NAI_pre  { ($1, WNAI)      }
+	/ _NAhE_pre { second WNAhE $1 } / _NAhU_pre { ($1, WNAhU)     }
+	/ _NIhE_pre { ($1, WNIhE)     } / _NIhO_pre { second WNIhO $1 }
+	/ _NOI_pre  { second WNOI $1  } / _NU_pre   { second WNU $1   }
+	/ _NUhA_pre { ($1, WNUhA)     } / _NUhI_pre { ($1, WNUhI)     }
+	/ _NUhU_pre { ($1, WNUhU)     }
 
 -- Handling of spaces and things like spaces.
 --- SPACE --- 534
@@ -464,11 +470,41 @@ _MOhI_pre :: [BAhE] = pre_clause _MOhI spaces?			{ $1 }
 --	*** MOI: change number to selbri ***
 _MOI_pre :: ([BAhE], MOI) = pre_clause _MOI spaces?		{ ($1, $2) }
 
---	attached to words to negate them ***
-_NAI_clause :: Clause Unit = _NAI_pre _NAI_post			{ Raw () }
-_NAI_pre :: () = pre_clause _NAI spaces?			{ () }
+--	*** NA: bridi negation ***
+_NA_pre :: ([BAhE], NA) = pre_clause _NA spaces?		{ ($1, $2) }
+
+--	*** NAI: attached to words to negate them ***
+_NAI_clause :: Clause Unit = _NAI_pre _NAI_post		{ prePost () $1 [] }
+_NAI_pre :: [BAhE] = pre_clause _NAI spaces?			{ $1 }
 _NAI_post :: () = post_clause_ind
 _NAI_no_SA_handling :: () = pre_clause _NAI post_clause_ind	{ () }
+
+--	*** NAhE: scalar negation ***
+_NAhE_pre :: ([BAhE], NAhE) = pre_clause _NAhE spaces?		{ ($1, $2) }
+
+--	*** NAhU: change a selbri into an operator ***
+_NAhU_pre :: [BAhE] = pre_clause _NAhU spaces?			{ $1 }
+
+--	*** NIhE: change selbri to operand; inverse of MOI ***
+_NIhE_pre :: [BAhE] = pre_clause _NIhE spaces?			{ $1 }
+
+--	*** NIhO: new paragraph; change of subject ***
+_NIhO_pre :: ([BAhE], NIhO) = pre_clause _NIhO spaces?		{ ($1, $2) }
+
+--	*** NOI: attaches a subordinate clause to a sumti ***
+_NOI_pre :: ([BAhE], NOI) = pre_clause _NOI spaces?		{ ($1, $2) }
+
+--	*** NU: abstraction ***
+_NU_pre :: ([BAhE], NU) = pre_clause _NU spaces?		{ ($1, $2) }
+
+--	*** NUhA: change operator to selbri; inverse of MOhE ***
+_NUhA_pre :: [BAhE] = pre_clause _NUhA spaces?			{ $1 }
+
+--	*** NUhI: marks the start of a termset ***
+_NUhI_pre :: [BAhE] = pre_clause _NUhI spaces?			{ $1 }
+
+--	*** NUhU: marks the middle and end of a termset
+_NUhU_pre :: [BAhE] = pre_clause _NUhU spaces?			{ $1 }
 
 --	metalinguistic eraser to the beginning of the current utterance
 _SA_clause :: () = _SA_pre _SA_post		{ () }
