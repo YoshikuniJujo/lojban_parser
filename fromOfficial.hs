@@ -180,6 +180,15 @@ known_cmavo_SA :: ([BAhE], Word)
 	/ _KEhE_pre { ($1, WKEhE)     } / _KI_pre   { ($1, WKI)       }
 	/ _KOhA_pre { second WKOhA $1 } / _KU_pre   { ($1, WKU)       }
 	/ _KUhE_pre { ($1, WKUhE)     } / _KUhO_pre { ($1, WKUhO)     }
+	/ _LA_pre   { second WLA $1   } / _LAU_pre  { second WLAU $1  }
+	/ _LAhE_pre { second WLAhE $1 } / _LE_pre   { second WLE $1   }
+	/ _LEhU_pre { ($1, WLEhU)     } / _LI_pre   { ($1, WLI)       }
+	/ _LIhU_pre { ($1, WLIhU)     } / _LOhO_pre { ($1, WLOhO)     }
+	/ _LOhU_pre { ($1, WLOhU)     } / _LU_pre   { ($1, WLU)       }
+	/ _LUhU_pre { ($1, WLUhU)     } / _MAI_pre  { second WMAI $1  }
+	/ _MAhO_pre { ($1, WMAhO)     } / _ME_pre   { ($1, WME)       }
+	/ _MEhU_pre { ($1, WMEhU)     } / _MOI_pre  { second WMOI $1  }
+	/ _MOhE_pre { ($1, WMOhE)     } / _MOhI_pre { ($1, WMOhI)     }
 
 -- Handling of spaces and things like spaces.
 --- SPACE --- 534
@@ -392,36 +401,70 @@ _KOhA_pre :: ([BAhE], KOhA) = pre_clause _KOhA spaces?		{ ($1, $2) }
 _KOhA_post :: [Indicators] = post_clause
 _KOhA_no_SA_handling :: () = pre_clause _KOhA spaces?		{ () }
 
---	*** KU: right terminator for descritions, etc.
+--	*** KU: right terminator for descritions, etc. ***
 _KU_pre :: [BAhE] = pre_clause _KU spaces?			{ $1 }
 
---	*** KUhE: MEX forethought delimiter
+--	*** KUhE: MEX forethought delimiter ***
 _KUhE_pre :: [BAhE] = pre_clause _KUhE spaces?			{ $1 }
 
---	*** KUhO: right terminator, NOI relative clauses
+--	*** KUhO: right terminator, NOI relative clauses ***
 _KUhO_pre :: [BAhE] = pre_clause _KUhO spaces?			{ $1 }
 
---	*** LA: name descriptors
+--	*** LA: name descriptors ***
 _LA_pre :: ([BAhE], LA) = pre_clause _LA spaces?		{ ($1, $2) }
 
---	*** LAU: lerfu prefixes
+--	*** LAU: lerfu prefixes ***
 _LAU_pre :: ([BAhE], LAU) = pre_clause _LAU spaces?		{ ($1, $2) }
 
---	*** LAhE: sumti qualifiers
+--	*** LAhE: sumti qualifiers ***
 _LAhE_pre :: ([BAhE], LAhE) = pre_clause _LAhE spaces?		{ ($1, $2) }
 
---	*** LE: sumti descriptors
+--	*** LE: sumti descriptors ***
 _LE_pre :: ([BAhE], LE) = pre_clause _LE spaces?		{ ($1, $2) }
 
---	*** LEhU: posibbly ungrammatical text right quote
-_LEhU_Pre :: [BAhE] = pre_clause _LEhU spaces?			{ $1 }
+--	*** LEhU: posibbly ungrammatical text right quote ***
+_LEhU_pre :: [BAhE] = pre_clause _LEhU spaces?			{ $1 }
 
---	*** LI: convert number to sumti
+--	*** LI: convert number to sumti ***
 _LI_pre :: [BAhE] = pre_clause _LI spaces?			{ $1 }
 
---	*** LIhU: grammatical text right quote
+--	*** LIhU: grammatical text right quote ***
+_LIhU_pre :: [BAhE] = pre_clause _LIhU spaces?			{ $1 }
 
---	attached to words to negate them
+--	*** LOhO: elidable terminator for LI ***
+_LOhO_pre :: [BAhE] = pre_clause _LOhO spaces?			{ $1 }
+
+--	*** LOhU: possibly ungrammatical text left quote ***
+_LOhU_pre :: [BAhE] = pre_clause _LOhU spaces?			{ $1 }
+
+--	*** LU: grammatical text left quote ***
+_LU_pre :: [BAhE] = pre_clause _LU spaces?			{ $1 }
+
+--	*** LUhU: LAhE close delimiter ***
+_LUhU_pre :: [BAhE] = pre_clause _LUhU spaces?			{ $1 }
+
+--	*** MAhO: change MEX expressions to MEX operators ***
+_MAhO_pre :: [BAhE] = pre_clause _MAhO spaces?			{ $1 }
+
+--	*** MAI: change numbers to utterance ordinals ***
+_MAI_pre :: ([BAhE], MAI) = pre_clause _MAI spaces?		{ ($1, $2) }
+
+--	*** ME: change numbers to utterance ordinals ***
+_ME_pre :: [BAhE] = pre_clause _ME spaces?			{ $1 }
+
+--	*** MEhU: terminator for ME ***
+_MEhU_pre :: [BAhE] = pre_clause _MEhU spaces?			{ $1 }
+
+--	*** MOhE: change sumti to operand, inverse of LI ***
+_MOhE_pre :: [BAhE] = pre_clause _MOhE spaces?			{ $1 }
+
+--	*** MOhI: motion tense marker ***
+_MOhI_pre :: [BAhE] = pre_clause _MOhI spaces?			{ $1 }
+
+--	*** MOI: change number to selbri ***
+_MOI_pre :: ([BAhE], MOI) = pre_clause _MOI spaces?		{ ($1, $2) }
+
+--	attached to words to negate them ***
 _NAI_clause :: Clause Unit = _NAI_pre _NAI_post			{ Raw () }
 _NAI_pre :: () = pre_clause _NAI spaces?			{ () }
 _NAI_post :: () = post_clause_ind
