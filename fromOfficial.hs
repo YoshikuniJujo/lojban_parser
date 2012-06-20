@@ -519,39 +519,72 @@ _KUhO_pre :: [BAhE] = pre_clause _KUhO spaces?			{ $1 }
 
 --	*** LA: name descriptors ***
 _LA_clause :: Clause LA = _LA_pre _LA_post	{ prePost (snd $1) (fst $1) $2 }
-_LA_pre :: ([BAhE], LA) = pre_clause _LA spaces?		{ ($1, $2) }
+_LA_pre :: ([BAhE], LA) = pre_clause _LA spaces?{ ($1, $2) }
 _LA_post :: [Indicators] = post_clause
 _LA_no_SA_handling :: () = pre_clause _LA post_clause		{ () }
 
 --	*** LAU: lerfu prefixes ***
+_LAU_clause :: Clause LAU = _LAU_pre _LAU_post	{ prePost (snd $1) (fst $1) $2 }
 _LAU_pre :: ([BAhE], LAU) = pre_clause _LAU spaces?		{ ($1, $2) }
+_LAU_post :: [Indicators] = post_clause
+_LAU_no_SA_handling :: () = pre_clause _LAU post_clause		{ () }
 
 --	*** LAhE: sumti qualifiers ***
+_LAhE_clause :: Clause LAhE
+	= _LAhE_pre _LAhE_post			{ prePost (snd $1) (fst $1) $2 }
 _LAhE_pre :: ([BAhE], LAhE) = pre_clause _LAhE spaces?		{ ($1, $2) }
+_LAhE_post :: [Indicators] = post_clause
+_LAhE_no_SA_handling :: () = pre_clause _LAhE post_clause	{ () }
 
 --	*** LE: sumti descriptors ***
-_LE_pre :: ([BAhE], LE) = pre_clause _LE spaces?		{ ($1, $2) }
+_LE_clause :: Clause LE = _LE_pre _LE_post	{ prePost (snd $1) (fst $1) $2 }
+_LE_pre :: ([BAhE], LE) = pre_clause _LE spaces?	{ ($1, $2) }
+_LE_post :: [Indicators] = post_clause
+_LE_no_SA_handling :: () = pre_clause _LE post_clause	{ () }
 
 --	*** LEhU: posibbly ungrammatical text right quote ***
-_LEhU_pre :: [BAhE] = pre_clause _LEhU spaces?			{ $1 }
+_LEhU_clause :: Clause Unit = _LEhU_pre _LEhU_post	{ prePost () $1 [] }
+_LEhU_pre :: [BAhE] = pre_clause _LEhU spaces?		{ $1 }
+_LEhU_post :: () = spaces?				{ () }
+_LEhU_clause_no_SA :: () = _LEhU_pre_no_SA _LEhU_post	{ () }
+_LEhU_pre_no_SA :: () = pre_clause _LEhU spaces?	{ () }
+_LEhU_no_SA_handling :: () = pre_clause _LEhU post_clause{ () }
 
 --	*** LI: convert number to sumti ***
-_LI_pre :: [BAhE] = pre_clause _LI spaces?			{ $1 }
+_LI_clause :: Clause Unit = _LI_pre _LI_post	{ prePost () $1 $2 }
+_LI_pre :: [BAhE] = pre_clause _LI spaces?		{ $1 }
+_LI_post :: [Indicators] = post_clause
+_LI_no_SA_handling :: () = pre_clause _LI post_clause	{ () }
 
 --	*** LIhU: grammatical text right quote ***
-_LIhU_pre :: [BAhE] = pre_clause _LIhU spaces?			{ $1 }
+_LIhU_clause :: Clause Unit = _LIhU_pre _LIhU_post	{ prePost () $1 $2 }
+_LIhU_pre :: [BAhE] = pre_clause _LIhU spaces?		{ $1 }
+_LIhU_post :: [Indicators] = post_clause
+_LIhU_no_SA_handling :: () = pre_clause _LIhU post_clause	{ () }
 
 --	*** LOhO: elidable terminator for LI ***
-_LOhO_pre :: [BAhE] = pre_clause _LOhO spaces?			{ $1 }
+_LOhO_clause :: Clause Unit = _LOhO_pre _LOhO_post	{ prePost () $1 $2 }
+_LOhO_pre :: [BAhE] = pre_clause _LOhO spaces?		{ $1 }
+_LOhO_post :: [Indicators] = post_clause
+_LOhO_no_SA_handling :: () = pre_clause _LOhO post_clause	{ () }
 
 --	*** LOhU: possibly ungrammatical text left quote ***
-_LOhU_pre :: [BAhE] = pre_clause _LOhU spaces?			{ $1 }
+_LOhU_clause :: Clause Unit = _LOhU_pre _LOhU_post	{ prePost () $1 $2 }
+_LOhU_pre :: [BAhE] = pre_clause _LOhU spaces?		{ $1 }
+_LOhU_post :: [Indicators] = post_clause
+_LOhU_no_SA_handling :: () = pre_clause _LOhU post_clause	{ () }
 
 --	*** LU: grammatical text left quote ***
-_LU_pre :: [BAhE] = pre_clause _LU spaces?			{ $1 }
+_LU_clause :: Clause Unit = _LU_pre _LU_post		{ prePost () $1 $2 }
+_LU_pre :: [BAhE] = pre_clause _LU spaces?		{ $1 }
+_LU_post :: [Indicators] = post_clause
+_LU_no_SA_handling :: () = pre_clause _LU post_clause	{ () }
 
 --	*** LUhU: LAhE close delimiter ***
-_LUhU_pre :: [BAhE] = pre_clause _LUhU spaces?			{ $1 }
+_LUhU_clause :: Clause Unit = _LUhU_pre _LUhU_post	{ prePost () $1 $2 }
+_LUhU_pre :: [BAhE] = pre_clause _LUhU spaces?		{ $1 }
+_LUhU_post :: [Indicators] = post_clause
+_LUhU_no_SA_handling :: () = pre_clause _LUhU post_clause	{ () }
 
 --	*** MAhO: change MEX expressions to MEX operators ***
 _MAhO_pre :: [BAhE] = pre_clause _MAhO spaces?			{ $1 }
