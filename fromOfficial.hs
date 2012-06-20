@@ -55,6 +55,7 @@ sumti_6 :: Sumti
 	/ _ZOI_clause			{ SQuote $1 }
 	/ lerfu_string			{ SLerfuStr (fst $1) (snd $1) }
 	/ _KOhA_clause free*		{ SKOhA $1 (Free $2) }
+	/ _LA_clause _CMENE_clause+	{ SLA $1 $2 }
 
 relative_clauses :: Relative
 	= relative_clause (_ZIhE_clause relative_clause)*
@@ -142,6 +143,8 @@ zei_clause :: ([BAhE], BRIVLA, [Indicators])
 zei_clause_no_pre :: ([BAhE], BRIVLA, [Indicators])
 	= pre_zei_bu (zei_tail? bu_tail)* zei_tail post_clause
 	{ (fst $1, ZEI (snd $1) (map (fromMaybe [] . fst) $2) $3, $4) }
+zei_clause_no_SA :: ()
+	= pre_zei_bu_no_SA (zei_tail? bu_tail)* zei_tail	{ () }
 
 bu_clause :: Clause Lerfu = pre_clause bu_clause_no_pre
 	{ let (pre, l, post) = $2
@@ -267,17 +270,23 @@ erasable_clause :: ()
 
 si_word :: ([BAhE], Word) = pre_zei_bu
 
---- SELMAHO --------------------------------------------------------------- 553
+--- SELMAHO --------------------------------------------------------------- 557
 
 _BRIVLA_clause :: Clause BRIVLA
-	= _BRIVLA_pre _BRIVLA_post
-				{ prePost (snd $1) (fst $1) $2 }
+	= _BRIVLA_pre _BRIVLA_post	{ prePost (snd $1) (fst $1) $2 }
 	/ zei_clause		{ let (pre, b, post) = $1 in prePost b pre post }
 _BRIVLA_pre :: ([BAhE], BRIVLA)
-	= pre_clause _BRIVLA spaces?		{ ($1, $2) }
+	= pre_clause _BRIVLA spaces?	{ ($1, $2) }
 _BRIVLA_post :: [Indicators] = post_clause
+_BRIVLA_no_SA_handling :: ()
+	= pre_clause _BRIVLA post_clause	{ () }
+	/ zei_clause_no_SA			{ () }
 
+_CMENE_clause :: Clause CMENE = _CMENE_pre _CMENE_post
+	{ prePost (snd $1) (fst $1) $2 }
 _CMENE_pre :: ([BAhE], CMENE) = pre_clause _CMENE spaces?	{ ($1, $2) }
+_CMENE_post :: [Indicators] = post_clause
+_CMENE_no_SA_handling :: () = pre_clause _CMENE post_clause	{ () }
 
 _CMAVO_pre :: ([BAhE], Word) = pre_clause _CMAVO spaces?	{ ($1, $2) }
 
@@ -478,7 +487,10 @@ _KUhE_pre :: [BAhE] = pre_clause _KUhE spaces?			{ $1 }
 _KUhO_pre :: [BAhE] = pre_clause _KUhO spaces?			{ $1 }
 
 --	*** LA: name descriptors ***
+_LA_clause :: Clause LA = _LA_pre _LA_post	{ prePost (snd $1) (fst $1) $2 }
 _LA_pre :: ([BAhE], LA) = pre_clause _LA spaces?		{ ($1, $2) }
+_LA_post :: [Indicators] = post_clause
+_LA_no_SA_handling :: () = pre_clause _LA post_clause		{ () }
 
 --	*** LAU: lerfu prefixes ***
 _LAU_pre :: ([BAhE], LAU) = pre_clause _LAU spaces?		{ ($1, $2) }
@@ -1802,6 +1814,7 @@ data Free = Free [(Clause Lerfu, [Either (Clause PA) (Clause Lerfu)])]
 data Sumti
 	= SQuote (Clause Quote)
 	| SKOhA (Clause KOhA) Free
+	| SLA (Clause LA) [Clause CMENE]
 	| SRelative Sumti Relative
 	| SLerfuStr (Clause Lerfu) [Either (Clause PA) (Clause Lerfu)]
 	deriving Show
