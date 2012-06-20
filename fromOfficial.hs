@@ -194,7 +194,21 @@ known_cmavo_SA :: ([BAhE], Word)
 	/ _NIhE_pre { ($1, WNIhE)     } / _NIhO_pre { second WNIhO $1 }
 	/ _NOI_pre  { second WNOI $1  } / _NU_pre   { second WNU $1   }
 	/ _NUhA_pre { ($1, WNUhA)     } / _NUhI_pre { ($1, WNUhI)     }
-	/ _NUhU_pre { ($1, WNUhU)     }
+	/ _NUhU_pre { ($1, WNUhU)     } / _PA_pre   { second WPA $1   }
+	/ _PEhE_pre { ($1, WPEhE)     } / _PEhO_pre { ($1, WPEhO)     }
+	/ _PU_pre   { second WPU $1   } / _RAhO_pre { ($1, WRAhO)     }
+	/ _ROI_pre  { second WROI $1  } / _SA_pre   { ($1, WSA)       }
+	/ _SE_pre   { second WSE $1   } / _SEI_pre  { second WSEI $1  }
+	/ _SEhU_pre { ($1, WSEhU)     } / _SI_clause{ ([], WSI)       }
+	/ _SOI_pre  { ($1, WSOI)      } / _SU_pre   { ($1, WSU)       }
+	/ _TAhE_pre { second WTAhE $1 } / _TEI_pre  { ($1, WTEI)      }
+	/ _TEhU_pre { ($1, WTEhU)     } / _TO_pre   { second WTO $1   }
+	/ _TOI_pre  { ($1, WTOI)      } / _TUhE_pre { ($1, WTUhE)     }
+	/ _TUhU_pre { ($1, WTUhU)     } / _UI_pre   { second WUI $1   }
+	/ _VA_pre   { second WVA $1   } / _VAU_pre  { ($1, WVAU)      }
+	/ _VEI_pre  { ($1, WVEI)      } / _VEhA_pre { second WVEhA $1 }
+	/ _VEhO_pre { ($1, WVEhO)     } / _VIhA_pre { second WVIhA $1 }
+	/ _VUhO_pre { ($1, WVUhO)     } / _VUhU_pre { second WVUhU $1 }
 
 -- Handling of spaces and things like spaces.
 --- SPACE --- 534
@@ -204,8 +218,8 @@ known_cmavo_SA :: ([BAhE], Word)
 -- Handling of SI and interactions with zo and lo'u...le'u
 
 si_clause :: ()
-	= ((erasable_clause / si_word { () } / _SA_clause) si_clause? _SI_clause)+
-	{ () }
+	= ((erasable_clause / si_word { () } / _SA_clause { () })
+		si_clause? _SI_clause)+				{ () }
 
 erasable_clause :: ()
 	= bu_clause_no_pre !_ZEI_clause !_BU_clause		{ () }
@@ -503,27 +517,102 @@ _NUhA_pre :: [BAhE] = pre_clause _NUhA spaces?			{ $1 }
 --	*** NUhI: marks the start of a termset ***
 _NUhI_pre :: [BAhE] = pre_clause _NUhI spaces?			{ $1 }
 
---	*** NUhU: marks the middle and end of a termset
+--	*** NUhU: marks the middle and end of a termset ***
 _NUhU_pre :: [BAhE] = pre_clause _NUhU spaces?			{ $1 }
 
---	metalinguistic eraser to the beginning of the current utterance
-_SA_clause :: () = _SA_pre _SA_post		{ () }
-_SA_pre :: () = pre_clause _SA spaces?		{ () }
+--	*** PA: numbers and numeric punctuation ***
+_PA_pre :: ([BAhE], PA) = pre_clause _PA spaces?		{ ($1, $2) }
+
+--	*** PEhE: afterthought termset connective prefix ***
+_PEhE_pre :: [BAhE] = pre_clause _PEhE spaces?			{ $1 }
+
+--	*** PEhO: forethought (Polish) flag ***
+_PEhO_pre :: [BAhE] = pre_clause _PEhO spaces?			{ $1 }
+
+--	*** PU: directions in time ***
+_PU_pre :: ([BAhE], PU) = pre_clause _PU spaces?		{ ($1, $2) }
+
+--	*** RAhO: flag for modified interpretation of GOhI ***
+_RAhO_pre :: [BAhE] = pre_clause _RAhO spaces?			{ $1 }
+
+--	*** ROI: converts number to extensinal tense ***
+_ROI_pre :: ([BAhE], ROI) = pre_clause _ROI spaces?		{ ($1, $2) }
+
+--	*** SA: metalinguistic eraser to the beginning of the current utterance ***
+_SA_clause :: Clause Unit = _SA_pre _SA_post	{ prePost () $1 [] }
+_SA_pre :: [BAhE] = pre_clause _SA spaces?	{ $1 }
 _SA_post :: () = spaces?			{ () }
 
---	metalinguistic single word eraser
+--	*** SE: conversions ***
+_SE_pre :: ([BAhE], SE) = pre_clause _SE spaces?	{ ($1, $2) }
+
+--	*** SEI: metalinguistic bridi insert marker ***
+_SEI_pre :: ([BAhE], SEI) = pre_clause _SEI spaces?	{ ($1, $2) }
+
+--	*** SEhU: metalinguistic bridi end marker ***
+_SEhU_pre :: [BAhE] = pre_clause _SEhU spaces?		{ $1 }
+
+--	*** SI: metalinguistic single word eraser ***
 _SI_clause :: () = spaces? _SI spaces?		{ () }
 
---	metalinguistic eraser of the entire text
-_SU_clause :: () = _SU_pre _SU_post		{ () }
-_SU_pre :: () = pre_clause _SU spaces?		{ () }
-_SU_post :: () = post_clause			{ () }
+--	*** SOI: reciprocal sumti marker ***
+_SOI_pre :: [BAhE] = pre_clause _SOI spaces?	{ $1 }
 
---	attitudinals, observationals, discursives
-_UI_clause :: Clause UI = _UI_pre _UI_post				{ Raw $1 }
-_UI_pre :: UI = pre_clause _UI spaces?					{ $2 }
-_UI_post :: () = post_clause_ind					{ () }
+--	*** SU: metalinguistic eraser of the entire text ***
+_SU_clause :: Clause Unit = _SU_pre _SU_post	{ prePost () $1 $2 }
+_SU_pre :: [BAhE] = pre_clause _SU spaces?	{ $1 }
+_SU_post :: [Indicators] = post_clause
+
+--	*** TAhE: tense interval properties ***
+_TAhE_pre :: ([BAhE], TAhE) = pre_clause _TAhE spaces?	{ ($1, $2) }
+
+--	*** TEhU: closing gap for MEX constructs ***
+_TEhU_pre :: [BAhE] = pre_clause _TEhU spaces?		{ $1 }
+
+--	*** TEI: start compound lerfu ***
+_TEI_pre :: [BAhE] = pre_clause _TEI spaces?		{ $1 }
+
+--	*** TO: left discursive parenthesis ***
+_TO_pre :: ([BAhE], TO) = pre_clause _TO spaces?	{ ($1, $2) }
+
+--	*** TOI: right discursive parenthesis ***
+_TOI_pre :: [BAhE] = pre_clause _TOI spaces?		{ $1 }
+
+--	*** TUhE: multiple utterance scope mark ***
+_TUhE_pre :: [BAhE] = pre_clause _TUhE spaces?		{ $1 }
+
+--	*** TUhU: multiple utterance end scope mark ***
+_TUhU_pre :: [BAhE] = pre_clause _TUhU spaces?		{ $1 }
+
+--	*** UI: attitudinals, observationals, discursives ***
+_UI_clause :: Clause UI = _UI_pre _UI_post	{ prePost (snd $1) (fst $1) [] }
+_UI_pre :: ([BAhE], UI) = pre_clause _UI spaces?{ ($1, $2) }
+_UI_post :: () = post_clause_ind
 _UI_no_SA_handling :: () = pre_clause _UI post_clause_ind		{ () }
+
+--	*** VA: distance in space-time ***
+_VA_pre :: ([BAhE], VA) = pre_clause _VA spaces?	{ ($1, $2) }
+
+--	*** VAU: end simple bridi or bridi-tail ***
+_VAU_pre :: [BAhE] = pre_clause _VAU spaces?		{ $1 }
+
+--	*** VEI: left MEX bracket ***
+_VEI_pre :: [BAhE] = pre_clause _VEI spaces?		{ $1 }
+
+--	*** VEhO: right MEX bracket ***
+_VEhO_pre :: [BAhE] = pre_clause _VEhO spaces?		{ $1 }
+
+--	*** VUhU: MEX operator
+_VUhU_pre :: ([BAhE], VUhU) = pre_clause _VUhU spaces?	{ ($1, $2) }
+
+--	*** VEhA: space-time interval size
+_VEhA_pre :: ([BAhE], VEhA) = pre_clause _VEhA spaces?	{ ($1, $2) }
+
+--	*** VIhA: space-time dimensionality marker
+_VIhA_pre :: ([BAhE], VIhA) = pre_clause _VIhA spaces?	{ ($1, $2) }
+
+--	*** VUhO: glue between logically connected sumti and relative clauses
+_VUhO_pre :: [BAhE] = pre_clause _VUhO spaces?		{ $1 }
 
 --	*** XI: subscripting operator
 _XI_clause :: Clause Unit = _XI_pre _XI_post	{ prePost () $1 $2 }
