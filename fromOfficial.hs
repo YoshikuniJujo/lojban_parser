@@ -10,9 +10,25 @@ import Control.Arrow
 
 [peggy|
 
-test_parser :: (Maybe Prenex, (Maybe Term, Selbri)) = statement eof	{ $1 }
+test_parser :: (Maybe Prenex, (Maybe Term, Selbri)) = text eof	{ $1 }
 
 --* GRAMMAR *************************************************************** 23
+
+text :: (Maybe Prenex, (Maybe Term, Selbri)) =
+	intro_null
+	_NAI_clause*
+	text_1
+	faho_clause eof?
+	{ $3 }
+
+intro_null :: () = spaces? su_clause* intro_si_clause	{ () }
+text_part_2 :: () =
+	( _CMENE_clause+ 	{ () }
+	/ indicators?		{ () } ) free*
+	{ () }
+
+intro_si_clause :: () = si_clause? _SI_clause*		{ () }
+faho_clause :: () = (_FAhO_clause dot_star)?		{ () }
 
 text_1 :: (Maybe Prenex, (Maybe Term, Selbri))
 	= statement
@@ -67,8 +83,9 @@ sumti_5 :: Sumti
 sumti_6 :: Sumti
 	= _ZO_clause			{ SQuote $1 }
 	/ _ZOI_clause			{ SQuote $1 }
-	/ lerfu_string			{ SLerfuStr (fst $1) (snd $1) }
-	/ _KOhA_clause 			{ SKOhA $1 }
+	/ lerfu_string			{ SLerfuStr $1 }
+	/ _KOhA_clause free* 		{ if null $2 then SKOhA (NoF $1)
+						else SKOhA (AddFree $1 $2) }
 	/ _LA_clause _CMENE_clause+	{ SLA $1 $2 }
 
 relative_clauses :: Relative
@@ -114,28 +131,35 @@ tanru_unit_2 :: TanruUnit
 
 -- 245
 
--- 355
-number :: (Clause PA, [Either (Clause PA) (Clause Lerfu)]) = _PA_clause
-	( _PA_clause	{ Left $1 }
-	/ lerfu_word	{ Right $1 } )*
+mex :: Mex = _PA_clause		{ Mex $1 }
 
-lerfu_string :: (Clause Lerfu, [Either (Clause PA) (Clause Lerfu)]) = lerfu_word
-	( _PA_clause	{ Left $1 }
-	/ lerfu_word	{ Right $1 } )*
+-- 355
+number :: [Either (Clause Lerfu) (Clause PA)] = _PA_clause
+	( _PA_clause	{ Right $1 }
+	/ lerfu_word	{ Left $1 } )*
+	{ Right $1 : $2 }
+
+lerfu_string :: [Either (Clause Lerfu) (Clause PA)] = lerfu_word
+	( _PA_clause	{ Right $1 }
+	/ lerfu_word	{ Left $1 } )*
+	{ Left $1 : $2 }
 
 lerfu_word :: Clause Lerfu
 	= _BY_clause
 --	/ _LAU_clause lerfu_word
 --	/ _TEI_clause lerfu_string _FOI_clause
 
--- free :: (Clause Lerfu, [Either (Clause PA) (Clause Lerfu)]) = xi_clause
+free :: Free
+	= vocative	{ Free }
+	/ xi_clause	{ FXI $1 }
 
 -- 459
-{-
-xi_clause :: (Clause Lerfu, [Either (Clause PA) (Clause Lerfu)])
-	= _XI_clause free* (number / lerfu_string) _BOI_clause?	{ $3 }
+xi_clause :: AddFree XIString -- [Either (Clause Lerfu) (Clause PA)]
+	= _XI_clause free* (number / lerfu_string) _BOI_clause?
+	{ if null $2 then NoF $ XIString $3 else AddFree (XIString $3) $2 }
 	/ _XI_clause free* _VEI_clause free* mex _VEhO_clause?
--}
+	{ if null ($2 ++ $4) then NoF (XIMex $5)
+		else AddFree (XIMex $5) ($2 ++ $4) }
 
 vocative :: Vocative
 	= (_COI_clause _NAI_clause?)+ _DOI_clause
@@ -2149,15 +2173,17 @@ data Prenex = Prenex Term (Clause ())
 data Term = TSumti Sumti
 	deriving Show
 
-data Free = Free [(Clause Lerfu, [Either (Clause PA) (Clause Lerfu)])]
+data Free
+	= Free
+	| FXI (AddFree XIString)
 	deriving Show
 
 data Sumti
 	= SQuote (Clause Quote)
-	| SKOhA (Clause KOhA)
+	| SKOhA (AddFree (Clause KOhA))
 	| SLA (Clause LA) [Clause CMENE]
 	| SRelative Sumti Relative
-	| SLerfuStr (Clause Lerfu) [Either (Clause PA) (Clause Lerfu)]
+	| SLerfuStr [Either (Clause Lerfu) (Clause PA)]
 	deriving Show
 
 data Relative
@@ -2176,11 +2202,13 @@ data Quote
 	| DelimitedQuote ZOI String
 	deriving Show
 
-data Clause a
-	= Raw a
-	| Pre [BAhE] a
-	| Post a [Indicators]
-	| PrePost [BAhE] a [Indicators]
+data Mex
+	= Mex (Clause PA)
+	deriving Show
+
+data AddFree a
+	= NoF a
+	| AddFree a [Free]
 	deriving Show
 
 data Vocative
@@ -2199,6 +2227,13 @@ data Indicator
 	| ICAINAI (Clause CAI) (Clause ())
 	| IDAhO (Clause ())
 	| IFUhO (Clause ())
+	deriving Show
+
+data Clause a
+	= Raw a
+	| Pre [BAhE] a
+	| Post a [Indicators]
+	| PrePost [BAhE] a [Indicators]
 	deriving Show
 
 data Word
@@ -2248,6 +2283,10 @@ data BAI
 	| PIhO | GAU  | ZUhE | MEhE | RAI
 	deriving Show
 data BAhE = BAhE | ZAhE deriving Show
+
+data XIString
+	= XIString [Either (Clause Lerfu) (Clause PA)] | XIMex Mex
+	deriving Show
 
 data Lerfu
 	= Lerfu Char | JOhO | RUhO | JEhO | LOhA | NAhA | SEhE | GEhO | TOhA
