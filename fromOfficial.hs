@@ -499,19 +499,36 @@ _FUhO_post :: () = post_clause_ind
 _FUhO_no_SA_handling :: () = pre_clause _FUhO post_clause	{ () }
 
 --	*** GA: geks; forethought logical connectives ***
+_GA_clause :: Clause GA = _GA_pre _GA_post	{ prePost (snd $1) (fst $1) $2 }
 _GA_pre :: ([BAhE], GA) = pre_clause _GA spaces?	{ ($1, $2) }
+_GA_post :: [Indicators] = post_clause
+_GA_no_SA_handling :: () = pre_clause _GA post_clause	{ () }
 
 --	*** GAhO: openclosed interval markers for BIhI ***
+_GAhO_clause :: Clause GAhO
+	= _GAhO_pre _GAhO_post			{ prePost (snd $1) (fst $1) $2 }
 _GAhO_pre :: ([BAhE], GAhO) = pre_clause _GAhO spaces?	{ ($1, $2) }
+_GAhO_post :: [Indicators] = post_clause
+_GAhO_no_SA_handling :: () = pre_clause _GAhO post_clause	{ () }
 
 ---	*** GEhU: marker ending GOI relative clauses ***
-_GEhU_pre :: [BAhE] = pre_clause _GAhO spaces?		{ $1 }
+_GEhU_clause :: Clause Unit = _GEhU_pre _GEhU_post	{ prePost () $1 $2 }
+_GEhU_pre :: [BAhE] = pre_clause _GEhU spaces?		{ $1 }
+_GEhU_post :: [Indicators] = post_clause
+_GEhU_no_SA_handling :: () = pre_clause _GEhU post_clause	{ () }
 
 ---	*** GI: forethought medial marker ***
+_GI_clause :: Clause Unit = _GI_pre _GI_post		{ prePost () $1 $2 }
 _GI_pre :: [BAhE] = pre_clause _GI spaces?		{ $1 }
+_GI_post :: [Indicators] = post_clause
+_GI_no_SA_handling :: () = pre_clause _GI post_clause	{ () }
 
 --	*** GIhA: logical connective for bridi-tails ***
-_GIhA_pre :: ([BAhE], GIhA) = pre_clause _GIhA spaces?	{ ($1, $2) }
+_GIhA_clause :: Clause GIhA
+	= _GIhA_pre _GIhA_post			{ prePost (snd $1) (fst $1) $2 }
+_GIhA_pre :: ([BAhE], GIhA) = pre_clause _GIhA spaces?		{ ($1, $2) }
+_GIhA_post :: [Indicators] = post_clause
+_GIhA_no_SA_handling :: () = pre_clause _GIhA post_clause	{ () }
 
 --	*** GOI: attaches a sumti modifier to a sumti ***
 _GOI_clause :: Clause GOI = _GOI_pre _GOI_post	{ prePost (snd $1) (fst $1) $2 }
@@ -520,10 +537,18 @@ _GOI_post :: [Indicators] = post_clause
 _GOI_no_SA_handling :: () = pre_clause _GOI post_clause	{ () }
 
 --	*** GOhA: pro-bridi ***
-_GOhA_pre :: ([BAhE], GOhA) = pre_clause _GOhA spaces?	{ ($1, $2) }
+_GOhA_clause :: Clause GOhA
+	= _GOhA_pre _GOhA_post			{ prePost (snd $1) (fst $1) $2 }
+_GOhA_pre :: ([BAhE], GOhA) = pre_clause _GOhA spaces?		{ ($1, $2) }
+_GOhA_post :: [Indicators] = post_clause
+_GOhA_no_SA_handling :: () = pre_clause _GOhA post_clause	{ () }
 
 --	*** GUhA: GEK for tanru units, corresponds to JEKs ***
+_GUhA_clause :: Clause GUhA
+	= _GUhA_pre _GUhA_post			{ prePost (snd $1) (fst $1) $2 }
 _GUhA_pre :: ([BAhE], GUhA) = pre_clause _GUhA spaces?	{ ($1, $2) }
+_GUhA_post :: [Indicators] = post_clause
+_GUhA_no_SA_handling :: () = pre_clause _GUhA post_clause	{ () }
 
 --	*** I: sentence link ***
 -- _I_clause :: Clause Unit = sentence_sa* _I_pre _I_post
