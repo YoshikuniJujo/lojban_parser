@@ -156,11 +156,17 @@ lerfu_word :: Clause Lerfu
 
 free :: Free
 	= _SEI_clause free* (terms _CU_clause? free*)? selbri _SEhU_clause?
-	{ FSEI $2 $3 $4 }
+		{ FSEI $2 $3 $4 }
 	/ _SOI_clause free* sumti sumti? _SEhU_clause?
-	{ FSOI $2 $3 $4 }
-	/ vocative	{ Free }
-	/ xi_clause	{ FXI $1 }
+		{ FSOI $2 $3 $4 }
+	/ vocative relative_clauses? selbri relative_clauses? _DOhU_clause?
+		{ FVocativeSelbri $1 $2 $3 $4 }
+	/ vocative relative_clauses? _CMENE_clause+ free* relative_clauses?
+		_DOhU_clause?
+		{ FVocativeCMENE $1 $2 $3 $4 $5 }
+	/ vocative sumti? _DOhU_clause?		{ FVocativeSumti $1 $2 }
+	/ (number / lerfu_string) _MAI_clause	{ FMAI $1 $2 }
+	/ xi_clause				{ FXI $1 }
 
 -- 459
 xi_clause :: AddFree XIString -- [Either (Clause Lerfu) (Clause PA)]
@@ -2186,6 +2192,11 @@ data Free
 	= Free
 	| FSEI [Free] (Maybe (Term, Maybe (Clause Unit), [Free])) Selbri
 	| FSOI [Free] Sumti (Maybe Sumti)
+	| FVocativeSelbri Vocative (Maybe Relative) Selbri (Maybe Relative)
+	| FVocativeCMENE Vocative (Maybe Relative) [Clause CMENE] [Free]
+		(Maybe Relative)
+	| FVocativeSumti Vocative (Maybe Sumti)
+	| FMAI [Either (Clause Lerfu) (Clause PA)] (Clause MAI)
 	| FXI (AddFree XIString)
 	deriving Show
 
