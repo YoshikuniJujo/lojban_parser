@@ -14,6 +14,9 @@ test_parser :: (Maybe Prenex, (Maybe Term, Selbri)) = statement eof	{ $1 }
 
 --* GRAMMAR *************************************************************** 23
 
+text_1 :: (Maybe Prenex, (Maybe Term, Selbri))
+	= statement
+
 statement :: (Maybe Prenex, (Maybe Term, Selbri))
 	= prenex? sentence
 
@@ -22,6 +25,17 @@ prenex :: Prenex
 
 sentence :: (Maybe Term, Selbri)
 	= terms? selbri
+
+sentence_sa :: () =
+	sentence_start
+	(!sentence_start
+		( sa_word			{ () }
+		/ _SA_clause !sentence_start	{ () }))*
+	_SA_clause
+	&text_1
+	{ () }
+
+sentence_start :: () = _I_pre	{ () } / _NIhO_pre	{ () }
 
 terms :: Term
 	= term
@@ -267,6 +281,8 @@ si_clause :: ()
 erasable_clause :: ()
 	= bu_clause_no_pre !_ZEI_clause !_BU_clause		{ () }
 	/ zei_clause_no_pre !_ZEI_clause !_BU_clause		{ () }
+
+sa_word :: ([BAhE], Word) = pre_zei_bu
 
 si_word :: ([BAhE], Word) = pre_zei_bu
 
@@ -551,7 +567,7 @@ _GUhA_post :: [Indicators] = post_clause
 _GUhA_no_SA_handling :: () = pre_clause _GUhA post_clause	{ () }
 
 --	*** I: sentence link ***
--- _I_clause :: Clause Unit = sentence_sa* _I_pre _I_post
+_I_clause :: Clause Unit = sentence_sa* _I_pre _I_post	{ prePost () $2 $3 }
 _I_pre :: [BAhE] = pre_clause _I spaces?		{ $1 }
 _I_post :: [Indicators] = post_clause
 _I_no_SA_handling :: () = pre_clause _I post_clause	{ () }
@@ -773,7 +789,7 @@ _NIhE_no_SA_handling :: () = pre_clause _NIhE post_clause	{ () }
 
 --	*** NIhO: new paragraph; change of subject ***
 _NIhO_clause ::Clause NIhO
-	= _NIhO_pre _NIhO_post			{ prePost (snd $1) (fst $1) $2 }
+	= sentence_sa* _NIhO_pre _NIhO_post	{ prePost (snd $2) (fst $2) $3 }
 _NIhO_pre :: ([BAhE], NIhO) = pre_clause _NIhO spaces?		{ ($1, $2) }
 _NIhO_post :: [Indicators] = post_clause
 _NIhO_no_SA_handling :: () = pre_clause _NIhO post_clause	{ () }
@@ -815,19 +831,34 @@ _PA_post :: [Indicators] = post_clause
 _PA_no_SA_handling :: () = pre_clause _PA post_clause	{ () }
 
 --	*** PEhE: afterthought termset connective prefix ***
-_PEhE_pre :: [BAhE] = pre_clause _PEhE spaces?			{ $1 }
+_PEhE_clause :: Clause Unit = _PEhE_pre _PEhE_post	{ prePost () $1 $2 }
+_PEhE_pre :: [BAhE] = pre_clause _PEhE spaces?		{ $1 }
+_PEhE_post :: [Indicators] = post_clause
+_PEhE_no_SA_handling :: () = pre_clause _PA post_clause	{ () }
 
 --	*** PEhO: forethought (Polish) flag ***
-_PEhO_pre :: [BAhE] = pre_clause _PEhO spaces?			{ $1 }
+_PEhU_clause :: Clause Unit = _PEhO_pre _PEhO_post	{ prePost () $1 $2 }
+_PEhO_pre :: [BAhE] = pre_clause _PEhO spaces?		{ $1 }
+_PEhO_post :: [Indicators] = post_clause
+_PEhO_no_SA_handling :: () = pre_clause _PEhO post_clause	{ () }
 
 --	*** PU: directions in time ***
-_PU_pre :: ([BAhE], PU) = pre_clause _PU spaces?		{ ($1, $2) }
+_PU_clause :: Clause PU = _PU_pre _PU_post	{ prePost (snd $1) (fst $1) $2 }
+_PU_pre :: ([BAhE], PU) = pre_clause _PU spaces?	{ ($1, $2) }
+_PU_post :: [Indicators] = post_clause
+_PU_no_SA_handling :: () = pre_clause _PU post_clause	{ () }
 
 --	*** RAhO: flag for modified interpretation of GOhI ***
+_RAhO_clause :: Clause Unit = _RAhO_pre _RAhO_post	{ prePost () $1 $2 }
 _RAhO_pre :: [BAhE] = pre_clause _RAhO spaces?			{ $1 }
+_RAhO_post :: [Indicators] = post_clause
+_RAhO_no_SA_handling :: () = pre_clause _RAhO post_clause	{ () }
 
 --	*** ROI: converts number to extensinal tense ***
-_ROI_pre :: ([BAhE], ROI) = pre_clause _ROI spaces?		{ ($1, $2) }
+_ROI_clause :: Clause ROI = _ROI_pre _ROI_post	{ prePost (snd $1) (fst $1) $2 }
+_ROI_pre :: ([BAhE], ROI) = pre_clause _ROI spaces?	{ ($1, $2) }
+_ROI_post :: [Indicators] = post_clause
+_ROI_no_SA_handling :: () = pre_clause _ROI post_clause	{ () }
 
 --	*** SA: metalinguistic eraser to the beginning of the current utterance ***
 _SA_clause :: Clause Unit = _SA_pre _SA_post	{ prePost () $1 [] }
