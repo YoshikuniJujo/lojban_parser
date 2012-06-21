@@ -10,11 +10,11 @@ import Control.Arrow
 
 [peggy|
 
-test_parser :: (Maybe Prenex, (Maybe Term, Selbri)) = text eof	{ $1 }
+test_parser :: (Maybe Prenex, (Maybe Term, (Selbri, Maybe Term))) = text eof	{ $1 }
 
 --* GRAMMAR *************************************************************** 23
 
-text :: (Maybe Prenex, (Maybe Term, Selbri)) =
+text :: (Maybe Prenex, (Maybe Term, (Selbri, Maybe Term))) =
 	intro_null
 	_NAI_clause*
 	text_1
@@ -30,17 +30,20 @@ text_part_2 :: () =
 intro_si_clause :: () = si_clause? _SI_clause*		{ () }
 faho_clause :: () = (_FAhO_clause dot_star)?		{ () }
 
-text_1 :: (Maybe Prenex, (Maybe Term, Selbri))
+text_1 :: (Maybe Prenex, (Maybe Term, (Selbri, Maybe Term)))
 	= statement
 
-statement :: (Maybe Prenex, (Maybe Term, Selbri))
+statement :: (Maybe Prenex, (Maybe Term, (Selbri, Maybe Term)))
 	= prenex? sentence
 
 prenex :: Prenex
 	= terms _ZOhU_clause		{ Prenex $1 $2 }
 
-sentence :: (Maybe Term, Selbri)
-	= terms? selbri
+sentence :: (Maybe Term, (Selbri, Maybe Term))
+	= terms? bridi_tail
+
+bridi_tail :: (Selbri, Maybe Term)
+	= selbri terms?
 
 sentence_sa :: () =
 	sentence_start
@@ -86,7 +89,8 @@ sumti_6 :: Sumti
 	/ lerfu_string			{ SLerfuStr $1 }
 	/ _KOhA_clause free* 		{ if null $2 then SKOhA (NoF $1)
 						else SKOhA (AddFree $1 $2) }
-	/ _LA_clause _CMENE_clause+	{ SLA $1 $2 }
+	/ _LA_clause _CMENE_clause+ free*
+		{ SLA $1 $ if null $3 then NoF $2 else AddFree $2 $3 }
 
 relative_clauses :: Relative
 	= relative_clause (_ZIhE_clause relative_clause)*
@@ -127,7 +131,8 @@ tanru_unit_1 :: TanruUnit
 	= tanru_unit_2
 
 tanru_unit_2 :: TanruUnit
-	= _BRIVLA_clause	{ TUBRIVLA $1 }
+	= _BRIVLA_clause free*	{ TUBRIVLA $ if null $2 then NoF $1
+					else AddFree $1 $2 }
 
 -- 245
 
@@ -150,7 +155,11 @@ lerfu_word :: Clause Lerfu
 --	/ _TEI_clause lerfu_string _FOI_clause
 
 free :: Free
-	= vocative	{ Free }
+	= _SEI_clause free* (terms _CU_clause? free*)? selbri _SEhU_clause?
+	{ FSEI $2 $3 $4 }
+	/ _SOI_clause free* sumti sumti? _SEhU_clause?
+	{ FSOI $2 $3 $4 }
+	/ vocative	{ Free }
 	/ xi_clause	{ FXI $1 }
 
 -- 459
@@ -2175,13 +2184,15 @@ data Term = TSumti Sumti
 
 data Free
 	= Free
+	| FSEI [Free] (Maybe (Term, Maybe (Clause Unit), [Free])) Selbri
+	| FSOI [Free] Sumti (Maybe Sumti)
 	| FXI (AddFree XIString)
 	deriving Show
 
 data Sumti
 	= SQuote (Clause Quote)
 	| SKOhA (AddFree (Clause KOhA))
-	| SLA (Clause LA) [Clause CMENE]
+	| SLA (Clause LA) (AddFree [Clause CMENE])
 	| SRelative Sumti Relative
 	| SLerfuStr [Either (Clause Lerfu) (Clause PA)]
 	deriving Show
@@ -2194,7 +2205,7 @@ data Relative
 data Selbri = STanruUnit TanruUnit
 	deriving Show
 
-data TanruUnit = TUBRIVLA (Clause BRIVLA)
+data TanruUnit = TUBRIVLA (AddFree (Clause BRIVLA))
 	deriving Show
 
 data Quote
