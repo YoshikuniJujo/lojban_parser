@@ -154,6 +154,64 @@ lerfu_word :: Clause Lerfu
 --	/ _LAU_clause lerfu_word
 --	/ _TEI_clause lerfu_string _FOI_clause
 
+simple_tense_modal :: TenseModal
+	= _NAhE_clause? _SE_clause? _BAI_clause _NAI_clause? _KI_clause?
+		{ TMBAI $1 $2 $3 $4 $5 }
+{-
+	/ _NAhE_clause?
+		( (time space_? {TimeSpace $1 $2} / space_ time? {SpaceTime $1 $2})
+			_CAhA_clause
+		/ (time space_? {TimeSpace $1 $2} / space_ time? {SpaceTime $1 $2})
+		/ _CAhA_clause )
+		_KI_clause?
+-}
+
+time :: Time
+	= _ZI_clause time_offset*
+		(_ZEhA_clause (_PU_clause _NAI_clause?)?)? interval_property*
+		{ Time (Just $1) $2 $3 $4 }
+	/ _ZI_clause? time_offset+
+		(_ZEhA_clause (_PU_clause _NAI_clause?)?)? interval_property*
+		{ Time $1 $2 $3 $4 }
+	/ _ZI_clause? time_offset*
+		(_ZEhA_clause (_PU_clause _NAI_clause?)?) interval_property*
+		{ Time $1 $2 (Just $3) $4 }
+	/ _ZI_clause? time_offset*
+		(_ZEhA_clause (_PU_clause _NAI_clause?)?)? interval_property+
+		{ Time $1 $2 $3 $4 }
+
+time_offset :: TimeOffset
+	= _PU_clause _NAI_clause? _ZI_clause?
+	{ TimeOffset $1 $2 $3 }
+
+space_ :: Space_
+	= _VA_clause space_offset* space_interval? (_MOhI_clause space_offset)?
+	{ Space_ (Just $1) $2 $3 $4 }
+
+space_offset :: (Clause FAhA, Maybe (Clause Unit), Maybe (Clause VA))
+	= _FAhA_clause _NAI_clause? _VA_clause?
+
+space_interval :: SpaceInterval
+	=	( _VEhA_clause			{ (Just $1, Nothing) }
+		/ _VIhA_clause			{ (Nothing, Just $1) }
+		/ _VEhA_clause _VIhA_clause	{ (Just $1, Just $2) } )
+			(_FAhA_clause _NAI_clause?)? space_int_props
+				{ SIVVSIP $1 $2 $3 }
+	/	( _VEhA_clause			{ (Just $1, Nothing) }
+		/ _VIhA_clause			{ (Nothing, Just $1) }
+		/ _VEhA_clause _VIhA_clause	{ (Just $1, Just $2) } )
+			(_FAhA_clause _NAI_clause?)?
+				{ SIVV $1 $2 }
+	/ space_int_props	{ SISIP $1 }
+
+space_int_props :: [(Clause Unit, Interval)]
+	= (_FEhE_clause interval_property)+
+
+interval_property :: Interval
+	= number _ROI_clause _NAI_clause?	{ IROI $1 $2 }
+	/ _TAhE_clause _NAI_clause?		{ ITAhE $1 $2 }
+	/ _ZAhO_clause _NAI_clause?		{ IZAhO $1 $2 }
+
 free :: Free
 	= _SEI_clause free* (terms _CU_clause? free*)? selbri _SEhU_clause?
 		{ FSEI $2 $3 $4 }
@@ -2186,6 +2244,48 @@ data Prenex = Prenex Term (Clause ())
 	deriving Show
 
 data Term = TSumti Sumti
+	deriving Show
+
+data TenseModal
+	= TMBAI (Maybe (Clause NAhE)) (Maybe (Clause SE)) (Clause BAI)
+		(Maybe (Clause Unit)) (Maybe (Clause Unit))
+	deriving Show
+
+data TimeSpace
+	= TimeSpace Time (Maybe Space_)
+	| SpaceTime Space_ (Maybe Time)
+	deriving Show
+
+data Time = Time (Maybe (Clause ZI)) [TimeOffset]
+	(Maybe (Clause ZEhA, Maybe (Clause PU, Maybe (Clause Unit))))
+	[Interval]
+	deriving Show
+
+data TimeOffset
+	= TimeOffset (Clause PU) (Maybe (Clause Unit)) (Maybe (Clause ZI))
+	deriving Show
+
+data Space_
+	= Space_ (Maybe (Clause VA))
+		[(Clause FAhA, Maybe (Clause Unit), Maybe (Clause VA))]
+		(Maybe SpaceInterval)
+		(Maybe (Clause Unit,
+			(Clause FAhA, Maybe (Clause Unit), Maybe (Clause VA))))
+	deriving Show
+
+data SpaceInterval
+	= SIVVSIP (Maybe (Clause VEhA), Maybe (Clause VIhA))
+		(Maybe (Clause FAhA, Maybe (Clause Unit)))
+		[(Clause Unit, Interval)]
+	| SIVV (Maybe (Clause VEhA), Maybe (Clause VIhA))
+		(Maybe (Clause FAhA, Maybe (Clause Unit)))
+	| SISIP [(Clause Unit, Interval)]
+	deriving Show
+
+data Interval
+	= IROI [Either (Clause Lerfu) (Clause PA)] (Clause ROI)
+	| ITAhE (Clause TAhE) (Maybe (Clause Unit))
+	| IZAhO (Clause ZAhO) (Maybe (Clause Unit))
 	deriving Show
 
 data Free

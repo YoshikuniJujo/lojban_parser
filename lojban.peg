@@ -414,12 +414,12 @@ simple-tense-modal <-
 
 time <-	ZI-clause time-offset*
 		(ZEhA-clause (PU-clause NAI-clause?)?)? interval-property* /
-	ZI-clause? time-offset+ (ZEhA-clause (PU-clause NAI-clause?)?)?
-		interval-property* /
-	ZI-clause? time-offset* ZEhA-clause (PU-clause NAI-clause?)?
-		interval-property* /
-	ZI-clause? time-offset* (ZEhA-clause (PU-clause NAI-clause?)?)?
-		interval-property+
+	ZI-clause? time-offset+
+		(ZEhA-clause (PU-clause NAI-clause?)?)? interval-property* /
+	ZI-clause? time-offset*
+		ZEhA-clause (PU-clause NAI-clause?)? interval-property* /
+	ZI-clause? time-offset*
+		(ZEhA-clause (PU-clause NAI-clause?)?)? interval-property+
 
 time-offset <- PU-clause NAI-clause? ZI-clause?
 
