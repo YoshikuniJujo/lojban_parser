@@ -68,7 +68,7 @@ sumti_6 :: Sumti
 	= _ZO_clause			{ SQuote $1 }
 	/ _ZOI_clause			{ SQuote $1 }
 	/ lerfu_string			{ SLerfuStr (fst $1) (snd $1) }
-	/ _KOhA_clause free*		{ SKOhA $1 (Free $2) }
+	/ _KOhA_clause 			{ SKOhA $1 }
 	/ _LA_clause _CMENE_clause+	{ SLA $1 $2 }
 
 relative_clauses :: Relative
@@ -128,11 +128,22 @@ lerfu_word :: Clause Lerfu
 --	/ _LAU_clause lerfu_word
 --	/ _TEI_clause lerfu_string _FOI_clause
 
-free :: (Clause Lerfu, [Either (Clause PA) (Clause Lerfu)]) = xi_clause
+-- free :: (Clause Lerfu, [Either (Clause PA) (Clause Lerfu)]) = xi_clause
 
 -- 459
+{-
 xi_clause :: (Clause Lerfu, [Either (Clause PA) (Clause Lerfu)])
-	= _XI_clause lerfu_string	{ $2 }
+	= _XI_clause free* (number / lerfu_string) _BOI_clause?	{ $3 }
+	/ _XI_clause free* _VEI_clause free* mex _VEhO_clause?
+-}
+
+vocative :: Vocative
+	= (_COI_clause _NAI_clause?)+ _DOI_clause
+	{ Vocative $1 (Just $2) }
+	/ (_COI_clause _NAI_clause?) (_COI_clause _NAI_clause?)*
+	{ Vocative [$1] Nothing }
+	/ _DOI_clause
+	{ Vocative [] (Just $1) }
 
 indicators :: Indicators = _FUhE_clause? indicator+
 	{ maybe (Ind $2) (const $ IFUhE $2) $1 }
@@ -169,8 +180,7 @@ bu_clause_no_pre :: ([BAhE], (Word, [(Bool, [String])]), [Indicators])
 bu_clause_no_SA :: ()
 	= pre_zei_bu_no_SA (bu_tail? zei_tail)* bu_tail		{ () }
 
-zei_tail :: [String] = (_ZEI_clause (lojban_word spaces?))+
-	{ map (fst . snd) $1 }
+zei_tail :: [String] = (_ZEI_clause any_word)+		{ map snd $1 }
 bu_tail :: () = _BU_clause+				{ () }
 
 pre_zei_bu :: ([BAhE], Word)
@@ -182,7 +192,10 @@ pre_zei_bu_no_SA :: ()
 	/ _ZO_pre	{ () }
 	/ _ZOI_pre	{ () }
 	/ !_ZEI_clause !_BU_clause !_FAhO_clause !_SI_clause !_SA_clause
-		!_SU_clause (lojban_word spaces?) si_clause?	{ () }
+		!_SU_clause any_word si_clause?	{ () }
+
+any_word :: String = lojban_word spaces?	{ $1 }
+dot_star :: () = .*				{ () }
 
 -- General Morphology Issues 498
 
@@ -192,10 +205,10 @@ pre_zei_bu_no_SA :: ()
 
 -- Handling of what can go after a cmavo
 post_clause :: [Indicators]
-	= spaces? si_clause? !_ZEI_clause !_BU_clause indicators*
-	{ $3 }
+	= spaces? si_clause? !_ZEI_clause !_BU_clause indicators*	{ $3 }
 post_clause_ind :: ()
-	= spaces? si_clause? !_ZEI_clause !_BU_clause	{ () }
+	= spaces? si_clause? !_ZEI_clause !_BU_clause			{ () }
+
 pre_clause :: [BAhE] = _BAhE_clause?			{ fromMaybe [] $1 }
 
 any_word_SA_handling :: ([BAhE], Word)
@@ -271,6 +284,7 @@ known_cmavo_SA :: ([BAhE], Word)
 --- SPACE --- 534
 
 -- SU clauses
+su_clause :: () = (erasable_clause / su_word)* _SU_clause	{ () }
 
 -- Handling of SI and interactions with zo and lo'u...le'u
 
@@ -285,6 +299,9 @@ erasable_clause :: ()
 sa_word :: ([BAhE], Word) = pre_zei_bu
 
 si_word :: ([BAhE], Word) = pre_zei_bu
+
+su_word :: () = !_NIhO_clause !_LU_clause !_TUhE_clause !_TO_clause !_SU_clause
+	!_FAhO_clause any_word_SA_handling			{ () }
 
 --- SELMAHO --------------------------------------------------------------- 557
 
@@ -1043,10 +1060,10 @@ _ZIhE_no_SA_handling :: () = pre_clause _ZIhE post_clause	{ () }
 
 --	*** ZO: single word metalinguistic quote marker ***
 _ZO_clause :: Clause Quote = _ZO_pre _ZO_post	{ prePost (snd $1) (fst $1) $2 }
-_ZO_pre :: ([BAhE], Quote) = pre_clause _ZO spaces? lojban_word spaces?
+_ZO_pre :: ([BAhE], Quote) = pre_clause _ZO spaces? any_word spaces?
 						{ ($1, SingleWordQuote $4) }
 _ZO_post :: [Indicators] = post_clause
-_ZO_no_SA_handling :: () = pre_clause _ZO spaces? lojban_word spaces?	{ () }
+_ZO_no_SA_handling :: () = pre_clause _ZO spaces? any_word spaces?	{ () }
 
 --	*** ZOI: delimited quote marker ***
 
@@ -2137,7 +2154,7 @@ data Free = Free [(Clause Lerfu, [Either (Clause PA) (Clause Lerfu)])]
 
 data Sumti
 	= SQuote (Clause Quote)
-	| SKOhA (Clause KOhA) Free
+	| SKOhA (Clause KOhA)
 	| SLA (Clause LA) [Clause CMENE]
 	| SRelative Sumti Relative
 	| SLerfuStr (Clause Lerfu) [Either (Clause PA) (Clause Lerfu)]
@@ -2166,7 +2183,10 @@ data Clause a
 	| PrePost [BAhE] a [Indicators]
 	deriving Show
 
--- type Indicators = (Bool, [Indicator])
+data Vocative
+	= Vocative [(Clause COI, Maybe (Clause Unit))] (Maybe (Clause Unit))
+	deriving Show
+
 data Indicators
 	= Ind [Indicator]
 	| IFUhE [Indicator]
