@@ -335,9 +335,13 @@ operand <- operand-sa* operand-0
 
 operand-0 <- operand-1 (joik-ek stag? KE-clause free* operand KEhE-clause? free*)?
 
-operand-sa <- operand-start (!operand-start (sa-word / SA-clause !operand-start) )* SA-clause &operand-0
+operand-sa <- operand-start
+	(!operand-start (sa-word / SA-clause !operand-start) )*
+	SA-clause &operand-0
 
-operand-start <- quantifier / lerfu-word / NIhE-clause / MOhE-clause / JOhI-clause / gek / LAhE-clause / NAhE-clause
+operand-start <-
+	quantifier / lerfu-word / NIhE-clause / MOhE-clause / JOhI-clause /
+	gek / LAhE-clause / NAhE-clause
 
 operand-1 <- operand-2 (joik-ek operand-2)*
 

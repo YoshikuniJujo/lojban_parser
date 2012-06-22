@@ -98,6 +98,11 @@ sumti_6 :: Sumti
 		{ SLA $1 $ if null $3 then NoF $2 else AddFree $2 $3 }
 	/ _LE_clause selbri
 		{ SLE $2 }
+	/ li_clause
+
+li_clause :: Sumti
+	= _LI_clause free* mex _LOhO_clause? free*	{ SLI $1 $2 $3 $4 $5 }
+	
 
 relative_clauses :: Relative
 	= relative_clause (_ZIhE_clause relative_clause)*
@@ -140,10 +145,77 @@ tanru_unit_1 :: TanruUnit
 tanru_unit_2 :: TanruUnit
 	= _BRIVLA_clause free*	{ TUBRIVLA $ if null $2 then NoF $1
 					else AddFree $1 $2 }
+	/ _NU_clause sentence	{ TUNU $1 $2 }
+
+quantifier :: Quantifier
+	= number !_MOI_clause _BOI_clause? free*
+	{ QNumber $1 $2 $3 }
+	/ _VEI_clause free* mex _VEhO_clause? free*	{ Quantifier }
 
 -- 245
 
-mex :: Mex = _PA_clause		{ Mex $1 }
+mex :: Mex = mex_0		{ $1 }
+
+mex_0 :: Mex
+	= mex_1
+
+mex_1 :: Mex
+	= mex_2
+
+mex_2 :: Mex
+	= operand		{ MOperand $1 }
+--	/ mex_forethought
+
+{-
+mex_forethought :: Mex
+	= _PEhO_clause? free* operator fore_operands _KUhE_clause? free*
+-}
+
+operand :: Operand
+	= operand_sa* operand_0	{ $2 }
+
+operand_0 :: Operand
+	= operand_1
+
+operand_sa :: ()
+	= operand_start (!operand_start
+			( sa_word			{ () }
+			/ _SA_clause !operand_start	{ () } ))*
+		_SA_clause &operand_0
+	{ () }
+
+operand_start :: ()
+	= quantifier	{ () }
+	/ lerfu_word	{ () }
+	/ _NIhE_clause	{ () }
+	/ _MOhE_clause	{ () }
+	/ _JOhI_clause	{ () }
+	/ gek		{ () }
+	/ _LAhE_clause	{ () }
+	/ _NAhE_clause	{ () }
+
+operand_1 :: Operand
+	= operand_2
+
+operand_2 :: Operand
+	= operand_3
+
+operand_3 :: Operand
+	= quantifier	{ OQuantifier $1 }
+	/ lerfu_string !_MOI_clause _BOI_clause? free*
+			{ OLerfu $1 $2 $3 }
+	/ _NIhE_clause free* selbri _TEhU_clause? free*
+			{ ONIhE $1 $2 $3 $4 $5 }
+	/ _MOhE_clause free* sumti _TEhU_clause? free*
+			{ OMOhE $1 $2 $3 $4 $5 }
+	/ _JOhI_clause free* mex_2+ _TEhU_clause? free*
+			{ OJOhI $1 $2 $3 $4 $5 }
+	/ gek operand gik operand_3
+			{ OGek $1 $2 $3 $4 }
+	/	( _LAhE_clause free*		{ Left ($1, $2) }
+		/ _NAhE_clause _BO_clause free*	{ Right ($1, $2, $3) } )
+		operand _LUhU_clause? free*
+			{ OLAhENAhE $1 $2 $3 $4 }
 
 -- 355
 number :: [Either (Clause Lerfu) (Clause PA)] = _PA_clause
@@ -158,8 +230,8 @@ lerfu_string :: [Either (Clause Lerfu) (Clause PA)] = lerfu_word
 
 lerfu_word :: Clause Lerfu
 	= _BY_clause
---	/ _LAU_clause lerfu_word
---	/ _TEI_clause lerfu_string _FOI_clause
+	/ _LAU_clause lerfu_word		{ Raw $ LLAU $1 $2 }
+	/ _TEI_clause lerfu_string _FOI_clause	{ Raw $ LTEI $1 $2 $3 }
 
 ek :: Ek
 	= _NA_clause? _SE_clause? _A_clause _NAI_clause?
@@ -2441,6 +2513,7 @@ data Sumti
 	| SKOhA (AddFree (Clause KOhA))
 	| SLA (Clause LA) (AddFree [Clause CMENE])
 	| SLE Selbri
+	| SLI (Clause Unit) [Free] Mex (Maybe (Clause Unit)) [Free]
 	| SRelative Sumti Relative
 	| SLerfuStr [Either (Clause Lerfu) (Clause PA)]
 	deriving Show
@@ -2453,7 +2526,9 @@ data Relative
 data Selbri = STanruUnit TanruUnit
 	deriving Show
 
-data TanruUnit = TUBRIVLA (AddFree (Clause BRIVLA))
+data TanruUnit
+	= TUBRIVLA (AddFree (Clause BRIVLA))
+	| TUNU (Clause NU) (Maybe Term, (Selbri, Maybe Term))
 	deriving Show
 
 data Quote
@@ -2461,8 +2536,27 @@ data Quote
 	| DelimitedQuote ZOI String
 	deriving Show
 
+data Quantifier
+	= QNumber [Either (Clause Lerfu) (Clause PA)]
+		(Maybe (Clause Unit)) [Free]
+	| Quantifier
+	deriving Show
+
 data Mex
-	= Mex (Clause PA)
+	= MOperand Operand
+	deriving Show
+
+data Operand
+	= OQuantifier Quantifier
+	| OLerfu [Either (Clause Lerfu) (Clause PA)] (Maybe (Clause Unit)) [Free]
+	| ONIhE (Clause Unit) [Free] Selbri (Maybe (Clause Unit)) [Free]
+	| OMOhE (Clause Unit) [Free] Sumti (Maybe (Clause Unit)) [Free]
+	| OJOhI (Clause Unit) [Free] [Mex] (Maybe (Clause Unit)) [Free]
+	| OGek (AddFree Gek) Operand (AddFree (Clause Unit, Bool)) Operand
+	| OLAhENAhE (Either (Clause LAhE, [Free])
+			(Clause NAhE, Clause Unit, [Free]))
+		Operand (Maybe (Clause Unit)) [Free]
+	| Operand
 	deriving Show
 
 data AddFree a
@@ -2551,6 +2645,8 @@ data Lerfu
 	= Lerfu Char | JOhO | RUhO | JEhO | LOhA | NAhA | SEhE | GEhO | TOhA
 	| GAhE
 	| LBU Word [(Bool, [String])]
+	| LLAU (Clause LAU) (Clause Lerfu)
+	| LTEI (Clause Unit) [Either (Clause Lerfu) (Clause PA)] (Clause Unit)
 	deriving Show
 
 data CAhA = CAhA | PUhI | NUhO | KAhE deriving Show
