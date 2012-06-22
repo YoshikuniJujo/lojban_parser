@@ -112,11 +112,25 @@ relative_clauses :: Relative
 		{ if null $2 then $1 else RMany $1 $2 }
 
 relative_clause :: Relative
-	= relative_clause_1
+	= relative_clause_sa* relative_clause_1	{ $2 }
+
+relative_clause_sa :: () = relative_clause_start (!relative_clause_start
+	( sa_word				{ () }
+	/ _SA_clause !relative_clause_start	{ () } ))*
+	_SA_clause &relative_clause_1
+	{ () }
 
 relative_clause_1 :: Relative
-	= _GOI_clause term		{ RelativePhrase $1 $2 }
---	/ _NOI_clause subsentence
+	= _GOI_clause free* term _GEhU_clause? free*
+	{ RelativePhrase (if null $2 then NoF $1 else AddFree $1 $2) $3
+		(if null $5 then NoF $4 else AddFree $4 $5) }
+	/ _NOI_clause free* subsentence _KUhO_clause? free*
+	{ RelativeClause (if null $2 then NoF $1 else AddFree $1 $2) $3
+		(if null $5 then NoF $4 else AddFree $4 $5) }
+
+relative_clause_start :: ()
+	= _GOI_clause	{ () }
+	/ _NOI_clause	{ () }
 
 selbri :: Selbri = tag? selbri_1
 	{ maybe $2 (flip STag $2) $1 }
@@ -2658,7 +2672,10 @@ data Sumti
 	deriving Show
 
 data Relative
-	= RelativePhrase (Clause GOI) Term
+	= RelativePhrase (AddFree (Clause GOI)) Term
+		(AddFree (Maybe (Clause Unit)))
+	| RelativeClause (AddFree (Clause NOI)) (Maybe Term, (Selbri, Maybe Term))
+		(AddFree (Maybe (Clause Unit)))
 	| RMany Relative [(Clause (), Relative)]
 	deriving Show
 
