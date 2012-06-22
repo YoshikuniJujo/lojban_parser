@@ -384,7 +384,8 @@ joik-ek <- joik-ek-sa* joik-ek-1
 
 joik-ek-1 <- (joik free* / ek free*)
 
-joik-ek-sa <- joik-ek-1 (!joik-ek-1 (sa-word / SA-clause !joik-ek-1 ) )* SA-clause &joik-ek
+joik-ek-sa <- joik-ek-1 (!joik-ek-1 (sa-word / SA-clause !joik-ek-1 ) )*
+	SA-clause &joik-ek
 
 joik-jek <- joik free* / jek free*
 

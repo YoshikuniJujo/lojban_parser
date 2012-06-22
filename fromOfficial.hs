@@ -161,6 +161,22 @@ lerfu_word :: Clause Lerfu
 --	/ _LAU_clause lerfu_word
 --	/ _TEI_clause lerfu_string _FOI_clause
 
+ek :: Ek
+	= _NA_clause? _SE_clause? _A_clause _NAI_clause?
+	{ Ek $1 $2 $3 $4 }
+
+gihek :: Gihek = gihek_sa* gihek_1	{ $2 }
+
+gihek_1 :: Gihek
+	= _NA_clause? _SE_clause? _GIhA_clause _NAI_clause?
+	{ Gihek $1 $2 $3 $4 }
+
+gihek_sa :: () = gihek_1 (!gihek_1
+		( sa_word		{ () }
+		/ _SA_clause !gihek_1	{ () } ))
+	_SA_clause &gihek
+	{ () }
+
 jek :: Jek
 	= _NA_clause? _SE_clause? _JA_clause _NAI_clause?
 		{ Jek $1 $2 $3 $4 }
@@ -176,19 +192,38 @@ joik :: Joik
 interval :: (Maybe (Clause SE), Clause Unit, Maybe (Clause Unit))
 	= _SE_clause? _BIhI_clause _NAI_clause?
 
+joik_ek :: AddFree (Either Joik Ek) = joik_ek_sa* joik_ek_1	{ $2 }
+
+joik_ek_1 :: AddFree (Either Joik Ek)
+	= joik free*	{ AddFree (Left $1) $2 }
+	/ ek free*	{ AddFree (Right $1) $2 }
+
+joik_ek_sa :: () = joik_ek_1 (!joik_ek_1
+		( sa_word		{ () }
+		/ _SA_clause !joik_ek_1	{ () } ))*
+	_SA_clause &joik_ek
+	{ () }
+
 joik_jek :: AddFree (Either Joik Jek)
 	= joik free*	{ if null $2 then NoF (Left $1)
 				else AddFree (Left $1) $2 }
 	/ jek free*	{ if null $2 then NoF (Right $1)
 				else AddFree (Right $1) $2 }
 
-gek :: ()
-	= _SE_clause? _GA_clause _NAI_clause? free*	{ () }
-	/ joik _GI_clause free*				{ () }
-	/ stag gik					{ () }
+gek :: AddFree Gek
+	= _SE_clause? _GA_clause _NAI_clause? free*
+		{ AddFree (GekGA $1 $2 $3) $4 }
+	/ joik _GI_clause free*
+		{ AddFree Gek $3 }
+	/ stag gik
+		{ NoF Gek }
 
-gik :: ()
-	= _GI_clause _NAI_clause? free*			{ () }
+guhek :: AddFree Guhek
+	= _SE_clause? _GUhA_clause _NAI_clause? free*
+	{ AddFree (Guhek $1 $2 $3) $4 }
+
+gik :: AddFree (Clause Unit, Bool)
+	= _GI_clause _NAI_clause? free*	{ AddFree ($1, (isJust $2)) $3 }
 
 tag :: Tag
 	= tense_modal (joik_jek tense_modal)*	{ Tag $1 $2 }
@@ -2307,6 +2342,14 @@ data Term
 	| Term
 	deriving Show
 
+data Ek	= Ek (Maybe (Clause NA)) (Maybe (Clause SE))
+		(Clause A) (Maybe (Clause Unit))
+	deriving Show
+
+data Gihek = Gihek (Maybe (Clause NA)) (Maybe (Clause SE))
+	(Clause GIhA) (Maybe (Clause Unit))
+	deriving Show
+
 data Jek
 	= Jek (Maybe (Clause NA)) (Maybe (Clause SE)) (Clause JA)
 		(Maybe (Clause Unit))
@@ -2317,6 +2360,15 @@ data Joik
 	| JoikInterval (Maybe (Clause GAhO))
 		(Maybe (Clause SE), Clause Unit, Maybe (Clause Unit))
 		(Maybe (Clause GAhO))
+	deriving Show
+
+data Gek
+	= GekGA (Maybe (Clause SE)) (Clause GA) (Maybe (Clause Unit))
+	| Gek
+	deriving Show
+
+data Guhek
+	= Guhek (Maybe (Clause SE)) (Clause GUhA) (Maybe (Clause Unit))
 	deriving Show
 
 data Tag
