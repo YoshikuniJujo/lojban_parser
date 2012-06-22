@@ -140,7 +140,7 @@ tanru_unit :: TanruUnit
 	= tanru_unit_1
 
 tanru_unit_1 :: TanruUnit
-	= tanru_unit_2
+	= tanru_unit_2 linkargs?	{ maybe $1 (TULinkArgs $1) $2 }
 
 tanru_unit_2 :: TanruUnit
 	= _BRIVLA_clause free*	{ TUBRIVLA $ if null $2 then NoF $1
@@ -148,17 +148,62 @@ tanru_unit_2 :: TanruUnit
 	/ _GOhA_clause		{ TUGOhA $1 }
 	/ _NU_clause sentence	{ TUNU $1 $2 }
 
-quantifier :: Quantifier
-	= number !_MOI_clause _BOI_clause? free*
-	{ QNumber $1 $2 $3 }
-	/ _VEI_clause free* mex _VEhO_clause? free*	{ Quantifier }
-
 -- 245
 
-mex :: Mex = mex_0		{ $1 }
+linkargs :: LinkArgs = linkargs_sa* linkargs_1	{ $2 }
+
+linkargs_1 :: LinkArgs
+	= _BE_clause free* term links? _BEhO_clause? free*
+	{ LinkArgs $1 $2 $3 $4 $5 $6 }
+
+linkargs_sa :: () = linkargs_start (!linkargs_start
+		( sa_word			{ () }
+		/ _SA_clause !linkargs_start	{ () } ))*
+	_SA_clause &linkargs_1
+	{ () }
+linkargs_start :: () = _BE_clause	{ () }
+
+links :: Links = links_sa* links_1	{ $2 }
+
+links_1 :: Links -- (Clause Unit, [Free], Term, (Maybe Links))
+	= _BEI_clause free* term links?
+	{ Links $1 $2 $3 $4 }
+
+links_sa :: () = links_start (!links_start
+		( sa_word			{ () }
+		/ _SA_clause !links_start	{ () } ))*
+	_SA_clause &links_1
+	{ () }
+
+links_start :: Clause Unit = _BEI_clause
+
+-- 274
+
+quantifier :: Quantifier
+	= number !_MOI_clause _BOI_clause? free*	{ QNumber $1 $2 $3 }
+	/ _VEI_clause free* mex _VEhO_clause? free*	{ Quantifier }
+
+mex :: Mex = mex_sa* mex_0		{ $2 }
 
 mex_0 :: Mex
 	= mex_1 (operator mex_1)*	{ MOperator $1 $2 }
+	/ rp_clause
+
+mex_sa :: ()
+	= mex_start (!mex_start
+			( sa_word		{ () }
+			/ _SA_clause !mex_start	{ () } ))*
+		_SA_clause &mex_0
+	{ () }
+
+mex_start :: ()
+	= _FUhA_clause	{ () }
+	/ _PEhO_clause	{ () }
+	/ operand_start	{ () }
+
+rp_clause :: Mex
+	= _FUhA_clause free* rp_expression
+	{ MFUhA $1 $2 (fst $3) (snd $3) }
 
 mex_1 :: Mex
 	= mex_2 (_BIhE_clause free* operator mex_1)?
@@ -166,17 +211,28 @@ mex_1 :: Mex
 
 mex_2 :: Mex
 	= operand		{ MOperand $1 }
---	/ mex_forethought
+	/ mex_forethought
 
-{-
 mex_forethought :: Mex
 	= _PEhO_clause? free* operator fore_operands _KUhE_clause? free*
--}
+	{ MPEhO $1 $2 $3 $4 $5 $6 }
+fore_operands :: [Mex] = mex_2+
+
+rp_expression :: (Operand, Operand)
+	= operand rp_expression_tail
+rp_expression_tail :: Operand
+	= rp_expression operator rp_expression_tail
+	{ ORP (fst $1) (snd $1) $2 $3 }
+	/ ""						{ ONull }
 
 operator :: Operator = operator_sa* operator_0	{ $2 }
 
-operator_0 :: Operator
-	= operator_1
+operator_0 :: Operator = operator_1
+		( joik_jek operator_1
+			{ Left ($1, $2) }
+		/ joik stag? _KE_clause free* operator _KEhE_clause? free*
+			{ Right ($1, $2, $3, $4, $5, $6, $7) } )*
+	{ Operator0 $1 $2 }
 
 operator_sa :: ()
 	= operator_start (!operator_start
@@ -1163,7 +1219,7 @@ _PEhE_post :: [Indicators] = post_clause
 _PEhE_no_SA_handling :: () = pre_clause _PA post_clause	{ () }
 
 --	*** PEhO: forethought (Polish) flag ***
-_PEhU_clause :: Clause Unit = _PEhO_pre _PEhO_post	{ prePost () $1 $2 }
+_PEhO_clause :: Clause Unit = _PEhO_pre _PEhO_post	{ prePost () $1 $2 }
 _PEhO_pre :: [BAhE] = pre_clause _PEhO spaces?		{ $1 }
 _PEhO_post :: [Indicators] = post_clause
 _PEhO_no_SA_handling :: () = pre_clause _PEhO post_clause	{ () }
@@ -2578,6 +2634,7 @@ data TanruUnit
 	= TUBRIVLA (AddFree (Clause BRIVLA))
 	| TUGOhA (Clause GOhA)
 	| TUNU (Clause NU) (Maybe Term, (Selbri, Maybe Term))
+	| TULinkArgs TanruUnit LinkArgs
 	deriving Show
 
 data Quote
@@ -2591,10 +2648,20 @@ data Quantifier
 	| Quantifier
 	deriving Show
 
+data LinkArgs = LinkArgs (Clause Unit) [Free] Term (Maybe Links)
+	(Maybe (Clause Unit)) [Free]
+	deriving Show
+
+data Links = Links (Clause Unit) [Free] Term (Maybe Links)
+	deriving Show
+
 data Mex
 	= MOperand Operand
 	| MOperator Mex [(Operator, Mex)]
 	| MBIhE Mex (Maybe (Clause Unit, [Free], Operator, Mex))
+	| MFUhA (Clause Unit) [Free] Operand Operand
+	| MPEhO (Maybe (Clause Unit)) [Free] Operator [Mex]
+		(Maybe (Clause Unit)) [Free]
 	deriving Show
 
 data Operator
@@ -2607,6 +2674,9 @@ data Operator
 	| OGuhek (AddFree Guhek) Operator (AddFree (Clause Unit, Bool)) Operator
 	| OJekJoik Operator (Either Jek Joik) (Maybe Tag) (Clause Unit) [Free]
 		Operator
+	| Operator0 Operator [Either (AddFree (Either Joik Jek), Operator)
+		(Joik, Maybe Tag, Clause Unit, [Free], Operator,
+			Maybe (Clause Unit), [Free])]
 	deriving Show
 
 data Operand
@@ -2624,6 +2694,8 @@ data Operand
 	| OJoikEk Operand [(AddFree (Either Joik Ek), Operand)]
 	| OJoikEkKE Operand (Maybe (AddFree (Either Joik Ek), Maybe Tag, Clause Unit,
 		[Free], Operand, Maybe (Clause Unit), [Free]))
+	| ORP Operand Operand Operator Operand
+	| ONull
 	| Operand
 	deriving Show
 
