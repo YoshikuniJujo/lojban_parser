@@ -175,7 +175,8 @@ operand :: Operand
 	= operand_sa* operand_0	{ $2 }
 
 operand_0 :: Operand
-	= operand_1
+	= operand_1 (joik_ek stag? _KE_clause free* operand _KEhE_clause? free*)?
+	{ OJoikEkKE $1 $2 }
 
 operand_sa :: ()
 	= operand_start (!operand_start
@@ -195,10 +196,12 @@ operand_start :: ()
 	/ _NAhE_clause	{ () }
 
 operand_1 :: Operand
-	= operand_2
+	= operand_2 (joik_ek operand_2)*
+	{ OJoikEk $1 $2 }
 
 operand_2 :: Operand
-	= operand_3
+	= operand_3 (joik_ek stag? _BO_clause free* operand_2)?
+	{ OJoikEkBO $1 $2 }
 
 operand_3 :: Operand
 	= quantifier	{ OQuantifier $1 }
@@ -2556,6 +2559,11 @@ data Operand
 	| OLAhENAhE (Either (Clause LAhE, [Free])
 			(Clause NAhE, Clause Unit, [Free]))
 		Operand (Maybe (Clause Unit)) [Free]
+	| OJoikEkBO Operand (Maybe
+		(AddFree (Either Joik Ek), Maybe Tag, Clause Unit, [Free], Operand))
+	| OJoikEk Operand [(AddFree (Either Joik Ek), Operand)]
+	| OJoikEkKE Operand (Maybe (AddFree (Either Joik Ek), Maybe Tag, Clause Unit,
+		[Free], Operand, Maybe (Clause Unit), [Free]))
 	| Operand
 	deriving Show
 
