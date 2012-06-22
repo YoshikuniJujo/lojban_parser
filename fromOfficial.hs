@@ -64,6 +64,11 @@ term :: Term
 
 term_1 :: Term
 	= sumti		{ TSumti $1 }
+	/ !gek	( tag			{ Left $1 }
+		/ _FA_clause free*	{ Right $ AddFree $1 $2 } )
+		( sumti			{ Left $1 }
+		/ _KU_clause? free*	{ Right $ AddFree $1 $2 } )
+	{ TTag $1 $2 }
 
 sumti :: Sumti
 	= sumti_1
@@ -91,6 +96,8 @@ sumti_6 :: Sumti
 						else SKOhA (AddFree $1 $2) }
 	/ _LA_clause _CMENE_clause+ free*
 		{ SLA $1 $ if null $3 then NoF $2 else AddFree $2 $3 }
+	/ _LE_clause selbri
+		{ SLE $2 }
 
 relative_clauses :: Relative
 	= relative_clause (_ZIhE_clause relative_clause)*
@@ -154,17 +161,67 @@ lerfu_word :: Clause Lerfu
 --	/ _LAU_clause lerfu_word
 --	/ _TEI_clause lerfu_string _FOI_clause
 
+jek :: Jek
+	= _NA_clause? _SE_clause? _JA_clause _NAI_clause?
+		{ Jek $1 $2 $3 $4 }
+
+joik :: Joik
+	= _SE_clause? _JOI_clause _NAI_clause?
+		{ Joik $1 $2 $3 }
+	/ interval
+		{ JoikInterval Nothing $1 Nothing }
+	/ _GAhO_clause interval _GAhO_clause
+		{ JoikInterval (Just $1) $2 (Just $3) }
+
+interval :: (Maybe (Clause SE), Clause Unit, Maybe (Clause Unit))
+	= _SE_clause? _BIhI_clause _NAI_clause?
+
+joik_jek :: AddFree (Either Joik Jek)
+	= joik free*	{ if null $2 then NoF (Left $1)
+				else AddFree (Left $1) $2 }
+	/ jek free*	{ if null $2 then NoF (Right $1)
+				else AddFree (Right $1) $2 }
+
+gek :: ()
+	= _SE_clause? _GA_clause _NAI_clause? free*	{ () }
+	/ joik _GI_clause free*				{ () }
+	/ stag gik					{ () }
+
+gik :: ()
+	= _GI_clause _NAI_clause? free*			{ () }
+
+tag :: Tag
+	= tense_modal (joik_jek tense_modal)*	{ Tag $1 $2 }
+
+stag :: Tag
+	= simple_tense_modal
+		((jek { Right $1 } / joik { Left $1 } ) simple_tense_modal)*
+		{ Stag $1 $2 }
+	/ tense_modal (joik_jek tense_modal)*
+		{ Tag $1 $2 }
+
+tense_modal :: AddFree TenseModal
+	= simple_tense_modal free*	{ if null $2 then NoF $1
+						else AddFree $1 $2 }
+	/ _FIhO_clause free* selbri _FEhU_clause? free*
+		{ if null $ $2 ++ $5 then NoF (TMFIhO $3)
+			else AddFree (TMFIhO $3) $ $2 ++ $5 }
+
 simple_tense_modal :: TenseModal
 	= _NAhE_clause? _SE_clause? _BAI_clause _NAI_clause? _KI_clause?
 		{ TMBAI $1 $2 $3 $4 $5 }
-{-
 	/ _NAhE_clause?
 		( (time space_? {TimeSpace $1 $2} / space_ time? {SpaceTime $1 $2})
 			_CAhA_clause
+			{ (Just $1, Just $2) }
 		/ (time space_? {TimeSpace $1 $2} / space_ time? {SpaceTime $1 $2})
-		/ _CAhA_clause )
+			{ (Just $1, Nothing) }
+		/ _CAhA_clause
+			{ (Nothing, Just $1) } )
 		_KI_clause?
--}
+			{ TMTense $1 $2 $3 }
+	/ _KI_clause	{ TMKI $1 }
+	/ _CUhE_clause	{ TMCUhE $1 }
 
 time :: Time
 	= _ZI_clause time_offset*
@@ -2243,12 +2300,39 @@ _ZOhU :: () = &cmavo z o h u &post_word	{ () }
 data Prenex = Prenex Term (Clause ())
 	deriving Show
 
-data Term = TSumti Sumti
+data Term
+	= TSumti Sumti
+	| TTag (Either Tag (AddFree (Clause FA)))
+		(Either Sumti (AddFree (Maybe (Clause Unit))))
+	| Term
+	deriving Show
+
+data Jek
+	= Jek (Maybe (Clause NA)) (Maybe (Clause SE)) (Clause JA)
+		(Maybe (Clause Unit))
+	deriving Show
+
+data Joik
+	= Joik (Maybe (Clause SE)) (Clause JOI) (Maybe (Clause Unit))
+	| JoikInterval (Maybe (Clause GAhO))
+		(Maybe (Clause SE), Clause Unit, Maybe (Clause Unit))
+		(Maybe (Clause GAhO))
+	deriving Show
+
+data Tag
+	= Stag TenseModal [(Either Joik Jek, TenseModal)]
+	| Tag (AddFree TenseModal)
+		[(AddFree (Either Joik Jek), (AddFree TenseModal))]
 	deriving Show
 
 data TenseModal
 	= TMBAI (Maybe (Clause NAhE)) (Maybe (Clause SE)) (Clause BAI)
 		(Maybe (Clause Unit)) (Maybe (Clause Unit))
+	| TMTense (Maybe (Clause NAhE)) (Maybe TimeSpace, Maybe (Clause CAhA))
+		(Maybe (Clause Unit))
+	| TMKI (Clause Unit)
+	| TMCUhE (Clause CUhE)
+	| TMFIhO Selbri
 	deriving Show
 
 data TimeSpace
@@ -2304,6 +2388,7 @@ data Sumti
 	= SQuote (Clause Quote)
 	| SKOhA (AddFree (Clause KOhA))
 	| SLA (Clause LA) (AddFree [Clause CMENE])
+	| SLE Selbri
 	| SRelative Sumti Relative
 	| SLerfuStr [Either (Clause Lerfu) (Clause PA)]
 	deriving Show

@@ -373,7 +373,9 @@ gihek-sa <- gihek-1 (!gihek-1 (sa-word / SA-clause !gihek-1 ) )* SA-clause &gihe
 
 jek <- NA-clause? SE-clause? JA-clause NAI-clause?
 
-joik <- SE-clause? JOI-clause NAI-clause? / interval / GAhO-clause interval GAhO-clause
+joik <-	SE-clause? JOI-clause NAI-clause? /
+	interval /
+	GAhO-clause interval GAhO-clause
 
 interval <- SE-clause? BIhI-clause NAI-clause?
 
