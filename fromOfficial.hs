@@ -146,7 +146,7 @@ selbri_6 :: Selbri
 tanru_unit :: TanruUnit
 	= tanru_unit_1 ( _CEI_clause free* tanru_unit_1
 		{ (if null $2 then NoF $1 else AddFree $1 $2, $3) } )*
-	{ TUCEI $1 $2 }
+	{ if null $2 then $1 else TUCEI $1 $2 }
 
 tanru_unit_1 :: TanruUnit
 	= tanru_unit_2 linkargs?	{ maybe $1 (TULinkArgs $1) $2 }
