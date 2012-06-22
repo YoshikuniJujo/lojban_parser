@@ -314,11 +314,18 @@ rp-expression-tail <- rp-expression operator rp-expression-tail / ()
 
 operator <- operator-sa* operator-0
 
-operator-0 <- operator-1 (joik-jek operator-1 / joik stag? KE-clause free* operator KEhE-clause? free*)*
+operator-0 <- operator-1
+	( joik-jek operator-1
+	/ joik stag? KE-clause free* operator KEhE-clause? free*)*
 
-operator-sa <- operator-start (!operator-start (sa-word / SA-clause !operator-start) )* SA-clause &operator-0
+operator-sa <-
+	operator-start
+	(!operator-start (sa-word / SA-clause !operator-start) )*
+	SA-clause &operator-0
 
-operator-start <- guhek / KE-clause / SE-clause? NAhE-clause / SE-clause? MAhO-clause / SE-clause? VUhU-clause
+operator-start <-
+	guhek / KE-clause / SE-clause? NAhE-clause / SE-clause? MAhO-clause /
+	SE-clause? VUhU-clause
 
 operator-1 <-
 	operator-2 /
@@ -327,7 +334,12 @@ operator-1 <-
 
 operator-2 <- mex-operator / KE-clause free* operator KEhE-clause? free*
 
-mex-operator <- SE-clause free* mex-operator / NAhE-clause free* mex-operator / MAhO-clause free* mex TEhU-clause? free* / NAhU-clause free* selbri TEhU-clause? free* / VUhU-clause free*
+mex-operator <-
+	SE-clause free* mex-operator /
+	NAhE-clause free* mex-operator /
+	MAhO-clause free* mex TEhU-clause? free* /
+	NAhU-clause free* selbri TEhU-clause? free* /
+	VUhU-clause free*
 
 ;; operand <- operand-1 (joik-ek stag? KE-clause free* operand KEhE-clause? free*)?
 

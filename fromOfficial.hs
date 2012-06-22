@@ -145,6 +145,7 @@ tanru_unit_1 :: TanruUnit
 tanru_unit_2 :: TanruUnit
 	= _BRIVLA_clause free*	{ TUBRIVLA $ if null $2 then NoF $1
 					else AddFree $1 $2 }
+	/ _GOhA_clause		{ TUGOhA $1 }
 	/ _NU_clause sentence	{ TUNU $1 $2 }
 
 quantifier :: Quantifier
@@ -157,7 +158,7 @@ quantifier :: Quantifier
 mex :: Mex = mex_0		{ $1 }
 
 mex_0 :: Mex
-	= mex_1
+	= mex_1 (operator mex_1)*	{ MOperator $1 $2 }
 
 mex_1 :: Mex
 	= mex_2
@@ -170,6 +171,41 @@ mex_2 :: Mex
 mex_forethought :: Mex
 	= _PEhO_clause? free* operator fore_operands _KUhE_clause? free*
 -}
+
+operator :: Operator = operator_sa* operator_0	{ $2 }
+
+operator_0 :: Operator
+	= operator_1
+
+operator_sa :: ()
+	= operator_start (!operator_start
+			( sa_word			{ () }
+			/ _SA_clause !operator_start	{ () } ))*
+		_SA_clause &operator_0
+	{ () }
+
+operator_start :: ()
+	= guhek				{ () }
+	/ _KE_clause			{ () }
+	/ _SE_clause? _NAhE_clause	{ () }
+	/ _SE_clause? _MAhO_clause	{ () }
+	/ _SE_clause? _VUhU_clause	{ () }
+
+operator_1 :: Operator
+	= operator_2
+
+operator_2 :: Operator
+	= mex_operator
+
+mex_operator :: Operator
+	= _SE_clause free* mex_operator	{ OSE $1 $2 $3 }
+	/ _NAhE_clause free* mex_operator
+					{ ONAhE $1 $2 $3 }
+	/ _MAhO_clause free* mex _TEhU_clause? free*
+					{ OMAhO $1 $2 $3 $4 $5 }
+	/ _NAhU_clause free* selbri _TEhU_clause? free*
+					{ ONAhU $1 $2 $3 $4 $5 }
+	/ _VUhU_clause free*		{ OVUhU $1 $2 }
 
 operand :: Operand
 	= operand_sa* operand_0	{ $2 }
@@ -2531,6 +2567,7 @@ data Selbri = STanruUnit TanruUnit
 
 data TanruUnit
 	= TUBRIVLA (AddFree (Clause BRIVLA))
+	| TUGOhA (Clause GOhA)
 	| TUNU (Clause NU) (Maybe Term, (Selbri, Maybe Term))
 	deriving Show
 
@@ -2547,6 +2584,15 @@ data Quantifier
 
 data Mex
 	= MOperand Operand
+	| MOperator Mex [(Operator, Mex)]
+	deriving Show
+
+data Operator
+	= OSE (Clause SE) [Free] Operator
+	| ONAhE (Clause NAhE) [Free] Operator
+	| OMAhO (Clause Unit) [Free] Mex (Maybe (Clause Unit)) [Free]
+	| ONAhU (Clause Unit) [Free] Selbri (Maybe (Clause Unit)) [Free]
+	| OVUhU (Clause VUhU) [Free]
 	deriving Show
 
 data Operand
