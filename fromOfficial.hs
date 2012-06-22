@@ -118,23 +118,34 @@ relative_clause_1 :: Relative
 	= _GOI_clause term		{ RelativePhrase $1 $2 }
 --	/ _NOI_clause subsentence
 
-selbri :: Selbri
-	= selbri_1
+selbri :: Selbri = tag? selbri_1
+	{ maybe $2 (flip STag $2) $1 }
 
 selbri_1 :: Selbri
 	= selbri_2
+	/ _NA_clause free* selbri
+	{ SNA (if null $2 then NoF $1 else AddFree $1 $2) $3 }
 
-selbri_2 :: Selbri
-	= selbri_3
+selbri_2 :: Selbri = selbri_3 (
+		_CO_clause free* selbri_2
+			{ (if null $2 then NoF $1 else AddFree $1 $2, $3) } )?
+	{ maybe $1 (uncurry $ SCO $1) $2 }
 
-selbri_3 :: Selbri
-	= selbri_4
+selbri_3 :: Selbri = selbri_4+	{ case $1 of
+					[s] -> s
+					_ -> SMulti $1 }
 
-selbri_4 :: Selbri
-	= selbri_5
+selbri_4 :: Selbri = selbri_5
+	( joik_jek selbri_5	{ Left ($1, $2) }
+	/ joik stag? _KE_clause free* selbri_3 _KEhE_clause? free*
+		{ Right ($1, $2, if null $4 then NoF $3 else AddFree $3 $4,
+			$5, if null $7 then NoF $6 else AddFree $6 $7) } )*
+	{ if null $2 then $1 else SJoikJek $1 $2 }
 
-selbri_5 :: Selbri
-	= selbri_6
+selbri_5 :: Selbri = selbri_6 (
+	(jek { Left $1 } / joik { Right $1 }) stag? _BO_clause free* selbri_5
+		{ ($1, $2, if null $4 then NoF $3 else AddFree $3 $4, $5) } )?
+	{ maybe $1 (\(jj, st, bo, s) -> SJekJoikBO $1 jj st bo s) $2 }
 
 selbri_6 :: Selbri
 	= tanru_unit (_BO_clause free* selbri_6
@@ -2656,6 +2667,15 @@ data Selbri
 	| SBO TanruUnit (AddFree (Clause Unit)) Selbri
 	| SGuhek (AddFree (Maybe (Clause NAhE))) (AddFree Guhek) Selbri
 		(AddFree (Clause Unit, Bool)) Selbri
+	| SJekJoikBO Selbri (Either Jek Joik) (Maybe Tag) (AddFree (Clause Unit)) 
+		Selbri
+	| SJoikJek Selbri [Either (AddFree (Either Joik Jek), Selbri)
+		(Joik, Maybe Tag, AddFree (Clause Unit), Selbri,
+			AddFree (Maybe (Clause Unit)))]
+	| SMulti [Selbri]
+	| SCO Selbri (AddFree (Clause Unit)) Selbri
+	| SNA (AddFree (Clause NA)) Selbri
+	| STag Tag Selbri
 	deriving Show
 
 data TanruUnit
