@@ -137,7 +137,11 @@ selbri_5 :: Selbri
 	= selbri_6
 
 selbri_6 :: Selbri
-	= tanru_unit		{ STanruUnit $1 }
+	= tanru_unit (_BO_clause free* selbri_6
+		{ (if null $2 then NoF $1 else AddFree $1 $2, $3) } )?
+	{ maybe (STanruUnit $1) (uncurry $ SBO $1) $2 }
+	/ _NAhE_clause? free* guhek selbri gik selbri_6
+	{ SGuhek (if null $2 then NoF $1 else AddFree $1 $2) $3 $4 $5 $6 }
 
 tanru_unit :: TanruUnit
 	= tanru_unit_1 ( _CEI_clause free* tanru_unit_1
@@ -2647,7 +2651,11 @@ data Relative
 	| RMany Relative [(Clause (), Relative)]
 	deriving Show
 
-data Selbri = STanruUnit TanruUnit
+data Selbri
+	= STanruUnit TanruUnit
+	| SBO TanruUnit (AddFree (Clause Unit)) Selbri
+	| SGuhek (AddFree (Maybe (Clause NAhE))) (AddFree Guhek) Selbri
+		(AddFree (Clause Unit, Bool)) Selbri
 	deriving Show
 
 data TanruUnit
