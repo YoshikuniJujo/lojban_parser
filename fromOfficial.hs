@@ -161,7 +161,8 @@ mex_0 :: Mex
 	= mex_1 (operator mex_1)*	{ MOperator $1 $2 }
 
 mex_1 :: Mex
-	= mex_2
+	= mex_2 (_BIhE_clause free* operator mex_1)?
+					{ MBIhE $1 $2 }
 
 mex_2 :: Mex
 	= operand		{ MOperand $1 }
@@ -193,9 +194,17 @@ operator_start :: ()
 
 operator_1 :: Operator
 	= operator_2
+	/ guhek operator_1 gik operator_2	{ OGuhek $1 $2 $3 $4 }
+	/	operator_2
+		( jek	{ Left $1 }
+		/ joik	{ Right $1 } )
+		stag? _BO_clause free* operator_1
+	{ OJekJoik $1 $2 $3 $4 $5 $6 }
 
 operator_2 :: Operator
 	= mex_operator
+	/ _KE_clause free* operator _KEhE_clause? free*
+	{ OKE $1 $2 $3 $4 $5 }
 
 mex_operator :: Operator
 	= _SE_clause free* mex_operator	{ OSE $1 $2 $3 }
@@ -2585,6 +2594,7 @@ data Quantifier
 data Mex
 	= MOperand Operand
 	| MOperator Mex [(Operator, Mex)]
+	| MBIhE Mex (Maybe (Clause Unit, [Free], Operator, Mex))
 	deriving Show
 
 data Operator
@@ -2593,6 +2603,10 @@ data Operator
 	| OMAhO (Clause Unit) [Free] Mex (Maybe (Clause Unit)) [Free]
 	| ONAhU (Clause Unit) [Free] Selbri (Maybe (Clause Unit)) [Free]
 	| OVUhU (Clause VUhU) [Free]
+	| OKE (Clause Unit) [Free] Operator (Maybe (Clause Unit)) [Free]
+	| OGuhek (AddFree Guhek) Operator (AddFree (Clause Unit, Bool)) Operator
+	| OJekJoik Operator (Either Jek Joik) (Maybe Tag) (Clause Unit) [Free]
+		Operator
 	deriving Show
 
 data Operand
