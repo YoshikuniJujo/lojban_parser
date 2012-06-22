@@ -42,6 +42,9 @@ prenex :: Prenex
 sentence :: (Maybe Term, (Selbri, Maybe Term))
 	= terms? bridi_tail
 
+subsentence :: (Maybe Term, (Selbri, Maybe Term))
+	= sentence
+
 bridi_tail :: (Selbri, Maybe Term)
 	= selbri terms?
 
@@ -137,16 +140,33 @@ selbri_6 :: Selbri
 	= tanru_unit		{ STanruUnit $1 }
 
 tanru_unit :: TanruUnit
-	= tanru_unit_1
+	= tanru_unit_1 ( _CEI_clause free* tanru_unit_1
+		{ (if null $2 then NoF $1 else AddFree $1 $2, $3) } )*
+	{ TUCEI $1 $2 }
 
 tanru_unit_1 :: TanruUnit
 	= tanru_unit_2 linkargs?	{ maybe $1 (TULinkArgs $1) $2 }
 
 tanru_unit_2 :: TanruUnit
-	= _BRIVLA_clause free*	{ TUBRIVLA $ if null $2 then NoF $1
-					else AddFree $1 $2 }
-	/ _GOhA_clause		{ TUGOhA $1 }
-	/ _NU_clause sentence	{ TUNU $1 $2 }
+	= _BRIVLA_clause free*			{ TUBRIVLA $ if null $2 then NoF $1
+							else AddFree $1 $2 }
+	/ _GOhA_clause _RAhO_clause? free*	{ TUGOhA $1 $2 $3 }
+	/ _KE_clause free* selbri_3 _KEhE_clause? free*
+		{ TUKE (if null $2 then NoF $1 else AddFree $1 $2) $3
+			(if null $5 then NoF $4 else AddFree $4 $5) }
+	/ (number / lerfu_string) _MOI_clause free*
+		{ TUMOI $1 $ if null $3 then NoF $2 else AddFree $2 $3 }
+	/ _NUhA_clause free* mex_operator
+		{ TUNUhA (if null $2 then NoF $1 else AddFree $1 $2) $3 }
+	/ _SE_clause free* tag? tanru_unit_2
+		{ TUSE (if null $2 then NoF $1 else AddFree $1 $2) $3 $4 }
+	/ _JAI_clause free* tanru_unit_2
+		{ TUJAI (if null $2 then NoF $1 else AddFree $1 $2) $3 }
+	/ _NAhE_clause free* tanru_unit_2
+		{ TUNAhE (if null $2 then NoF $1 else AddFree $1 $2) $3 }
+	/ _NU_clause _NAI_clause? free* (joik_jek _NU_clause _NAI_clause? free*)*
+		subsentence _KEI_clause? free*
+		{ TUNU $1 (if null $3 then NoF $2 else AddFree $2 $3) $4 $5 }
 
 -- 245
 
@@ -2632,9 +2652,19 @@ data Selbri = STanruUnit TanruUnit
 
 data TanruUnit
 	= TUBRIVLA (AddFree (Clause BRIVLA))
-	| TUGOhA (Clause GOhA)
-	| TUNU (Clause NU) (Maybe Term, (Selbri, Maybe Term))
+	| TUGOhA (Clause GOhA) (Maybe (Clause Unit)) [Free]
+	| TUKE (AddFree (Clause Unit)) Selbri (AddFree (Maybe (Clause Unit)))
+	| TUMOI [Either (Clause Lerfu) (Clause PA)] (AddFree (Clause MOI))
+	| TUNUhA (AddFree (Clause Unit)) Operator
+	| TUSE (AddFree (Clause SE)) (Maybe Tag) TanruUnit
+	| TUJAI (AddFree (Clause Unit)) TanruUnit
+	| TUNAhE (AddFree (Clause NAhE)) TanruUnit
+	| TUNU (Clause NU) (AddFree (Maybe (Clause Unit)))
+		[(AddFree (Either Joik Jek), Clause NU, Maybe (Clause Unit),
+			[Free])]
+		(Maybe Term, (Selbri, Maybe Term))
 	| TULinkArgs TanruUnit LinkArgs
+	| TUCEI TanruUnit [(AddFree (Clause Unit), TanruUnit)]
 	deriving Show
 
 data Quote
