@@ -106,6 +106,14 @@ sumti_6 :: Sumti
 li_clause :: Sumti
 	= _LI_clause free* mex _LOhO_clause? free*	{ SLI $1 $2 $3 $4 $5 }
 	
+{-
+sumti_tail_1 :: SumtiTail
+	= selbri relative_clauses?
+	{ maybe (STSelbri $1) (STSelbriRelative $1) $2 }
+	/ quantifier selbri relative_clauses?
+	{ 
+	/ quantifier sumti
+-}
 
 relative_clauses :: Relative
 	= relative_clause (_ZIhE_clause relative_clause)*
