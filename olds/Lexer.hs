@@ -1,7 +1,28 @@
 {-# LANGUAGE TemplateHaskell, QuasiQuotes, FlexibleContexts #-}
 
 module Lexer(
+	BRIVLA(..),
+	CMENE(..),
+	CMAVO(..),
 
+	_SA,
+	_SE,
+	_SEI,
+	_SEhU,
+	_SI,
+	_SOI,
+	_SU,
+
+	_UI,
+
+	_ZAhO,
+	_ZEhA,
+	_ZEI,
+	_ZI,
+	_ZIhE,
+	_ZO,
+	_ZOI,
+	_ZOhU
 ) where
 
 import Prelude hiding(words)
