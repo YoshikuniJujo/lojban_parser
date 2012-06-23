@@ -25,5 +25,5 @@ executable testLojbanParser
 executable lojbanparser
     hs-source-dirs:	./
     main-is:		fromOfficial.hs
-    ghc-options:	-H10m
+    ghc-options:
     build-depends:	base >= 3 && < 5, peggy >= 0.3.1
