@@ -1657,6 +1657,7 @@ space-char1 <- '	'
 space-char2 <- ''
 
 ;-------------------------------------------------------------------
+; Spaces, LUJVO
 
 spaces <- !Y initial-spaces
 
@@ -1667,6 +1668,7 @@ ybu <- Y space-char* BU
 lujvo <- !gismu !fuhivla brivla
 
 ;-------------------------------------------------------------------
+; CMAVO
 
 A <- &cmavo ( a / e / j i / o / u ) &post-word
 

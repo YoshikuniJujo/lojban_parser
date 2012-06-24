@@ -15,7 +15,7 @@ parser = do
 	rec
 		cmene <- newRule $
 			neek h ->> peek consonant_final ->> option "" coda <++>
-			manyCat (any_syllable // digit ## (: "")) <<- peek pause
+			manyCat (any_syllable // single digit) <<- peek pause
 		consonant_final <- newRule $ many (non_space <<- peek non_space)
 			<+++> consonant <<- peek pause
 
@@ -34,7 +34,7 @@ parser = do
 				(  neek stressed ->> nucleus
 				// nucleus <<- neek cluster )
 			// many1 y
-			// digit	## (: "")
+			// single digit
 
 		----------------------------------------------------------------
 
@@ -83,25 +83,21 @@ parser = do
 			opt (consonant <<- peek spaces)
 
 		coda <- newRule
-			$  neek any_syllable ->> consonant <<- peek any_syllable
-				## (: "")
+			$  neek any_syllable ->> single consonant <<-
+				peek any_syllable
 			// opt syllabic <++> opt consonant <<- peek pause
 
-		onset <- newRule
-			$  h				## (: "")
-			// opt consonant <+++> glide
-			// initial
-
-		nucleus <- newRule
-			$  vowel		## (: "")
-			// diphthong		## (\(c, d) -> [c, d])
-			// y <<- neek nucleus	## (: "")
+		onset <- newRule $
+			single h // opt consonant <+++> glide // initial
+		nucleus <- newRule $
+			 single vowel // diphthong // single y <<- neek nucleus
 
 		----------------------------------------------------------------
 
 		glide <- newRule $ (i // u) <<- peek nucleus <<- neek glide
-		diphthong <- newRule $ choice [ a <> i, a <> u, e <> i, o <> i]
-			<<- neek nucleus <<- neek glide
+		diphthong <- newRule $
+			choice [ a <::> i, a <::> u, e <::> i, o <::> i] <<-
+			neek nucleus <<- neek glide
 		vowel <- newRule $ choice [a, e, i, o, u] <<- neek nucleus
 
 		----------------------------------------------------------------
@@ -110,10 +106,11 @@ parser = do
 		initial_pair <- newRule $ peek initial ->>
 			consonant <::> consonant <<- neek consonant
 		initial <- newRule $
-			(  affricate ## (\(c, d) -> [c, d])
+			(  affricate
 			// opt sibilant <++> opt other <++> opt liquid )
 				<<- neek consonant <<- neek glide
-		affricate <- newRule $ choice [t <> c, t <> s, d <> j, d <> z]
+		affricate <- newRule $
+			choice [t <::> c, t <::> s, d <::> j, d <::> z]
 		liquid <- newRule $ l // r
 		other <- newRule $ choice [p, t <<- neek l, k, f, x, b,
 			d <<- neek l, g, v, m, n <<- neek liquid]
@@ -162,23 +159,25 @@ parser = do
 		digit <- newRule $ many comma ->>
 			oneOf "0123456789" <<- neek h <<- neek nucleus
 
-		post_word
-			<- newRule $ pause
+		post_word <- newRule
+			$  pause
 --			// neek nucleus ->> discard lojban_word
 --		non_lojban_word <- newRule $ neek lojban_word ->> many1 non_space
 
 		----------------------------------------------------------------
+		-- Spaces, LUJVO
 
 		spaces <- newRule $ neek _Y ->> initial_spaces
 		initial_spaces <- newRule
 			$  many1
-				(  discard (many comma) <<- space_char
-				// neek ybu ->> discard _Y ) ->> optional _EOF
+				(  many comma ->> space_char
+				// neek ybu <<- _Y ) ->> optional _EOF
 			// _EOF
 		ybu <- newRule $ _Y <<- many space_char <<- _BU
 --		lujvo <- newRule $ neek gismu ->> neek fuhivla ->> brivla
 
 		----------------------------------------------------------------
+		-- CMAVO
 
 		_BU <- newRule $ peek cmavo ->> b <> u <<- peek post_word
 		_Y <- newRule $ peek cmavo ->> many1 y <<- peek post_word
@@ -194,15 +193,16 @@ pause = discard (many comma <> space_char) // _EOF
 _EOF = many comma ->> neek anyChar
 comma = discard $ char ','
 non_space = neek space_char ->> anyChar
-space_char = choice [oneOf ".?! ", space_char1, space_char2]
+space_char = discard $ choice [oneOf ".?! ", space_char1, space_char2]
 space_char1 = char '\t'
 space_char2 = oneOf "\r\n"
 
 
 neek = doesNotMatch
-opt p = option "" $ p ## (: [])
+opt p = option "" $ single p
 p <:> q = p <> q ## (uncurry (:))
 p <::> q = p <> q ## (\(c, d) -> [c, d])
 manyCat p = many p ## concat
 (<+++>) :: P s String -> P s Char -> P s String
 p <+++> q = p <> q ## (\(s, c) -> s ++ [c])
+single = (## (: []))

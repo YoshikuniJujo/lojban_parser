@@ -1,0 +1,9 @@
+cabal-version:	>= 1.2
+build-type:	Simple
+
+name:		lojbanParser
+version:	0.1
+
+executable	parser
+    main-is:		test_frisby.hs
+    build-depends:	base > 3 && < 5, frisby >= 0.1.1
