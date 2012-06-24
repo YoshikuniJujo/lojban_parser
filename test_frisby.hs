@@ -13,28 +13,57 @@ main = do
 -- parser :: PM s (P s String)
 parser = do
 	rec
+		cmene <- newRule $
+			neek h ->> peek consonant_final ->> option "" coda <++>
+			manyCat (any_syllable // digit ## (: "")) <<- peek pause
+		consonant_final <- newRule $ many (non_space <<- peek non_space)
+			<+++> consonant <<- peek pause
+
+		----------------------------------------------------------------
+
 		cmavo <- newRule cmavo_form	-- !! 
+{-
+		_CVCy_lujvo <- newRule
+			$  _CVC_rafsi <+++> y <<- neek h <++>
+				manyCat initial_rafsi <++> brivla_core
+			// stressed_CVC_rafsi <+++> y <++> short_final_rafsi
+-}
 		cmavo_form <- newRule
-			$  onset <++> manyCat (nucleus <+++> h) <++> nucleus
+			$  neek h ->> neek cluster ->>
+				onset <++> manyCat (nucleus <+++> h) <++>
+				(  neek stressed ->> nucleus
+				// nucleus <<- neek cluster )
 			// many1 y
 			// digit	## (: "")
 
 		----------------------------------------------------------------
 
-{-
 		gismu <- newRule $
-			stressed_long_rafsi <<- peek final_syllable <+++> vowel
+			(stressed_long_rafsi <<- peek final_syllable) <+++> vowel
 			<<- peek post_word
 		stressed_long_rafsi <- newRule $
 			(stressed_CCV_rafsi // stressed_CVC_rafsi) <+++> consonant
-		stressed_CVC_rafsi <- newRule $ consonant stressed_vowel consonant
+		stressed_CVC_rafsi <- newRule $
+			consonant <::> stressed_vowel <+++> consonant
+		stressed_CCV_rafsi <- newRule $
+			initial_pair <+++> stressed_vowel
+
+		_CVC_rafsi <- newRule $
+			consonant <::> unstressed_vowel <+++> consonant
 
 		----------------------------------------------------------------
--}
+
+		final_syllable <- newRule $
+			onset <<- neek y <<- neek stressed <++> nucleus <<-
+			neek cmene  <<-
+			peek post_word
 
 		stressed_vowel <- newRule
 			$  peek stressed ->> vowel
 			// vowel <<- peek stress
+
+		unstressed_vowel <- newRule $
+			neek stressed ->> vowel <<- neek stress
 
 		stress <- newRule $
 			many consonant <++> opt y <++> syllable <<- pause
@@ -79,7 +108,7 @@ parser = do
 
 		cluster <- newRule $ consonant <:> many1 consonant
 		initial_pair <- newRule $ peek initial ->>
-			consonant <> consonant <<- neek consonant
+			consonant <::> consonant <<- neek consonant
 		initial <- newRule $
 			(  affricate ## (\(c, d) -> [c, d])
 			// opt sibilant <++> opt other <++> opt liquid )
@@ -156,7 +185,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return (stressed_vowel ## (: ""))
+	return gismu
 
 alphabet c = many comma ->> oneOf [c, toUpper c]
 [a, e, i, o, u, y] = map alphabet "aeiouy"
