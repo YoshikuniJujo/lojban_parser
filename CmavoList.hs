@@ -5,7 +5,8 @@ module CmavoList(
 )where
 
 data CMAVO
-	= A    | E    | JI   | O    | U
+	= BRIVLA String | CMENE String
+	| A    | E    | JI   | O    | U
 	| DUhO | SIhU | ZAU  | KIhI | DUhI | CUhU | TUhI | TIhU | DIhO | JIhU
 	| RIhA | NIhI | MUhI | KIhU | VAhU | KOI  | CAhI | TAhI | PUhE | JAhI
 	| KAI  | BAI  | FIhE | DEhI | CIhO | MAU  | MUhU | RIhI | RAhI | KAhA
@@ -161,6 +162,7 @@ data CMAVO
 	| ZOI  | LAhO
 	| ZOhU
 	| CMAVO String
+	| Empty
 	deriving (Show, Eq)
 
 digitToPA :: Char -> CMAVO

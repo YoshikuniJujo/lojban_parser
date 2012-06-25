@@ -16,30 +16,64 @@ main = do
 -- parser :: PM s (P s String)
 parser = do
 	rec
+		post_clause <- newRule $
+			optional spaces ->> option [] si_clause <<-
+			neek _ZEI_clause <<- neek _BU_clause -- <> many indicators
+		any_word_SA_handling <- newRule $ choice
+			[pre _BRIVLA, known_cmavo_SA, pre _CMAVO, pre _CMENE]
+		known_cmavo_SA <- newRule $ choice $ map pre not_BAhE
+
+		let	clause p = pre p <> post_clause
+			pre p = _BAhE_clause <> p <<- optional spaces
+
+		----------------------------------------------------------------
+		-- SPACE
+		
+		si_clause <- newRule $ many1 (any_word_SA_handling <> _SI_clause)
+
+		----------------------------------------------------------------
+		-- SELMAHO
+
+		_BAhE_clause <- newRule $ many (_BAhE_pre <<- _BAhE_post)
+		_BAhE_pre <- newRule $ _BAhE <<- optional spaces
+		_BAhE_post <- newRule $ {- optional si_clause <<- -}
+			neek _ZEI_clause <<- neek _BU_clause
+
+		_BU_clause <- newRule $ pre _BU
+
+		_SI_clause <- newRule $ optional spaces ->> _SI <<- optional spaces
+
+		_ZEI_clause <- newRule $ pre _ZEI
+			
+
+-- MORPHOLOGY	----------------------------------------------------------------
+
 		_CMENE <- newRule $ cmene ## CMENE
 		_BRIVLA <- newRule $ (gismu // lujvo // fuhivla) ## BRIVLA
-		_CMAVO <- newRule $
-			_A    // _BAI  // _BAhE // _BE   // _BEI  // _BEhO //
-			_BIhE // _BIhI // _BO   // _BOI  // _BU   // _BY   //
-			_CAhA // _CAI  // _CEI  // _CEhE // _CO   // _COI  //
-			_CU   // _CUhE // _DAhO // _DOI  // _DOhU // _FA   //
-			_FAhA // _FAhO // _FEhE // _FEhU // _FIhO // _FOI  //
-			_FUhA // _FUhE // _FUhO // _GA   // _GAhO // _GEhU //
-			_GI   // _GIhA // _GOI  // _GOhA // _GUhA // _I    //
-			_JA   // _JAI  // _JOhI // _JOI  // _KE   // _KEhE //
-			_KEI  // _KI   // _KOhA // _KU   // _KUhE // _KUhO //
-			_LA   // _LAU  // _LAhE // _LE   // _LEhU // _LI   //
-			_LIhU // _LOhO // _LOhU // _LU   // _LUhU // _MAhO //
-			_MAI  // _ME   // _MEhU // _MOhE // _MOhI // _MOI  //
-			_NA   // _NAI  // _NAhE // _NAhU // _NIhE // _NIhO //
-			_NOI  // _NU   // _NUhA // _NUhI // _PA   // _PEhE //
-			_PEhO // _PU   // _RAhO // _ROI  // _SA   // _SE   //
-			_SEI  // _SEhU // _SI   // _SOI  // _SU   // _TAhE //
-			_TEhU // _TEI  // _TO   // _TOI  // _TUhE // _TUhU //
-			_UI   // _VA   // _VAU  // _VEI  // _VEhO // _VUhU //
-			_VEhA // _VIhA // _VUhO // _XI   // _ZAhO // _ZEhA //
-			_ZEI  // _ZI   // _ZIhE // _ZO   // _ZOI  // _ZOhU //
-			cmavo ## CMAVO
+		_CMAVO <- newRule $ choice all_cmavos // cmavo ## CMAVO
+
+		let	all_cmavos = not_BAhE ++ [_BAhE]
+			not_BAhE = [
+				_A   , _BAI ,         _BE , _BEI , _BEhO,
+				_BIhE, _BIhI, _BO  , _BOI , _BU  , _BY  ,
+				_CAhA, _CAI , _CEI , _CEhE, _CO  , _COI ,
+				_CU  , _CUhE, _DAhO, _DOI , _DOhU, _FA  ,
+				_FAhA, _FAhO, _FEhE, _FEhU, _FIhO, _FOI ,
+				_FUhA, _FUhE, _FUhO, _GA  , _GAhO, _GEhU,
+				_GI  , _GIhA, _GOI , _GOhA, _GUhA, _I   ,
+				_JA  , _JAI , _JOhI, _JOI , _KE  , _KEhE,
+				_KEI , _KI  , _KOhA, _KU  , _KUhE, _KUhO,
+				_LA  , _LAU , _LAhE, _LE  , _LEhU, _LI  ,
+				_LIhU, _LOhO, _LOhU, _LU  , _LUhU, _MAhO,
+				_MAI , _ME  , _MEhU, _MOhE, _MOhI, _MOI ,
+				_NA  , _NAI , _NAhE, _NAhU, _NIhE, _NIhO,
+				_NOI , _NU  , _NUhA, _NUhI, _PA  , _PEhE,
+				_PEhO, _PU  , _RAhO, _ROI , _SA  , _SE  ,
+				_SEI , _SEhU, _SI  , _SOI , _SU  , _TAhE,
+				_TEhU, _TEI , _TO  , _TOI , _TUhE, _TUhU,
+				_UI  , _VA  , _VAU , _VEI , _VEhO, _VUhU,
+				_VEhA, _VIhA, _VUhO, _XI  , _ZAhO, _ZEhA,
+				_ZEI , _ZI  , _ZIhE, _ZO  , _ZOI , _ZOhU ]
 
 		----------------------------------------------------------------
 
@@ -450,7 +484,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return _ZAhO -- words
+	return $ clause _KOhA -- words
 
 alphabet c = many comma ->> oneOf [c, toUpper c]
 [a, e, i, o, u, y] = map alphabet "aeiouy"
@@ -485,6 +519,3 @@ parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
 
 look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
-
-data BRIVLA = BRIVLA String deriving Show
-data CMENE = CMENE String deriving Show
