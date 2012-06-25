@@ -383,7 +383,8 @@ parser = do
 		_NUhA <- pcmavo NUhA
 		_NUhI <- pcmavo NUhI
 		_NUhU <- pcmavo NUhU
-		_PA   <- pcmavo PA
+		__PA  <- pcmavo PA
+		_PA   <- newRule $ __PA // digit ## digitToPA
 		_PEhE <- pcmavo PEhE
 		_PEhO <- pcmavo PEhO
 		_PU   <- pcmavo PU
@@ -425,7 +426,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return _PA -- words
+	return _UI -- words
 
 alphabet c = many comma ->> oneOf [c, toUpper c]
 [a, e, i, o, u, y] = map alphabet "aeiouy"
@@ -460,6 +461,19 @@ parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
 
 look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
+
+digitToPA :: Char -> CMAVO
+digitToPA '0' = NO
+digitToPA '1' = PA
+digitToPA '2' = RE
+digitToPA '3' = CI
+digitToPA '4' = VO
+digitToPA '5' = MU
+digitToPA '6' = XA
+digitToPA '7' = ZE
+digitToPA '8' = BI
+digitToPA '9' = SO
+digitToPA _ = error "not digit"
 
 data BRIVLA = BRIVLA String deriving Show
 data CMENE = CMENE String deriving Show
@@ -566,9 +580,9 @@ data CMAVO
 	| NUhU
 	| DAU  | FEI  | GAI  | JAU  | REI  | VAI  | PIhE | PI   | FIhU | ZAhU
 	| MEhI | NIhU | KIhO | CEhI | MAhU | RAhE | DAhA | SOhA | JIhI | SUhO
-	| RO   | RAU  | SOhU | SOhI | SOhE | SOhO | MOhA | DUhE | TEhO | KAhO
-	| CIhI | TUhO | XO   | PAI  | NOhO | NO   | PA   | RE   | CI   | VO
-	| MU   | XA   | ZE   | BI   | SO
+	| SUhE | RO   | RAU  | SOhU | SOhI | SOhE | SOhO | MOhA | DUhE | TEhO
+	| KAhO | CIhI | TUhO | XO   | PAI  | NOhO | NO   | PA   | RE   | CI
+	| VO   | MU   | XA   | ZE   | BI   | SO
 	| PEhE
 	| PEhO
 	| BA   | PU   | CA
@@ -733,33 +747,47 @@ cmavo_list = [
 	(LAU ,[	("ceha", CEhA), ("lau" , LAU ), ("zai" , ZAI ), ("tau" , TAU ) ]),
 	(LAhE,[	("tuha", TUhA), ("luha", LUhA), ("luho", LUhO), ("lahe", LAhE),
 		("vuhi", VUhI), ("luhi", LUhI), ("luhe", LUhE) ]),
-	(LE  ,[]),
-	(LEhU,[]),
-	(LI  ,[]),
-	(LIhU,[]),
-	(LOhO,[]),
-	(LOhU,[]),
-	(LU  ,[]),
-	(LUhU,[]),
-	(MAhO,[]),
-	(MAI ,[]),
-	(ME  ,[]),
-	(MEhU,[]),
-	(MOhE,[]),
-	(MOhI,[]),
-	(MOI ,[]),
-	(NA  ,[]),
-	(NAI ,[]),
-	(NAhE,[]),
-	(NAhU,[]),
-	(NIhE,[]),
-	(NIhO,[]),
-	(NOI ,[]),
-	(NU  ,[]),
-	(NUhA,[]),
-	(NUhI,[]),
-	(NUhU,[]),
-	(PA  ,[]),
+	(LE  ,[	("lei" , LEI ), ("loi" , LOI ), ("lehi", LEhI), ("loho", LOhO),
+		("lo"  , LO  ), ("le"  , LE  ) ]),
+	(LEhU,[	("lehu", LEhU) ]),
+	(LI  ,[	("meho", MEhO), ("li"  , LI  ) ]),
+	(LIhU,[	("lihu", LIhU) ]),
+	(LOhO,[	("loho", LOhO) ]),
+	(LOhU,[ ("lohu", LOhU) ]),
+	(LU  ,[	("lu"  , LU  ) ]),
+	(LUhU,[	("luhu", LUhU) ]),
+	(MAhO,[	("maho", MAhO) ]),
+	(MAI ,[	("moho", MOhO), ("mai" , MAI ) ]),
+	(ME  ,[	("me"  , ME  ) ]),
+	(MEhU,[	("mehu", MEhU) ]),
+	(MOhE,[	("mohe", MOhE) ]),
+	(MOhI,[	("mohi", MOhI) ]),
+	(MOI ,[	("moi" , MOI ) ]),
+	(NA  ,[	("jaha", JAhA), ("na"  , NA  ) ]),
+	(NAI ,[	("nai" , NAI ) ]),
+	(NAhE,[	("tohe", TOhE), ("jeha", JEhA), ("nahe", NAhE), ("nohe", NOhE) ]),
+	(NAhU,[	("nahu", NAhU) ]),
+	(NIhE,[	("nihe", NIhE) ]),
+	(NIhO,[	("niho", NIhO), ("nohi", NOhI) ]),
+	(NOI ,[	("voi" , VOI ), ("noi" , NOI ), ("poi" , POI ) ]),
+	(NU  ,[	("ni"  , NI  ), ("duhu", DUhU), ("siho", SIhO), ("nu"  , NU  ),
+		("lihi", LIhI), ("suhu", SUhU), ("zuho", ZUhO), ("muhe", MUhE),
+		("puhu", PUhU), ("zahi", ZAhI) ]),
+	(NUhA,[	("nuha", NUhA) ]),
+	(NUhI,[	("nuhi", NUhI) ]),
+	(NUhU,[	("nuhu", NUhU) ]),
+	(PA  ,[	("dau" , DAU ), ("fei" , FEI ), ("gai" , GAI ), ("jau" , JAU ),
+		("rei" , REI ), ("vai" , VAI ), ("pihe", PIhE), ("pi"  , PI  ),
+		("fihu", FIhU), ("zahu", ZAhU), ("mehi", MEhI), ("nihu", NIhU),
+		("kiho", KIhO), ("cehi", CEhI), ("mahu", MAhU), ("rahe", RAhE),
+		("daha", DAhA), ("soha", SOhA), ("jihi", JIhI), ("suho", SUhO),
+		("suhe", SUhE), ("ro"  , RO  ), ("rau" , RAU ), ("sohu", SOhU),
+		("sohi", SOhI), ("sohe", SOhE), ("soho", SOhO), ("moha", MOhA),
+		("duhe", DUhE), ("teho", TEhO), ("kaho", KAhO), ("cihi", CIhI),
+		("tuho", TUhO), ("xo"  , XO  ), ("pai" , PAI ), ("noho", NOhO),
+		("no"  , NO  ), ("pa"  , PA  ), ("re"  , RE  ), ("ci"  , CI  ),
+		("vo"  , VO  ), ("mu"  , MU  ), ("xa"  , XA  ), ("ze"  , ZE  ),
+		("bi"  , BI  ), ("so"  , SO  ) ]),
 	(PEhE,[]),
 	(PEhO,[]),
 	(PU  ,[]),
