@@ -426,7 +426,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return _UI -- words
+	return _ZAhO -- words
 
 alphabet c = many comma ->> oneOf [c, toUpper c]
 [a, e, i, o, u, y] = map alphabet "aeiouy"
@@ -833,22 +833,29 @@ cmavo_list = [
 		("behu", BEhU), ("rihe", RIhE), ("sehi", SEhI), ("seha", SEhA),
 		("vuhe", VUhE), ("kiha", KIhA), ("xu"  , XU  ), ("gehe", GEhE),
 		("buho", BUhO) ]),
-	(VA  ,[]),
-	(VAU ,[]),
-	(VEI ,[]),
-	(VEhO,[]),
-	(VUhU,[]),
-	(VEhA,[]),
-	(VIhA,[]),
-	(VUhO,[]),
-	(XI  ,[]),
-	(Y   ,[]),
-	(ZAhO,[]),
-	(ZEhA,[]),
-	(ZEI ,[]),
-	(ZI  ,[]),
-	(ZIhE,[]),
-	(ZO  ,[]),
-	(ZOI ,[]),
-	(ZOhU,[])
+	(VA  ,[	("vi"  , VI  ), ("va"  , VA  ), ("vu"  , VU  ) ]),
+	(VAU ,[	("vau" , VAU ) ]),
+	(VEI ,[	("vei" , VEI ) ]),
+	(VEhO,[	("veho", VEhO) ]),
+	(VUhU,[	("geha", GEhA), ("fuhu", FUhU), ("pihi", PIhI), ("fehi", FEhI),
+		("vuhu", VUhU), ("suhi", SUhI), ("juhu", JUhU), ("gei" , GEI ),
+		("pahi", PAhI), ("fahi", FAhI), ("teha", TEhA), ("cuha", CUhA),
+		("vaha", VAhA), ("neho", NEhO), ("deho", DEhO), ("feha", FEhA),
+		("saho", SAhO), ("reha", REhA), ("riho", RIhO), ("sahi", SAhI),
+		("piha", PIhA), ("sihi", SIhI) ]),
+	(VEhA,[	("vehu", VEhU), ("veha", VEhA), ("vehi", VEhI), ("vehe", VEhE) ]),
+	(VIhA,[	("vihi", VIhI), ("veha", VIhA), ("vihu", VIhU), ("vihe", VIhE) ]),
+	(VUhO,[	("vuho", VUhO) ]),
+	(XI  ,[ ("xi"  , XI  ) ]),
+	(Y   ,[	("y"   , Y   ) ]),
+	(ZAhO,[	("cohi", COhI), ("puho", PUhO), ("cohu", COhU), ("mohu", MOhU),
+		("caho", CAhO), ("coha", COhA), ("deha", DEhA), ("baho", BAhO),
+		("diha", DIhA), ("zaho", ZAhO) ]),
+	(ZEhA,[	("zehu", ZEhU), ("zeha", ZEhA), ("zehi", ZEhI), ("zehe", ZEhE) ]),
+	(ZEI ,[	("zei" , ZEI ) ]),
+	(ZI  ,[	("zu"  , ZU  ), ("za"  , ZA  ), ("zi"  , ZI  ) ]),
+	(ZIhE,[	("zihe", ZIhE) ]),
+	(ZO  ,[	("zo"  , ZO  ) ]),
+	(ZOI ,[	("zoi" , ZOI ), ("laho", LAhO) ]),
+	(ZOhU,[	("zohu", ZOhU) ])
  ]
