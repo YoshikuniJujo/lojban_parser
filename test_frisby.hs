@@ -8,11 +8,16 @@ import Control.Applicative hiding (many, optional)
 
 main :: IO ()
 main = do
-	interact $ (++ "\n") . runPeg parser
+--	interact $ (++ "\n") . runPeg parser
+	return ()
 
 -- parser :: PM s (P s String)
 parser = do
 	rec
+--		lojban_word <- newRule $ cmene // cmavo // brivla
+
+		----------------------------------------------------------------
+
 		cmene <- newRule $
 			neek h ->> peek consonant_final ->> option "" coda <++>
 			manyCat (any_syllable // single digit) <<- peek pause
@@ -21,13 +26,14 @@ parser = do
 
 		----------------------------------------------------------------
 
-		cmavo <- newRule cmavo_form	-- !! 
-{-
+		cmavo <- newRule $ neek cmene ->> neek _CVCy_lujvo ->>
+			cmavo_form <<- peek post_word
+
 		_CVCy_lujvo <- newRule
 			$  _CVC_rafsi <+++> y <<- neek h <++>
 				manyCat initial_rafsi <++> brivla_core
 			// stressed_CVC_rafsi <+++> y <++> short_final_rafsi
--}
+
 		cmavo_form <- newRule
 			$  neek h ->> neek cluster ->>
 				onset <++> manyCat (nucleus <+++> h) <++>
@@ -38,55 +44,151 @@ parser = do
 
 		----------------------------------------------------------------
 
+		brivla <- newRule $
+			neek cmavo ->> manyCat initial_rafsi <++> brivla_core
+
+		brivla_core <- newRule $
+			fuhivla // gismu // _CVV_final_rafsi //
+			stressed_initial_rafsi <++> short_final_rafsi
+
+		stressed_initial_rafsi <- newRule
+			$  stressed_extended_rafsi
+			// stressed_y_rafsi
+			// stressed_y_less_rafsi
+
+		initial_rafsi <- newRule
+			$  extended_rafsi
+			// y_rafsi
+			// neek any_extended_rafsi ->> y_less_rafsi
+
+		----------------------------------------------------------------
+
+		any_extended_rafsi <- newRule $
+			fuhivla // extended_rafsi // stressed_extended_rafsi
+
+		fuhivla <- newRule $
+			{-- fuhivla_head <++> --} stressed_syllable <++>
+			many1Cat consonantal_syllable <++> final_syllable
+			//
+			{-- fuhivla_head <++> --} unstressed_syllable <++>
+			many1Cat consonantal_syllable <++>
+			many (neek stressed_syllable ->> (consonant // vowel)) <++>
+			stressed_syllable <++> final_syllable
+
+{-
+		fuhivla <- newRule $
+			fuhivla_head <++> stressed_syllable <++>
+			manyCat consonantal_syllable <++> final_syllable
+-}
+
+		stressed_extended_rafsi <- newRule $
+			stressed_brivla_rafsi // stressed_fuhivla_rafsi
+		extended_rafsi <- newRule $ brivla_rafsi // fuhivla_rafsi
+
+		stressed_fuhivla_rafsi <- newRule $
+			(fuhivla_head <++> stressed_syllable <<- peek consonant)
+			<++> onset <+++> y
+			
+		fuhivla_rafsi <- newRule $ (peek unstressed_syllable ->>
+			fuhivla_head <<- peek consonant) <++> onset <+++> y <++>
+			opt h
+
+		stressed_brivla_rafsi <- newRule $
+			peek unstressed_syllable ->> brivla_head <++>
+			stressed_syllable <+++> h <+++> y
+		brivla_rafsi <- newRule $
+			peek (syllable <++> manyCat consonantal_syllable <++>
+				syllable) <++> brivla_head <+++> h <+++> y <++>
+			opt h
+
+		fuhivla_head <- newRule $ neek rafsi_string ->> brivla_head
+		brivla_head <- newRule $ neek cmavo ->> neek slinkuhi ->>
+			neek h ->> peek onset ->> manyCat unstressed_syllable
+		slinkuhi <- newRule $ consonant <:> rafsi_string
+		rafsi_string <- newRule $ manyCat y_less_rafsi <++>
+			(  gismu
+			// _CVV_final_rafsi
+			// stressed_y_less_rafsi <++> short_final_rafsi
+			// y_rafsi
+			// stressed_y_rafsi
+			// option "" stressed_y_less_rafsi <++> initial_pair
+				<+++> y )
+
+		----------------------------------------------------------------
+
 		gismu <- newRule $
 			(stressed_long_rafsi <<- peek final_syllable) <+++> vowel
 			<<- peek post_word
+
+		_CVV_final_rafsi <- newRule $
+			consonant <::> stressed_vowel <+++>
+			(h <<- peek final_syllable) <+++> vowel <<- peek post_word
+
+		short_final_rafsi <- newRule $ peek final_syllable ->>
+			(  consonant <:> diphthong
+			// initial_pair <+++> vowel ) <<- peek post_word
+
+		stressed_y_rafsi <- newRule $
+			(stressed_long_rafsi // stressed_CVC_rafsi) <+++> y
+		stressed_y_less_rafsi <- newRule
+			$  stressed_CVC_rafsi <<- neek y
+			// stressed_CCV_rafsi
+			// stressed_CVV_rafsi
 		stressed_long_rafsi <- newRule $
 			(stressed_CCV_rafsi // stressed_CVC_rafsi) <+++> consonant
 		stressed_CVC_rafsi <- newRule $
 			consonant <::> stressed_vowel <+++> consonant
-		stressed_CCV_rafsi <- newRule $
-			initial_pair <+++> stressed_vowel
+		stressed_CCV_rafsi <- newRule $ initial_pair <+++> stressed_vowel
+		stressed_CVV_rafsi <- newRule $ consonant <:>
+			(  unstressed_vowel <::> h <+++> stressed_vowel
+			// stressed_diphthong ) <++> opt r_hyphen
 
+		y_rafsi <- newRule $ (long_rafsi // _CVC_rafsi) <+++> y <<- neek h
+		y_less_rafsi <- newRule $ neek y_rafsi ->>
+			choice [_CVC_rafsi <<- neek y, _CCV_rafsi, _CVV_rafsi]
+			<<- neek any_extended_rafsi
+		long_rafsi <- newRule $ (_CCV_rafsi // _CVC_rafsi) <+++> consonant
 		_CVC_rafsi <- newRule $
 			consonant <::> unstressed_vowel <+++> consonant
+		_CCV_rafsi <- newRule $ initial_pair <+++> unstressed_vowel
+		_CVV_rafsi <- newRule $ consonant <:>
+			(  unstressed_vowel <::> h <+++> unstressed_vowel
+			// unstressed_diphthong) <++> opt r_hyphen
+		r_hyphen <- newRule $ r <<- peek consonant // n <<- peek r
 
 		----------------------------------------------------------------
 
 		final_syllable <- newRule $
 			onset <<- neek y <<- neek stressed <++> nucleus <<-
-			neek cmene  <<-
-			peek post_word
-
-		stressed_vowel <- newRule
-			$  peek stressed ->> vowel
-			// vowel <<- peek stress
-
+			neek cmene  <<- peek post_word
+		stressed_syllable <- newRule $
+			peek stressed ->> syllable // syllable <<- peek stress
+		stressed_diphthong <- newRule $
+			peek stressed ->> diphthong // diphthong <<- peek stress
+		stressed_vowel <- newRule $
+			peek stressed ->> vowel // vowel <<- peek stress
+		unstressed_syllable <- newRule $
+			neek stressed ->> syllable <<- neek stress
+		unstressed_diphthong <- newRule $
+			neek stressed ->> diphthong <<- neek stress
 		unstressed_vowel <- newRule $
 			neek stressed ->> vowel <<- neek stress
-
 		stress <- newRule $
 			many consonant <++> opt y <++> syllable <<- pause
-
 		stressed <- newRule $ (onset <<- many comma) <+++> oneOf "AEIOU"
-
 		any_syllable <- newRule
 			$  onset <++> nucleus <++> option "" coda
-			// consonant_syllable
-
+			// consonantal_syllable
 		syllable <- newRule $
 			onset <<- neek y <++> nucleus <++> option "" coda
-
-		consonant_syllable <- newRule $
+		consonantal_syllable <- newRule $
 			consonant <::> syllabic <<-
-			peek (consonant_syllable // onset) <++>
+			peek (consonantal_syllable // onset) <++>
 			opt (consonant <<- peek spaces)
-
 		coda <- newRule
 			$  neek any_syllable ->> single consonant <<-
 				peek any_syllable
 			// opt syllabic <++> opt consonant <<- peek pause
-
 		onset <- newRule $
 			single h // opt consonant <+++> glide // initial
 		nucleus <- newRule $
@@ -184,7 +286,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return gismu
+	return brivla
 
 alphabet c = many comma ->> oneOf [c, toUpper c]
 [a, e, i, o, u, y] = map alphabet "aeiouy"
@@ -203,6 +305,7 @@ opt p = option "" $ single p
 p <:> q = p <> q ## (uncurry (:))
 p <::> q = p <> q ## (\(c, d) -> [c, d])
 manyCat p = many p ## concat
+many1Cat p = many1 p ## concat
 (<+++>) :: P s String -> P s Char -> P s String
 p <+++> q = p <> q ## (\(s, c) -> s ++ [c])
 single = (## (: []))
