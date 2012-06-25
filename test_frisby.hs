@@ -314,14 +314,118 @@ parser = do
 		__BY  <- pcmavo BY
 		_BY   <- newRule $ ybu ## (const YBU) // __BY
 		_CAhA <- pcmavo CAhA
-
---		_BU <- newRule $ peek cmavo ->> b <> u <<- peek post_word
--- !		_BY
+		_CAI  <- pcmavo CAI
+		_CEI  <- pcmavo CEI
+		_CEhE <- pcmavo CEhE
+		_CO   <- pcmavo CO
+		_COI  <- pcmavo COI
+		_CU   <- pcmavo CU
+		_CUhE <- pcmavo CUhE
+		_DAhO <- pcmavo DAhO
+		_DOI  <- pcmavo DOI
+		_DOhU <- pcmavo DOhU
+		_FA   <- pcmavo FA
+		_FAhA <- pcmavo FAhA
+		_FAhO <- pcmavo FAhO
+		_FEhE <- pcmavo FEhE
+		_FEhU <- pcmavo FEhU
+		_FIhO <- pcmavo FIhO
+		_FOI  <- pcmavo FOI
+		_FuhA <- pcmavo FUhA
+		_FUhE <- pcmavo FUhE
+		_FUhO <- pcmavo FUhO
+		_GA   <- pcmavo GA
+		_GAhO <- pcmavo GAhO
+		_GEhU <- pcmavo GEhU
+		_GI   <- pcmavo GI
+		_GIhA <- pcmavo GIhA
+		_GOI  <- pcmavo GOI
+		_GOhA <- pcmavo GOhA
+		_GUhA <- pcmavo GUhA
+		_I    <- pcmavo I
+		_JA   <- pcmavo JA
+		_JOhI <- pcmavo JOhI
+		_JOI  <- pcmavo JOI
+		_KE   <- pcmavo KE
+		_KEhE <- pcmavo KEhE
+		_KEI  <- pcmavo KEI
+		_KI   <- pcmavo KI
+		_KOhA <- pcmavo KOhA
+		_KU   <- pcmavo KU
+		_KUhE <- pcmavo KUhE
+		_KUhO <- pcmavo KUhO
+		_LA   <- pcmavo LA
+		_LAU  <- pcmavo LAU
+		_LAhE <- pcmavo LAhE
+		_LE   <- pcmavo LE
+		_LEhU <- pcmavo LEhU
+		_LI   <- pcmavo LI
+		_LIhU <- pcmavo LIhU
+		_LOhO <- pcmavo LOhO
+		_LOhU <- pcmavo LOhU
+		_LU   <- pcmavo LU
+		_LUhU <- pcmavo LUhU
+		_MAhO <- pcmavo MAhO
+		_MAI  <- pcmavo MAI
+		_ME   <- pcmavo ME
+		_MEhU <- pcmavo MEhU
+		_MOhE <- pcmavo MOhE
+		_MOhI <- pcmavo MOhI
+		_MOI  <- pcmavo MOI
+		_NA   <- pcmavo NA
+		_NAI  <- pcmavo NAI
+		_NAhE <- pcmavo NAhE
+		_NAhU <- pcmavo NAhU
+		_NIhE <- pcmavo NIhE
+		_NIhO <- pcmavo NIhO
+		_NOI  <- pcmavo NOI
+		_NU   <- pcmavo NU
+		_NUhA <- pcmavo NUhA
+		_NUhI <- pcmavo NUhI
+		_NUhU <- pcmavo NUhU
+		_PA   <- pcmavo PA
+		_PEhE <- pcmavo PEhE
+		_PEhO <- pcmavo PEhO
+		_PU   <- pcmavo PU
+		_RAhO <- pcmavo RAhO
+		_ROI  <- pcmavo ROI
+		_SA   <- pcmavo SA
+		_SE   <- pcmavo SE
+		_SEI  <- pcmavo SEI
+		_SEhU <- pcmavo SEhU
+		_SI   <- pcmavo SI
+		_SOI  <- pcmavo SOI
+		_SU   <- pcmavo SU
+		_TAhE <- pcmavo TAhE
+		_TEhU <- pcmavo TEhU
+		_TEI  <- pcmavo TEI
+		_TO   <- pcmavo TO
+		_TOI  <- pcmavo TOI
+		_TUhE <- pcmavo TUhE
+		_TUhU <- pcmavo TUhU
+		_UI   <- pcmavo UI
+		_VA   <- pcmavo VA
+		_VAU  <- pcmavo VAU
+		_VEI  <- pcmavo VEI
+		_VEhO <- pcmavo VEhO
+		_VUhU <- pcmavo VUhU
+		_VEhA <- pcmavo VEhA
+		_VIhA <- pcmavo VIhA
+		_VUhO <- pcmavo VUhO
+		_XI   <- pcmavo XI
 		_Y <- newRule $ peek cmavo ->> many1 y <<- peek post_word
+		_ZAhO <- pcmavo ZAhO
+		_ZEhA <- pcmavo ZEhA
+		_ZEI  <- pcmavo ZEI
+		_ZI   <- pcmavo ZI
+		_ZIhE <- pcmavo ZIhE
+		_ZO   <- pcmavo ZO
+		_ZOI  <- pcmavo ZOI
+		_ZOhU <- pcmavo ZOhU
 
 		----------------------------------------------------------------
 
-	return _BY -- words
+	return _FAhA -- words
 
 alphabet c = many comma ->> oneOf [c, toUpper c]
 [a, e, i, o, u, y] = map alphabet "aeiouy"
