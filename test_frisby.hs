@@ -4,16 +4,22 @@ module Main where
 
 import Text.Parsers.Frisby
 import Data.Char
+import Data.Maybe
 import Control.Applicative hiding (many, optional)
 
 main :: IO ()
 main = do
---	interact $ (++ "\n") . show . runPeg parser
-	return ()
+	interact $ (++ "\n") . show . runPeg parser
 
 -- parser :: PM s (P s String)
 parser = do
 	rec
+		_CMENE <- newRule $ cmene ## CMENE
+		_BRIVLA <- newRule $ (gismu // lujvo // fuhivla) ## BRIVLA
+		_CMAVO <- newRule $ _BU
+
+		----------------------------------------------------------------
+
 		words <- newRule $
 			optional pause ->> many (word <<- optional pause)
 		word <- newRule $ lojban_word // non_lojban_word
@@ -279,17 +285,26 @@ parser = do
 				// neek ybu <<- _Y ) ->> optional _EOF
 			// _EOF
 		ybu <- newRule $ _Y <<- many space_char <<- _BU
---		lujvo <- newRule $ neek gismu ->> neek fuhivla ->> brivla
+		lujvo <- newRule $ neek gismu ->> neek fuhivla ->> brivla
 
 		----------------------------------------------------------------
 		-- CMAVO
+
+		let	dict = [
+				('a', a), ('e', e), ('i', i), ('o', o), ('u', u),
+				('j', j), ('s', s), ('h', h), ('d', d)
+			 ]
+			pcmavo = newRule . parse_cmavo dict cmavo post_word
+
+		_A <- pcmavo A
+		_BAI <- pcmavo BAI
 
 		_BU <- newRule $ peek cmavo ->> b <> u <<- peek post_word
 		_Y <- newRule $ peek cmavo ->> many1 y <<- peek post_word
 
 		----------------------------------------------------------------
 
-	return words
+	return _BAI -- words
 
 alphabet c = many comma ->> oneOf [c, toUpper c]
 [a, e, i, o, u, y] = map alphabet "aeiouy"
@@ -312,3 +327,35 @@ many1Cat p = many1 p ## concat
 (<+++>) :: P s String -> P s Char -> P s String
 p <+++> q = p <> q ## (\(s, c) -> s ++ [c])
 single = (## (: []))
+pcat :: [P s a] -> P s [a]
+pcat [p] = single p
+pcat (p : ps) = p <:> pcat ps
+
+parse_cmavo :: [(Char, P s Char)] -> P s a -> P s b -> CMAVO -> P s CMAVO
+parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
+	peek pre ->>
+	choice (map (\(s, cm) -> pcat (map (flip look dict) s) ## const cm) pairs)
+	<<- peek post
+
+{-
+		_A <- newRule $ peek cmavo ->> choice
+			[single $ look 'a' dict, single $ look 'e' dict,
+				j <::> i , single o , single u]
+			<<- peek post_word
+-}
+
+cmavo_list :: [(CMAVO, [(String, CMAVO)])]
+cmavo_list = [
+	(A, [("a", A), ("e", E), ("ji", JI), ("o", O), ("u", U)]),
+	(BAI, [("duho", DUhO), ("sihu", SIhU)])
+ ]
+
+look :: (Eq a, Show a) => a -> [(a, b)] -> b
+look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
+
+data BRIVLA = BRIVLA String deriving Show
+data CMENE = CMENE String deriving Show
+data CMAVO
+	= A    | E    | JI | O | U
+	| DUhO | SIhU | BAI
+	deriving (Show, Eq)
