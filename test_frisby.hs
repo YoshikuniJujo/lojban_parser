@@ -8,13 +8,16 @@ import Control.Applicative hiding (many, optional)
 
 main :: IO ()
 main = do
---	interact $ (++ "\n") . runPeg parser
+--	interact $ (++ "\n") . show . runPeg parser
 	return ()
 
 -- parser :: PM s (P s String)
 parser = do
 	rec
---		lojban_word <- newRule $ cmene // cmavo // brivla
+		words <- newRule $
+			optional pause ->> many (word <<- optional pause)
+		word <- newRule $ lojban_word // non_lojban_word
+		lojban_word <- newRule $ cmene // cmavo // brivla
 
 		----------------------------------------------------------------
 
@@ -263,8 +266,8 @@ parser = do
 
 		post_word <- newRule
 			$  pause
---			// neek nucleus ->> discard lojban_word
---		non_lojban_word <- newRule $ neek lojban_word ->> many1 non_space
+			// neek nucleus ->> discard lojban_word
+		non_lojban_word <- newRule $ neek lojban_word ->> many1 non_space
 
 		----------------------------------------------------------------
 		-- Spaces, LUJVO
@@ -286,7 +289,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return brivla
+	return words
 
 alphabet c = many comma ->> oneOf [c, toUpper c]
 [a, e, i, o, u, y] = map alphabet "aeiouy"
