@@ -303,13 +303,25 @@ parser = do
 		_A    <- pcmavo A
 		_BAI  <- pcmavo BAI
 		_BAhE <- pcmavo BAhE
+		_BE   <- pcmavo BE
+		_BEI  <- pcmavo BEI
+		_BEhO <- pcmavo BEhO
+		_BIhE <- pcmavo BIhE
+		_BIhI <- pcmavo BIhI
+		_BO   <- pcmavo BO
+		_BOI  <- pcmavo BOI
+		_BU   <- pcmavo BU
+		__BY  <- pcmavo BY
+		_BY   <- newRule $ ybu ## (const YBU) // __BY
+		_CAhA <- pcmavo CAhA
 
-		_BU <- newRule $ peek cmavo ->> b <> u <<- peek post_word
+--		_BU <- newRule $ peek cmavo ->> b <> u <<- peek post_word
+-- !		_BY
 		_Y <- newRule $ peek cmavo ->> many1 y <<- peek post_word
 
 		----------------------------------------------------------------
 
-	return _BAhE -- words
+	return _BY -- words
 
 alphabet c = many comma ->> oneOf [c, toUpper c]
 [a, e, i, o, u, y] = map alphabet "aeiouy"
@@ -534,13 +546,21 @@ cmavo_list = [
 		("piho", PIhO), ("gau" , GAU ), ("zuhe", ZUhE), ("mehe", MEhE),
 		("rai" , RAI ) ]),
 	(BAhE,[	("bahe", BAhE), ("zahe", ZAhE) ]),
-	(BE  ,[]),
-	(BEI ,[]),
-	(BEhO,[]),
-	(BIhE,[]),
-	(BIhI,[]),
-	(BO  ,[]),
-	(BY  ,[]),
+	(BE  ,[	("be"  , BE  ) ]),
+	(BEI ,[	("bei" , BEI ) ]),
+	(BEhO,[	("beho", BEhO) ]),
+	(BIhE,[	("bihe", BIhE) ]),
+	(BIhI,[	("mihi", MIhI), ("biho", BIhO), ("bihi", BIhI)]),
+	(BO  ,[ ("bo"  , BO  ) ]),
+	(BOI ,[ ("boi" , BOI ) ]),
+	(BU  ,[ ("bu"  , BU  ) ]),
+	(BY  ,[	("joho", JOhO), ("ruho", RUhO), ("geho", GEhO), ("jeho", JEhO),
+		("loha", LOhA), ("naha", NAhA), ("sehe", SEhE), ("toha", TOhA),
+		("gahe", GAhE), ("yhy" , YhY ), ("by"  , BY  ), ("cy"  , CY  ),
+		("dy"  , DY  ), ("fy"  , FY  ), ("gy"  , GY  ), ("jy"  , JY  ),
+		("ky"  , KY  ), ("ly"  , LY  ), ("my"  , MY  ), ("ny"  , NY  ),
+		("py"  , PY  ), ("ry"  , RY  ), ("sy"  , TY  ), ("vy"  , VY  ),
+		("xy"  , XY  ), ("zy"  , ZY  ) ]),
 	(CAhA,[]),
 	(CAI ,[]),
 	(CEI ,[]),
