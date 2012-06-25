@@ -292,19 +292,24 @@ parser = do
 
 		let	dict = [
 				('a', a), ('e', e), ('i', i), ('o', o), ('u', u),
-				('j', j), ('s', s), ('h', h), ('d', d)
+				('y', y),
+				('m', m), ('f', f), ('v', v), ('p', p), ('b', b),
+				('s', s), ('z', z), ('c', c), ('j', j), ('t', t),
+				('d', d), ('k', k), ('g', g), ('x', x), ('l', l),
+				('n', n), ('r', r), ('h', h)
 			 ]
 			pcmavo = newRule . parse_cmavo dict cmavo post_word
 
-		_A <- pcmavo A
-		_BAI <- pcmavo BAI
+		_A    <- pcmavo A
+		_BAI  <- pcmavo BAI
+		_BAhE <- pcmavo BAhE
 
 		_BU <- newRule $ peek cmavo ->> b <> u <<- peek post_word
 		_Y <- newRule $ peek cmavo ->> many1 y <<- peek post_word
 
 		----------------------------------------------------------------
 
-	return _BAI -- words
+	return _BAhE -- words
 
 alphabet c = many comma ->> oneOf [c, toUpper c]
 [a, e, i, o, u, y] = map alphabet "aeiouy"
@@ -346,8 +351,27 @@ parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
 
 cmavo_list :: [(CMAVO, [(String, CMAVO)])]
 cmavo_list = [
-	(A, [("a", A), ("e", E), ("ji", JI), ("o", O), ("u", U)]),
-	(BAI, [("duho", DUhO), ("sihu", SIhU)])
+	(A   ,[	("a"   , A   ), ("e"   , E   ), ("ji"  , JI  ), ("o"   , O   ),
+		("u"   , U   ) ]),
+	(BAI ,[	("duho", DUhO), ("sihu", SIhU), ("zau" , ZAU ), ("kihi", KIhI),
+		("duhi", DUhI), ("cuhu", CUhU), ("tuhi", TUhI), ("tihu", TIhU),
+		("diho", DIhO), ("jihu", JIhU), ("riha", RIhA), ("nihi", NIhI),
+		("muhi", MUhI), ("kihu", KIhU), ("vahu", VAhU), ("koi" , KOI ),
+		("cahi", CAhI), ("tahi", TAhI), ("puhe", PUhE), ("jahi", JAhI),
+		("kai" , KAI ), ("bai" , BAI ), ("fihe", FIhE), ("dehi", DEhI),
+		("ciho", CIhO), ("mau" , MAU ), ("muhu", MUhU), ("rihi", RIhI),
+		("rahi", RAhI), ("kaha", KAhA), ("pahu", PAhU), ("paha", PAhA),
+		("leha", LEhA), ("kuhu", KUhU), ("tai" , TAI ), ("bau" , BAU ),
+		("mahi", MAhI), ("cihe", CIhE), ("fau" , FAU ), ("pohi", POhI),
+		("cau" , CAU ), ("mahe", MAhE), ("cihu", CIhU), ("raha", RAhA),
+		("puha", PUhA), ("lihe", LIhE), ("lahu", LAhU), ("bahi", BAhI),
+		("kahi", KAhI), ("sau" , SAU ), ("fahe", FAhE), ("behi", BEhI),
+		("tihi", TIhI), ("jahe", JAhE), ("gaha", GAhA), ("vaho", VAhO),
+		("jiho", JIhO), ("meha", MEhA), ("dohe", DOhE), ("jihe", JIhE),
+		("piho", PIhO), ("gau" , GAU ), ("zuhe", ZUhE), ("mehe", MEhE),
+		("rai" , RAI ) ]),
+	(BAhE,[	("bahe", BAhE), ("zahe", ZAhE) ]),
+	(BE, [])
  ]
 
 look :: (Eq a, Show a) => a -> [(a, b)] -> b
@@ -356,6 +380,157 @@ look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
 data BRIVLA = BRIVLA String deriving Show
 data CMENE = CMENE String deriving Show
 data CMAVO
-	= A    | E    | JI | O | U
-	| DUhO | SIhU | BAI
+	= A    | E    | JI   | O    | U
+	| DUhO | SIhU | ZAU  | KIhI | DUhI | CUhU | TUhI | TIhU | DIhO | JIhU
+	| RIhA | NIhI | MUhI | KIhU | VAhU | KOI  | CAhI | TAhI | PUhE | JAhI
+	| KAI  | BAI  | FIhE | DEhI | CIhO | MAU  | MUhU | RIhI | RAhI | KAhA
+	| PAhU | PAhA | LEhA | KUhU | TAI  | BAU  | MAhI | CIhE | FAU  | POhI
+	| CAU  | MAhE | CIhU | RAhA | PUhA | LIhE | LAhU | BAhI | KAhI | SAU
+        | FAhE | BEhI | TIhI | JAhE | GAhA | VAhO | JIhO | MEhA | DOhE | JIhE
+	| PIhO | GAU  | ZUhE | MEhE | RAI
+	| BAhE | ZAhE
+	| BE
+	| BEI
+	| BEhO
+	| BIhE
+	| MIhI | BIhO | BIhI
+	| BO
+	| BOI
+	| BU
+	| YBU  | JOhO | RUhO | GEhO | JEhO | LOhA | NAhA | SEhE | TOhA | GAhE
+	| YhY  | BY   | CY   | DY   | FY   | GY   | JY   | KY   | LY   | MY
+	| NY   | PY   | RY   | SY   | TY   | VY   | XY   | ZY
+	| CAhA | PUhI | NUhO | KAhE
+	| PEI  | CAI  | CUhI | SAI  | RUhE
+	| CEI
+	| CEhE
+	| CO
+	| JUhI | COI  | FIhI | TAhA | MUhO | FEhO | COhO | PEhU | KEhO | NUhE
+	| REhI | BEhE | JEhE | MIhE | KIhE | VIhO
+	| CU
+	| CUhE | NAU
+	| DAhO
+	| DOI
+	| DOhU
+	| FAI  | FA   | FE   | FO   | FU   | FIhA | FI
+	| DUhA | BEhA | NEhU | VUhA | GAhU | TIhA | NIhA | CAhU | ZUhA | RIhU
+	| RUhU | REhO | TEhE | BUhU | NEhA | PAhO | NEhI | TOhO | ZOhI | ZEhO
+	| ZOhA | FAhA
+	| FAhO
+	| FEhE
+	| FEhU
+	| FIhO
+	| FOI
+	| FUhA
+	| FUhE
+	| FUhO
+	| GEhI | GE   | GO   | GA   | GU
+	| KEhI | GAhO
+	| GEhU
+	| GI
+	| GIhI | GIhO | GIhA | GIhU
+	| NOhU | NE   | GOI  | POhU | PE   | POhE | PO
+	| MO   | NEI  | GOhU | GOhO | GOhI | NOhA | GOhE | GOhA | DU   | BUhA
+	| BUhE | BUhI | COhE
+	| GUhE | GUhI | GUhO | GUhA | GUhU
+	| I
+	| JEhI | JE   | JO   | JA   | JU
+	| JAI
+	| JOhI
+	| FAhU | PIhU | JOI  | CEhO | CE   | JOhU | KUhA | JOhE | JUhE
+	| KE
+	| KEhE
+	| KEI
+	| KI
+	| DAhU | DAhE | DIhU | DIhE | DEhU | DEhE | DEI  | DOhI | MIhO | MAhA
+	| MIhA | DOhO | KOhA | FOhU | KOhE | KOhI | KOhO | KOhU | FOhA | FOhE
+	| FOhI | FOhO | VOhA | VOhE | VOhI | VOhO | VOhU | RU   | RI   | RA
+	| TA   | TU   | TI   | ZIhO | KEhA | MA   | ZUhI | ZOhE | CEhU | DA
+	| DE   | DI   | KO   | MI   | DO
+	| KU
+	| KUhE
+	| KUhO
+	| LAI  | LAhI | LA
+	| CEhA | LAU  | ZAI  | TAU
+	| TUhA | LUhA | LUhO | LAhE | VUhI | LUhI | LUhE
+	| LEI  | LOI  | LEhI | LOhI | LEhE | LOhE | LO   | LE
+	| LEhU
+	| MEhO | LI
+	| LIhU
+	| LOhO
+	| LOhU
+	| LU
+	| LUhU
+	| MAhO
+	| MOhO | MAI
+	| ME
+	| MEhU
+	| MOhE
+	| MOhI
+	| MEI  | MOI  | SIhE | CUhO | VAhE
+	| JAhA | NA
+	| NAI
+	| TOhE | JEhA | NAhE | NOhE
+	| NAhU
+	| NIhE
+	| NIhO | NOhI
+	| VOI  | NOI  | POI
+	| NI   | DUhU | SIhO | NU   | LIhI | KA   | JEI  | SUhU | ZUhO | MUhE
+	| PUhU | ZAhI
+	| NUhA
+	| NUhI
+	| NUhU
+	| DAU  | FEI  | GAI  | JAU  | REI  | VAI  | PIhE | PI   | FIhU | ZAhU
+	| MEhI | NIhU | KIhO | CEhI | MAhU | RAhE | DAhA | SOhA | JIhI | SUhO
+	| RO   | RAU  | SOhU | SOhI | SOhE | SOhO | MOhA | DUhE | TEhO | KAhO
+	| CIhI | TUhO | XO   | PAI  | NOhO | NO   | PA   | RE   | CI   | VO
+	| MU   | XA   | ZE   | BI   | SO
+	| PEhE
+	| PEhO
+	| BA   | PU   | CA
+	| RAhO
+	| REhU | ROI
+	| SA
+	| SE   | TE   | VE   | XE
+	| SEI  | TIhO
+	| SEhU
+	| SI
+	| SOI
+	| SU
+	| RUhI | TAhE | DIhI | NAhO
+	| TEhU
+	| TEI
+	| TOhI | TO
+	| TOI
+	| TUhE
+	| TUhU
+	| IhA  | IE   | AhE  | UhI  | IhO  | IhE  | AhA  | IA   | OhI  | OhE
+	| EhE  | OI   | UO   | EhI  | UhO  | AU   | UA   | AhI  | IhU  | II
+	| UhA  | UI   | AhO  | AI   | AhU  | IU   | EI   | OhO  | EhA  | UU
+	| OhA  | OhU  | UhU  | EhO  | IO   | EhU  | UE   | IhI  | UhE  | BAhA
+	| JAhO | CAhE | SUhA | TIhE | KAhU | SEhO | ZAhA | PEhI | RUhA | JUhA
+	| TAhO | RAhU | LIhA | BAhU | MUhA | DOhA | TOhU | VAhI | PAhE | ZUhU
+	| SAhE | LAhA | KEhU | SAhU | DAhI | JEhU | SAhA | KAU  | TAhU | NAhI
+	| JOhA | BIhU | LIhO | PAU  | MIhU | KUhI | JIhA | SIhA | POhO | PEhA
+	| ROhI | ROhE | ROhO | ROhU | ROhA | REhE | LEhO | JUhO | FUhI | DAI
+	| GAhI | ZOhO | BEhU | RIhE | SEhI | SEhA | VUhE | KIhA | XU   | GEhE
+	| BUhO
+	| VI   | VA   | VU
+	| VEI
+	| VEhO
+	| GEhA | FUhU | PIhI | FEhI | VUhU | SUhI | JUhU | GEI  | PAhI | FAhI
+	| TEhA | CUhA | VAhA | NEhO | DEhO | FEhA | SAhO | REhA | RIhO | SAhI
+	| PIhA | SIhI
+	| VEhU | VEhA | VEhI | VEhE
+	| VIhI | VIhA | VIhU | VIhE
+	| VUhO
+	| XI
+	| Y
+	| COhI | PUhO | COhU | MOhU | CAhO | COhA | DEhA | BAhO | DIhA | ZAhO
+	| ZEI
+	| ZU   | ZA   | ZI
+	| ZIhE
+	| ZO
+	| ZOI  | LAhO
+	| ZOhU
 	deriving (Show, Eq)
