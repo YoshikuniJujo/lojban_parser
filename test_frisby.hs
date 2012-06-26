@@ -17,19 +17,86 @@ main = do
 parser = do
 	rec
 		post_clause <- newRule $
-			optional spaces ->> option [] si_clause <<-
+			optional spaces ->> optional si_clause <<-
 			neek _ZEI_clause <<- neek _BU_clause -- <> many indicators
+			## const ([] :: [Indicators])
 		any_word_SA_handling <- newRule $ choice
 			[pre _BRIVLA, known_cmavo_SA, pre _CMAVO, pre _CMENE]
 		known_cmavo_SA <- newRule $ choice $ map pre not_BAhE
 
 		let	clause p = pre p <> post_clause
+				## \(x, y) -> case x of
+					Raw r -> if null y then Raw r else Post r y
+					Pre pr r -> if null y then Pre pr r else Both pr r y
 			pre p = _BAhE_clause <> p <<- optional spaces
+				## \(x, y) -> if null x then Raw y
+					else (Pre :: PreT a b) x y
 
 		----------------------------------------------------------------
 		-- SPACE
 		
-		si_clause <- newRule $ many1 (any_word_SA_handling <> _SI_clause)
+		si_clause <- newRule $ many1 (choice [
+				erasable_clause		## const (),
+				si_word			## const (),
+				_SA_clause		## const () ] <>
+			_SI_clause)
+
+		erasable_clause <- newRule
+			$  bu_clause_no_pre <<- neek _ZEI_clause <<- neek _BU_clause
+				## const ()
+			// zei_clause_no_pre <<- neek _ZEI_clause <<- neek _BU_clause
+				## const ()
+
+		si_word <- newRule pre_zei_bu
+
+		zei_clause <- newRule $ pre zei_clause_no_pre
+			## \x -> case x of
+				Raw r -> r
+				Pre pr r -> case r of
+					Raw r' -> Pre pr r'
+					Pre pr' r' -> Pre (pr ++ pr') r'
+					Post r' pst' -> Both pr r' pst'
+					Both pr' r' pst' -> Both (pr ++ pr') r' pst'
+				_ -> error "not occur"
+		zei_clause_no_pre <- newRule $
+			pre_zei_bu <> (manyCat (option [] zei_tail <++> bu_tail) <++>
+			zei_tail) <> post_clause
+			## \((x, y), w) -> case x of
+				Raw r -> if null w then Raw (r : y)
+						else Post (r : y) w
+				Pre pr r -> if null w then Pre pr (r : y)
+						else Both pr (r : y) w
+				_ -> error "not occur"
+
+		bu_clause <- newRule $ pre bu_clause_no_pre
+			## \x -> case x of
+				Raw r -> r
+				Pre pr r -> case r of
+					Raw r' -> Pre pr r'
+					Pre pr' r' -> Pre (pr ++ pr') r'
+					Post r' pst' -> Both pr r' pst'
+					Both pr' r' pst' -> Both (pr ++ pr') r' pst'
+				_ -> error "not occur"
+		bu_clause_no_pre <- newRule $
+			pre_zei_bu <> (manyCat (option [] bu_tail <++> zei_tail) <++>
+			bu_tail) <> post_clause
+			## \((x, y), w) -> case x of
+				Raw r -> if null w then Raw (r : y)
+						else Post (r : y) w
+				Pre pr r -> if null w then Pre pr (r : y)
+						else Both pr (r : y) w
+			
+		zei_tail <- newRule $ many1Cat (_ZEI_clause <::> any_word)
+		bu_tail <- newRule $ many1 _BU_clause
+
+		pre_zei_bu <- newRule $ (
+			neek _BU_clause ->> neek _ZEI_clause ->>
+			neek _SI_clause ->> neek _SA_clause ->>
+			neek (clause _SU) ->> neek _FAhO_clause ->>
+			any_word_SA_handling ) <<- optional si_clause
+
+		any_word <- newRule $ -- lojban_word <<- optional spaces
+			(_BRIVLA // _CMENE // _CMAVO) <<- optional spaces
 
 		----------------------------------------------------------------
 		-- SELMAHO
@@ -39,11 +106,14 @@ parser = do
 		_BAhE_post <- newRule $ {- optional si_clause <<- -}
 			neek _ZEI_clause <<- neek _BU_clause
 
-		_BU_clause <- newRule $ pre _BU
+		_BU_clause <- newRule $ _BU <<- optional spaces
 
+		_FAhO_clause <- newRule $ pre _FAhO <<- optional spaces
+
+		_SA_clause <- newRule $ pre _SA
 		_SI_clause <- newRule $ optional spaces ->> _SI <<- optional spaces
 
-		_ZEI_clause <- newRule $ pre _ZEI
+		_ZEI_clause <- newRule $ _ZEI <<- optional spaces
 			
 
 -- MORPHOLOGY	----------------------------------------------------------------
@@ -484,7 +554,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return $ clause _KOhA -- words
+	return $ bu_clause -- clause _KOhA -- words
 
 alphabet c = many comma ->> oneOf [c, toUpper c]
 [a, e, i, o, u, y] = map alphabet "aeiouy"
@@ -496,7 +566,6 @@ non_space = neek space_char ->> anyChar
 space_char = discard $ choice [oneOf ".?! ", space_char1, space_char2]
 space_char1 = char '\t'
 space_char2 = oneOf "\r\n"
-
 
 neek = doesNotMatch
 opt p = option "" $ single p
@@ -519,3 +588,22 @@ parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
 
 look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
+
+data Indicators = Indicators deriving Show
+data Clause a b c = Raw b | Pre a b | Post b c | Both a b c
+instance (Show a, Show b, Show c) => Show (Clause a b c) where
+	show (Raw y) = "<" ++ show y ++ ">"
+	show (Pre x y) = "<" ++ show x ++ " " ++ show y ++ ">"
+	show (Post y z) = "<" ++ show y ++ " " ++ show z ++ ">"
+	show (Both x y z) = "<" ++ show x ++ " " ++ show y ++ " " ++ show z ++ ">"
+type PreT a b = a -> b -> Clause a b ()
+type PostT b c = b -> c -> Clause () b c
+
+data Infix a b = Infix a b (Infix a b) | Last a
+instance (Show a, Show b) => Show (Infix a b) where
+	show x = show "[" ++ s x ++ "]"
+		where
+		s (Last x) = show x
+		s (Infix x y i) = show x ++ " " ++ show y ++ " " ++ show i
+-- mkInfix :: a -> [(b, a)] -> Infix a b
+-- mkInfix 
