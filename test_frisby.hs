@@ -56,7 +56,19 @@ parser = do
 		----------------------------------------------------------------
 		-- Tense
 
-		let	time	=  (clause _ZI ## Just) <> many time_offset <>
+		let	simple_tense_modal
+				=  mb (clause _NAhE) <> mb (clause _SE) <>
+					nai (clause _BAI) <> mb (clause _KI)
+				## (\(((x1, x2), x3), x4) -> TMBAI x1 x2 x3 x4)
+				// mb (clause _NAhE) <> (
+					just (  just time <> mb space
+					// mb time <> just space ) <>
+						mb (clause _CAhA)
+					// just (clause _CAhA)
+					## (Nothing ,) )
+				## (\(x1, (x2, x3)) -> TMTimeSpace x1 x2 x3)
+
+			time =	(  (clause _ZI ## Just) <> many time_offset <>
 					mb (clause _ZEhA <> mb (nai $ clause _PU)) <>
 					many interval_property
 				// mb (clause _ZI) <> many1 time_offset <>
@@ -68,21 +80,23 @@ parser = do
 					many interval_property
 				// mb (clause _ZI) <> many time_offset <>
 					mb (clause _ZEhA <> mb (nai $ clause _PU)) <>
-					many1 interval_property
+					many1 interval_property )
+				## \(((x1, x2), x3), x4) -> Time x1 x2 x3 x4
 			time_offset =
 				nai (clause _PU) <> mb (clause _ZI)
-			space	=  (clause _VA ## Just) <> (many space_offset) <>
+			space =	(  (clause _VA ## Just) <> (many space_offset) <>
 					mb space_interval <>
 					mb (clause _MOhI <> space_offset)
-				// (mb $ clause _VA) <> (many1 space_offset) <>
+				// mb (clause _VA) <> (many1 space_offset) <>
 					mb space_interval <>
 					mb (clause _MOhI <> space_offset)
-				// (mb $ clause _VA) <> (many space_offset) <>
+				// mb (clause _VA) <> (many space_offset) <>
 					(space_interval ## Just) <>
 					mb (clause _MOhI <> space_offset)
-				// (mb $ clause _VA) <> (many space_offset) <>
+				// mb (clause _VA) <> (many space_offset) <>
 					mb space_interval <>
-					(clause _MOhI <> space_offset ## Just)
+					(clause _MOhI <> space_offset ## Just) )
+				## \(((x1, x2), x3), x4) -> Space_ x1 x2 x3 x4
 			space_offset = nai (clause _FAhA) <>
 				option EmptyClause (clause _VA)
 			space_interval =
@@ -688,7 +702,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return $ time
+	return simple_tense_modal
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -731,6 +745,7 @@ pcat (p : ps) = p <:> pcat ps
 pcat _ = error "pcat: empty"
 mb :: P s a -> P s (Maybe a)
 mb = option Nothing . (## Just)
+just = (## Just)
 
 parse_cmavo :: [(Char, P s Char)] -> P s a -> P s b -> CMAVO -> P s CMAVO
 parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
@@ -762,6 +777,30 @@ data Lerfu
 	| LBU (Clause [CMAVO] [CMAVO] [Indicators])
 	| LLAU (Clause [CMAVO] CMAVO [Indicators]) Lerfu
 	| LTEI [Either Lerfu (Clause [CMAVO] CMAVO [Indicators])]
+	deriving Show
+
+
+data TenseModal
+	= TMBAI (Maybe WordClause) (Maybe WordClause)
+		(Clause [CMAVO] (Nai WordClause) ()) (Maybe WordClause)
+	| TMTimeSpace (Maybe WordClause) (Maybe (Maybe Time,  Maybe Space_))
+		(Maybe WordClause)
+	deriving Show
+
+data Time
+	= Time (Maybe WordClause)
+		[(Clause [CMAVO] (Nai WordClause) (), Maybe WordClause)]
+		(Maybe (WordClause, Maybe (Clause [CMAVO] (Nai WordClause) ())))
+		[Clause [CMAVO] (Nai Interval) ()]
+	deriving Show
+
+data Space_
+	= Space_ (Maybe WordClause)
+		[(Clause [CMAVO] (Nai WordClause) (), WordClause)]
+		(Maybe ((WordClause, WordClause),
+			[(WordClause, Clause [CMAVO] (Nai Interval) ())]))
+		(Maybe (WordClause, (Clause [CMAVO] (Nai WordClause) (),
+			WordClause)))
 	deriving Show
 
 data Free
