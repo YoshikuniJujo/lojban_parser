@@ -490,7 +490,6 @@ indicator <-
 	((UI-clause / CAI-clause) NAI-clause? / DAhO-clause / FUhO-clause)
 	!BU-clause
 
-
 ; ****************
 ; Magic Words
 ; ****************

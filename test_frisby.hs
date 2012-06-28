@@ -1,4 +1,4 @@
-{-# LANGUAGE DoRec #-}
+{-# LANGUAGE DoRec, TupleSections #-}
 
 module Main where
 
@@ -27,10 +27,48 @@ parser = do
 			pre p' = pre_clause <> p' <<- optional spaces
 				## \(x', y') -> if null x' then Raw y'
 					else (Pre :: PreT a b) x' y'
+			nai p' = p' <> option EmptyClause (clause_i _NAI)
+				## (\(ui, nai') -> case nai' of
+					Pre bahe _ -> (Pre :: PreT a b) bahe $
+						Nai ui
+					Raw _ -> Raw $ Nai ui
+					EmptyClause -> Raw $ Aru ui
+					_ -> error "not occur")
+
+		----------------------------------------------------------------
+		-- mekso
+
+		let	number = (clause _PA ## Right) <:> many
+				(lerfu_word ## Left // clause _PA ## Right)
+			lerfu_string = (lerfu_word ## Left) <:> many
+				(lerfu_word ## Left // clause _PA ## Right)
+
+		lerfu_word <- newRule
+			$  _BY_clause
+			// clause _LAU <> lerfu_word
+				## (\(lau, lerfu) -> LLAU lau lerfu)
+			// clause _TEI <> lerfu_string <<- clause _FOI
+				## (\(_, ls) -> LTEI ls)
+
+		----------------------------------------------------------------
+		-- ek, gihek, jek, joik
+
+		----------------------------------------------------------------
+		-- Tense
 
 		----------------------------------------------------------------
 		-- Free
 
+		free <- newRule
+--			$  (number // lerfu_string) <> clause _MAI
+			$  xi_clause ## (\((xi, fr), cnt) -> FXI xi fr cnt)
+
+		let	xi_clause =  clause _XI <> many free <>
+				(number // lerfu_string) <<- optional (clause _BOI)
+			vocative
+				=  many1 (nai $ clause _COI) <>
+					option EmptyClause (clause _DOI)
+				// clause _DOI ## ([] ,)
 
 		----------------------------------------------------------------
 		-- Indicator
@@ -38,14 +76,7 @@ parser = do
 		let	indicators = option EmptyClause (clause_i _FUhE) <>
 				many1 indicator
 			indicator
-				=  (clause_i _UI // clause_i _CAI) <>
-					option EmptyClause (clause_i _NAI)
-				## (\(ui, nai) -> case nai of
-					Pre bahe _ -> (Pre :: PreT a b) bahe $
-						Nai ui
-					Raw _ -> Raw $ Nai ui
-					EmptyClause -> Raw $ Aru ui
-					_ -> error "not occur")
+				= nai (clause_i _UI // clause_i _CAI)
 				// clause_i _DAhO ## Raw . Aru
 				// clause_i _FUhO ## Raw . Aru
 
@@ -148,6 +179,10 @@ parser = do
 			neek _ZEI_clause <<- neek _BU_clause
 
 		_BU_clause <- newRule $ _BU <<- optional spaces
+
+		let	_BY_clause
+				=  clause _BY	## LBY
+				// bu_clause	## LBU
 
 		_FAhO_clause <- newRule $ pre _FAhO <<- optional spaces
 
@@ -595,7 +630,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return $ clause _KOhA
+	return $ free -- xi_clause -- lerfu_string
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -646,7 +681,6 @@ parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
 look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
 
-data Indicators = Indicators deriving Show
 data Nai a = Nai a | Aru a deriving Show
 data Clause a b c = Raw b | Pre a b | Post b c | Both a b c | EmptyClause
 instance (Show a, Show b, Show c) => Show (Clause a b c) where
@@ -657,6 +691,21 @@ instance (Show a, Show b, Show c) => Show (Clause a b c) where
 	show EmptyClause = "<>"
 type PreT a b = a -> b -> Clause a b ()
 type PostT b c = b -> c -> Clause () b c
+
+type Indicators = (Clause [CMAVO] CMAVO (),
+	[Clause [CMAVO] (Nai (Clause [CMAVO] CMAVO ())) ()])
+type XI_clause = [Either Lerfu (Clause [CMAVO] CMAVO [Indicators])]
+
+data Lerfu
+	= LBY (Clause [CMAVO] CMAVO [Indicators])
+	| LBU (Clause [CMAVO] [CMAVO] [Indicators])
+	| LLAU (Clause [CMAVO] CMAVO [Indicators]) Lerfu
+	| LTEI [Either Lerfu (Clause [CMAVO] CMAVO [Indicators])]
+	deriving Show
+
+data Free
+	= FXI (Clause [CMAVO] CMAVO [Indicators]) [Free] XI_clause
+	deriving Show
 
 data Infix a b = Infix a b (Infix a b) | Last a
 instance (Show a, Show b) => Show (Infix a b) where
