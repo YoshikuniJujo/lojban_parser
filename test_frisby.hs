@@ -56,12 +56,55 @@ parser = do
 		----------------------------------------------------------------
 		-- Tense
 
+		let	space	=  (clause _VA ## Just) <> (many space_offset) <>
+					mb space_interval <>
+					mb (clause _MOhI <> space_offset)
+				// (mb $ clause _VA) <> (many1 space_offset) <>
+					mb space_interval <>
+					mb (clause _MOhI <> space_offset)
+				// (mb $ clause _VA) <> (many space_offset) <>
+					(space_interval ## Just) <>
+					mb (clause _MOhI <> space_offset)
+				// (mb $ clause _VA) <> (many space_offset) <>
+					mb space_interval <>
+					(clause _MOhI <> space_offset ## Just)
+			space_offset = nai (clause _FAhA) <>
+				option EmptyClause (clause _VA)
+			space_interval =
+				(  clause _VEhA <> option EmptyClause (clause _VIhA)
+				// clause _VIhA		## (, EmptyClause) ) <>
+				option [] space_int_props //
+					space_int_props
+					## ((EmptyClause, EmptyClause) ,)
+					
+			space_int_props = many1 (clause _FEhE <> interval_property)
+			interval_property
+				=  nai (number <> clause _ROI	## uncurry IROI)
+				// nai (clause _TAhE		## ITAhE)
+				// nai (clause _ZAhO		## IZAhO)
+
 		----------------------------------------------------------------
 		-- Free
 
 		free <- newRule
---			$  (number // lerfu_string) <> clause _MAI
-			$  xi_clause ## (\((xi, fr), cnt) -> FXI xi fr cnt)
+--			$  clause _SEI <> many free <>
+--				option .. (terms <> clause _CU <> many free) <>
+--				selbri <> option EmptyClause (clause _SEhU)
+--			// clause _SOI <> many free <> sumti <> option ... sumti <>
+--				clause _SEhU
+--			// vocative <> option ... relative_clauses <>
+--				selbri <> option ... relative_clauses <>
+--				option EmptyClause (clause _DOhU)
+--			// vocative <> option ... relative_clauses <>
+--				many1 (_clause _CMENE)  <> many free <>
+--				option ... relative_clauses <>
+--				option EmptyClause (clause _DOhU)
+--			// vocative <> option ... sumti <>
+--				option EmptyClause (clause _DOhU)
+			$  (number // lerfu_string) <> clause _MAI
+				## uncurry FMAI
+--			// clause _TO <> text <> clause _TOI
+			// xi_clause ## (\((xi, fr), cnt) -> FXI xi fr cnt)
 
 		let	xi_clause =  clause _XI <> many free <>
 				(number // lerfu_string) <<- optional (clause _BOI)
@@ -630,7 +673,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return $ free -- xi_clause -- lerfu_string
+	return $ space -- free -- xi_clause -- lerfu_string
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -671,6 +714,8 @@ pcat :: [P s a] -> P s [a]
 pcat [p] = single p
 pcat (p : ps) = p <:> pcat ps
 pcat _ = error "pcat: empty"
+mb :: P s a -> P s (Maybe a)
+mb = option Nothing . (## Just)
 
 parse_cmavo :: [(Char, P s Char)] -> P s a -> P s b -> CMAVO -> P s CMAVO
 parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
@@ -694,7 +739,8 @@ type PostT b c = b -> c -> Clause () b c
 
 type Indicators = (Clause [CMAVO] CMAVO (),
 	[Clause [CMAVO] (Nai (Clause [CMAVO] CMAVO ())) ()])
-type XI_clause = [Either Lerfu (Clause [CMAVO] CMAVO [Indicators])]
+type LerfuString = [Either Lerfu (Clause [CMAVO] CMAVO [Indicators])]
+type WordClause = Clause [CMAVO] CMAVO [Indicators]
 
 data Lerfu
 	= LBY (Clause [CMAVO] CMAVO [Indicators])
@@ -704,14 +750,12 @@ data Lerfu
 	deriving Show
 
 data Free
-	= FXI (Clause [CMAVO] CMAVO [Indicators]) [Free] XI_clause
+	= FMAI LerfuString WordClause
+	| FXI WordClause [Free] LerfuString
 	deriving Show
 
-data Infix a b = Infix a b (Infix a b) | Last a
-instance (Show a, Show b) => Show (Infix a b) where
-	show x = show "[" ++ s x ++ "]"
-		where
-		s (Last x') = show x'
-		s (Infix x' y' inf) = show x' ++ " " ++ show y' ++ " " ++ show inf
--- mkInfix :: a -> [(b, a)] -> Infix a b
--- mkInfix 
+data Interval
+	= IROI LerfuString WordClause
+	| ITAhE WordClause
+	| IZAhO WordClause
+	deriving Show

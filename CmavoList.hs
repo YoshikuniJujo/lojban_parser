@@ -385,7 +385,7 @@ cmavo_list = [
 		("saho", SAhO), ("reha", REhA), ("riho", RIhO), ("sahi", SAhI),
 		("piha", PIhA), ("sihi", SIhI) ]),
 	(VEhA,[	("vehu", VEhU), ("veha", VEhA), ("vehi", VEhI), ("vehe", VEhE) ]),
-	(VIhA,[	("vihi", VIhI), ("veha", VIhA), ("vihu", VIhU), ("vihe", VIhE) ]),
+	(VIhA,[	("vihi", VIhI), ("viha", VIhA), ("vihu", VIhU), ("vihe", VIhE) ]),
 	(VUhO,[	("vuho", VUhO) ]),
 	(XI  ,[ ("xi"  , XI  ) ]),
 	(Y   ,[	("y"   , Y   ) ]),
