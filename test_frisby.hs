@@ -56,7 +56,22 @@ parser = do
 		----------------------------------------------------------------
 		-- Tense
 
-		let	space	=  (clause _VA ## Just) <> (many space_offset) <>
+		let	time	=  (clause _ZI ## Just) <> many time_offset <>
+					mb (clause _ZEhA <> mb (nai $ clause _PU)) <>
+					many interval_property
+				// mb (clause _ZI) <> many1 time_offset <>
+					mb (clause _ZEhA <> mb (nai $ clause _PU)) <>
+					many interval_property
+				// mb (clause _ZI) <> many time_offset <>
+					(clause _ZEhA <> mb (nai $ clause _PU)
+						## Just) <>
+					many interval_property
+				// mb (clause _ZI) <> many time_offset <>
+					mb (clause _ZEhA <> mb (nai $ clause _PU)) <>
+					many1 interval_property
+			time_offset =
+				nai (clause _PU) <> mb (clause _ZI)
+			space	=  (clause _VA ## Just) <> (many space_offset) <>
 					mb space_interval <>
 					mb (clause _MOhI <> space_offset)
 				// (mb $ clause _VA) <> (many1 space_offset) <>
@@ -673,7 +688,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return $ space -- free -- xi_clause -- lerfu_string
+	return $ time
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
