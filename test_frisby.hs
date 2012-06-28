@@ -13,12 +13,9 @@ main :: IO ()
 main = do
 	interact $ (++ "\n") . show . runPeg parser
 
-parser :: PM s (P s (Clause [CMAVO] [CMAVO] [Indicators]))
+-- parser :: PM s (P s (Clause [CMAVO] [CMAVO] [Indicators]))
 parser = do
 	rec
-		----------------------------------------------------------------
-		-- General Morphology Issues
-
 		let	clause p' = pre p' <> post_clause
 				## \(x', y') -> case x' of
 					Raw r' -> if null y' then Raw r'
@@ -26,17 +23,31 @@ parser = do
 					Pre pr r' -> if null y' then Pre pr r'
 						else Both pr r' y'
 					_ -> error "not occur"
-			pre p' = _BAhE_clause <> p' <<- optional spaces
+			clause_i p' = pre p' <<- post_clause_ind
+			pre p' = pre_clause <> p' <<- optional spaces
 				## \(x', y') -> if null x' then Raw y'
 					else (Pre :: PreT a b) x' y'
 
-		post_clause <- newRule $
-			optional spaces ->> optional si_clause <<-
-			neek _ZEI_clause <<- neek _BU_clause -- <> many indicators
-			## const ([] :: [Indicators])
-		any_word_SA_handling <- newRule $ choice
-			[pre _BRIVLA, known_cmavo_SA, pre _CMAVO, pre _CMENE]
-		known_cmavo_SA <- newRule $ choice $ map pre not_BAhE
+		----------------------------------------------------------------
+		-- Free
+
+
+		----------------------------------------------------------------
+		-- Indicator
+
+		let	indicators = option EmptyClause (clause_i _FUhE) <>
+				many1 indicator
+			indicator
+				=  (clause_i _UI // clause_i _CAI) <>
+					option EmptyClause (clause_i _NAI)
+				## (\(ui, nai) -> case nai of
+					Pre bahe _ -> (Pre :: PreT a b) bahe $
+						Nai ui
+					Raw _ -> Raw $ Nai ui
+					EmptyClause -> Raw $ Aru ui
+					_ -> error "not occur")
+				// clause_i _DAhO ## Raw . Aru
+				// clause_i _FUhO ## Raw . Aru
 
 		----------------------------------------------------------------
 		-- Magic Words
@@ -49,6 +60,7 @@ parser = do
 					Pre pr' r' -> Pre (pr ++ pr') r'
 					Post r' pst' -> Both pr r' pst'
 					Both pr' r' pst' -> Both (pr ++ pr') r' pst'
+					_ -> error "not occur"
 				_ -> error "not occur"
 		zei_clause_no_pre <- newRule $
 			pre_zei_bu <> (manyCat (option [] zei_tail <++> bu_tail) <++>
@@ -68,6 +80,7 @@ parser = do
 					Pre pr' r' -> Pre (pr ++ pr') r'
 					Post r' pst' -> Both pr r' pst'
 					Both pr' r' pst' -> Both (pr ++ pr') r' pst'
+					_ -> error "not occur"
 				_ -> error "not occur"
 		bu_clause_no_pre <- newRule $
 			pre_zei_bu <> (manyCat (option [] bu_tail <++> zei_tail) <++>
@@ -79,8 +92,8 @@ parser = do
 						else Both pr (r' : y') w
 				_ -> error "not occur"
 			
-		zei_tail <- newRule $ many1Cat (_ZEI_clause <::> any_word)
-		bu_tail <- newRule $ many1 _BU_clause
+		let	zei_tail = many1Cat (_ZEI_clause <::> any_word)
+			bu_tail = many1 _BU_clause
 
 		pre_zei_bu <- newRule $ (
 			neek _BU_clause ->> neek _ZEI_clause ->>
@@ -88,8 +101,25 @@ parser = do
 			neek (clause _SU) ->> neek _FAhO_clause ->>
 			any_word_SA_handling ) <<- optional si_clause
 
-		any_word <- newRule $ -- lojban_word <<- optional spaces
+		any_word <- newRule $
 			(_BRIVLA // _CMENE // _CMAVO) <<- optional spaces
+
+		let	dot_star = newRule $ many anyChar
+
+		----------------------------------------------------------------
+		-- General Morphology Issues
+
+		post_clause <- newRule $
+			optional spaces ->> optional si_clause ->>
+			neek _ZEI_clause ->> neek _BU_clause ->> many indicators
+--			## const ([] :: [Indicators])
+		post_clause_ind <- newRule $
+			optional spaces ->> optional si_clause <<-
+			neek _ZEI_clause <<- neek _BU_clause
+		let	pre_clause = _BAhE_clause
+		any_word_SA_handling <- newRule $ choice
+			[pre _BRIVLA, known_cmavo_SA, pre _CMAVO, pre _CMENE]
+		known_cmavo_SA <- newRule $ choice $ map pre not_BAhE
 
 		----------------------------------------------------------------
 		-- SPACE
@@ -106,7 +136,7 @@ parser = do
 			// zei_clause_no_pre <<- neek _ZEI_clause <<- neek _BU_clause
 				## const ()
 
-		si_word <- newRule pre_zei_bu
+		let si_word = pre_zei_bu
 
 
 		----------------------------------------------------------------
@@ -158,7 +188,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-		words <- newRule $
+		_words <- newRule $
 			optional pause ->> many (word <<- optional pause)
 		word <- newRule $ lojban_word // non_lojban_word
 		lojban_word <- newRule $ cmene // cmavo // brivla
@@ -213,7 +243,7 @@ parser = do
 		any_extended_rafsi <- newRule $
 			fuhivla // extended_rafsi // stressed_extended_rafsi
 
-		fuhivla <- newRule $
+		fuhivla <- newRule $ neek slinkuhi ->>
 			{-- fuhivla_head <++> --} stressed_syllable <++>
 			many1Cat consonantal_syllable <++> final_syllable
 			//
@@ -565,7 +595,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return $ bu_clause -- clause _KOhA -- words
+	return $ clause _KOhA
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -617,12 +647,14 @@ look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
 
 data Indicators = Indicators deriving Show
-data Clause a b c = Raw b | Pre a b | Post b c | Both a b c
+data Nai a = Nai a | Aru a deriving Show
+data Clause a b c = Raw b | Pre a b | Post b c | Both a b c | EmptyClause
 instance (Show a, Show b, Show c) => Show (Clause a b c) where
 	show (Raw y') = "<" ++ show y' ++ ">"
 	show (Pre x y') = "<" ++ show x ++ " " ++ show y' ++ ">"
 	show (Post y' z) = "<" ++ show y' ++ " " ++ show z ++ ">"
 	show (Both x y' z) = "<" ++ show x ++ " " ++ show y' ++ " " ++ show z ++ ">"
+	show EmptyClause = "<>"
 type PreT a b = a -> b -> Clause a b ()
 type PostT b c = b -> c -> Clause () b c
 
