@@ -27,13 +27,21 @@ parser = do
 			pre p' = pre_clause <> p' <<- optional spaces
 				## \(x', y') -> if null x' then Raw y'
 					else (Pre :: PreT a b) x' y'
-			nai p' = p' <> option EmptyClause (clause_i _NAI)
+			nai_i p' = p' <> option EmptyClause (clause_i _NAI)
 				## (\(ui, nai') -> case nai' of
 					Pre bahe _ -> (Pre :: PreT a b) bahe $
 						Nai ui
 					Raw _ -> Raw $ Nai ui
 					EmptyClause -> Raw $ Aru ui
 					_ -> error "not occur")
+			nai p' = p' <> option EmptyClause (clause _NAI)
+				## (\(ui, nai') -> case nai' of
+					Pre bahe _ -> (Pre :: PreT a b) bahe $
+						Nai ui
+					Raw _ -> Raw $ Nai ui
+					EmptyClause -> Raw $ Aru ui
+					_ -> error "not occur")
+			addFree p' = p' <> many free	## uncurry AddFree
 
 		----------------------------------------------------------------
 		-- mekso
@@ -53,10 +61,25 @@ parser = do
 		----------------------------------------------------------------
 		-- ek, gihek, jek, joik
 
+		let	guhek = mb (clause _SE) <> (addFree $ nai $ clause _GUhA)
+			gik = addFree (nai (clause _GI))
+
 		----------------------------------------------------------------
 		-- Tense
 
-		let	simple_tense_modal
+		let	{- tag = tense_modal <> many (joik_jek tense_modal)
+			stag	=  simple_tense_modal <>
+					many ((jek // joik) <> simple_tense_modal)
+				// tense_modal <> many (joik_jek <> tense_modal) -}
+
+			tense_modal
+				=  addFree simple_tense_modal
+				## TMAddFree
+{-
+				// addFree clause _FIhO <> selbri <>
+					addFree (mb $ clause _FEhU)
+-}
+			simple_tense_modal
 				=  mb (clause _NAhE) <> mb (clause _SE) <>
 					nai (clause _BAI) <> mb (clause _KI)
 				## (\(((x1, x2), x3), x4) -> TMBAI x1 x2 x3 x4)
@@ -65,8 +88,10 @@ parser = do
 					// mb time <> just space ) <>
 						mb (clause _CAhA)
 					// just (clause _CAhA)
-					## (Nothing ,) )
-				## (\(x1, (x2, x3)) -> TMTimeSpace x1 x2 x3)
+					## (Nothing ,) ) <> mb (clause _KI)
+				## (\((x1, (x2, x3)), x4) -> TMTimeSpace x1 x2 x3 x4)
+				// clause _KI	## TMKI
+				// clause _CUhE	## TMCUhE
 
 			time =	(  (clause _ZI ## Just) <> many time_offset <>
 					mb (clause _ZEhA <> mb (nai $ clause _PU)) <>
@@ -148,7 +173,7 @@ parser = do
 		let	indicators = option EmptyClause (clause_i _FUhE) <>
 				many1 indicator
 			indicator
-				= nai (clause_i _UI // clause_i _CAI)
+				= nai_i (clause_i _UI // clause_i _CAI)
 				// clause_i _DAhO ## Raw . Aru
 				// clause_i _FUhO ## Raw . Aru
 
@@ -702,7 +727,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return simple_tense_modal
+	return (nai $ char 'c') -- gik -- guhek
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -784,7 +809,10 @@ data TenseModal
 	= TMBAI (Maybe WordClause) (Maybe WordClause)
 		(Clause [CMAVO] (Nai WordClause) ()) (Maybe WordClause)
 	| TMTimeSpace (Maybe WordClause) (Maybe (Maybe Time,  Maybe Space_))
-		(Maybe WordClause)
+		(Maybe WordClause) (Maybe WordClause)
+	| TMKI WordClause
+	| TMCUhE WordClause
+	| TMAddFree (AddFree TenseModal)
 	deriving Show
 
 data Time
@@ -807,6 +835,11 @@ data Free
 	= FMAI LerfuString WordClause
 	| FXI WordClause [Free] LerfuString
 	deriving Show
+
+data AddFree a = AddFree a [Free]
+instance Show a => Show (AddFree a) where
+	show (AddFree x f) = if null f then show x ++ " -"
+		else show x ++ " - " ++ show f
 
 data Interval
 	= IROI LerfuString WordClause

@@ -426,8 +426,7 @@ simple-tense-modal <-
 	NAhE-clause? (
 		((time space? / space time?) CAhA-clause) /
 		(time space? / space time?) /
-		CAhA-clause )
-	KI-clause? /
+		CAhA-clause ) KI-clause? /
 	KI-clause /
 	CUhE-clause
 
