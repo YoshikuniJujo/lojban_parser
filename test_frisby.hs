@@ -89,8 +89,8 @@ parser = do
 
 		mex_forethougt <- newRule $ addFree (mb $ clause _PEhO) <>
 			operator <> fore_operands <> addFree (mb $ clause _KUhE)
-			##  \(((x1, (x2, x2')), x3), x4) ->
-				MexForethought x1 x2 x2' x3 x4
+			##  \(((x1, x2), x3), x4) ->
+				MexForethought x1 x2 x3 x4
 		fore_operands <- newRule $ many1 mex_2
 
 		rp_expression <- newRule $ operand <> rp_expression_tail
@@ -103,11 +103,10 @@ parser = do
 		operator <- newRule $ many operator_sa ->> operator_0
 
 		operator_0 <- newRule $ operator_1 <> many
-			(  joik_jek <> operator_1 ) --		## Left
-{-
+			(  joik_jek <> operator_1 		## Left
 			// joik <> mb stag <> addFree (clause _KE) <> operator <>
 				addFree (mb $ clause _KEhE)	## Right )
--}
+			## uncurry Operator0
 
 		operator_sa <- newRule $ operator_start <> many
 			(neek operator_start <>
@@ -976,13 +975,11 @@ data Quantifier
 data Mex
 	= MexOperand Operand
 	| MexForethought (AddFree (Maybe WordClause))
-		Operator [(Either (AddFree Joik) (AddFree Jek), Operator)]
+		Operator
 		[Mex] (AddFree (Maybe WordClause))
 	| Mex1 Mex
-		(Maybe ((AddFree WordClause, (Operator,
-			[(Either (AddFree Joik) (AddFree Jek), Operator)])), Mex))
-	| Mex0 Mex [((Operator,
-		[(Either (AddFree Joik) (AddFree Jek), Operator)]), Mex)]
+		(Maybe ((AddFree WordClause, Operator), Mex))
+	| Mex0 Mex [(Operator, Mex)]
 	| MexRP (AddFree WordClause) RPExpression
 	deriving Show
 
@@ -991,11 +988,11 @@ data RPExpression
 	deriving Show
 
 data RPExpressionTail
-	= RPExpressionTail RPExpression
-		(Operator, [(Either (AddFree Joik) (AddFree Jek), Operator)])
-		RPExpressionTail
+	= RPExpressionTail RPExpression Operator RPExpressionTail
 	| RPExpressionEmpty
 	deriving Show
+
+type TmpOperator = (Operator, [(Either (AddFree Joik) (AddFree Jek), Operator)])
 
 data Operator
 	= OperatorSE (AddFree WordClause) Operator
@@ -1004,6 +1001,11 @@ data Operator
 	| OperatorGuhek Guhek Operator Gik Operator
 	| OperatorJekJoik Operator (Either Jek Joik)
 		(Maybe Tag) (AddFree WordClause) Operator
+	| OperatorJoikJek Int Operator
+	| Operator0 Operator [Either
+		(Either (AddFree Joik) (AddFree Jek), Operator)
+		((((Joik, Maybe Tag), AddFree WordClause), Operator),
+			AddFree (Maybe WordClause))]
 	deriving Show
 
 data Operand
