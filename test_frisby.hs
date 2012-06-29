@@ -44,29 +44,60 @@ parser = do
 			addFree p' = p' <> many free	## uncurry AddFree
 
 		----------------------------------------------------------------
+		-- linkargs
+
+		----------------------------------------------------------------
 		-- mekso
 
+		quantifier <- newRule
+			$  (number <<- neek (clause _MOI)) <>
+				addFree (mb $ clause _BOI)
+				## \(x1, x2) -> QNumber x1 x2
+--			// addFree (clause _VEI) <> mex <> addFree (clause _VEhO)
+
+		operand <- newRule $ many operand_sa ->> operand_0
 		operand_2 <- newRule $ operand_3 <> mb (
 			joik_ek <> mb stag <> addFree (clause _BO) <> operand_2)
 			## (\(x1, x2) -> Operand2 x1 x2)
+		operand_3 <- newRule
+			$  quantifier	## OperandQuantifier
+			// (lerfu_string <<- neek (clause _MOI)) <>
+				addFree (mb $ clause _BOI)
+			## (\(x1, x2) -> OperandLerfu x1 x2)
+--			// addFree (clause _NIhE) <> selbri <>
+--				addFree (mb $ clause _TEhU)
+--			// addFree (clause _MOhE) <> sumti <>
+--				addFree (mb $ clause _TEhU)
+--			// addFree (clause _JOhI) <> many1 mex_2 <>
+--				addFree (mb $ clause _TEhU)
+			// gek <> operand <> gik <> operand_3
+			## (\(((x1, x2), x3), x4) -> OperandGek x1 x2 x3 x4)
+			//	(  addFree (clause _LAhE)		## Left
+				// clause _NAhE <> addFree (clause _BO)	## Right ) <>
+				operand <> addFree (mb $ clause _LUhU)
+			## (\((x1, x2), x3) -> OperandLAhENAhE x1 x2 x3)
 
-		let	operand_1
+		let	operand_0 = operand_1 <> mb (
+				joik_ek <> mb stag <>
+				(addFree (clause _KE) ## \x -> x :: AddFree WordClause) <>
+				operand <> (addFree (mb $ clause _KEhE)
+					## \x -> x :: (AddFree (Maybe WordClause))) )
+				## (\(x1, x2) -> Operand0 x1 x2)
+			operand_sa = operand_start <> many (neek operand_start <>
+				(  sa_word				## const ()
+				// clause _SA <> neek operand_start	## const () )) <>
+				clause _SA <> peek operand_0
+			operand_start
+				=  quantifier	## const ()
+				// lerfu_word	## const ()
+				// clause _NIhE	## const ()
+				// clause _MOhE	## const ()
+				// clause _JOhI	## const ()
+				// gek		## const ()
+				// clause _LAhE	## const ()
+				// clause _NAhE	## const ()
+			operand_1
 				= operand_2 <> many (joik_ek <> operand_2)
-			operand_3
-				-- =  quantifier
-				=  (lerfu_string <<- neek (clause _MOI)) <>
-					addFree (mb $ clause _BOI)
-				## (\(x1, x2) -> OperandLerfu x1 x2)
---				// addFree (clause _NIhE) <> selbri <>
---					addFree (mb $ clause _TEhU)
---				// addFree (clause _MOhE) <> sumti <>
---					addFree (mb $ clause _TEhU)
---				// addFree (clause _JOhI) <> many1 mex_2 <>
---					addFree (mb $ clause _TEhU)
---				// gek <> operand <> gik <> operand_3
---				//	(  addFree (clause _LAhE)
---					// clause _NAhE <> addFree (clause _BO) ) <>
---					operand <> addFree (mb $ clause _LUhU)
 			number = (clause _PA ## Right) <:> many
 				(lerfu_word ## Left // clause _PA ## Right)
 			lerfu_string = (lerfu_word ## Left) <:> many
@@ -789,7 +820,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return operand_1
+	return operand
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -843,10 +874,21 @@ parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
 look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
 
+data Quantifier
+	= QNumber [Either Lerfu WordClause] (AddFree (Maybe WordClause))
+	deriving Show
+
 data Operand
 	= OperandLerfu [Either Lerfu WordClause] (AddFree (Maybe WordClause))
 	| Operand2 Operand
 		(Maybe (((JoikEk, Maybe Tag), AddFree WordClause), Operand))
+	| Operand0 (Operand, [(JoikEk, Operand)]) (Maybe ((((JoikEk, Maybe Tag),
+		AddFree WordClause), Operand), AddFree (Maybe WordClause)))
+	| OperandQuantifier Quantifier
+	| OperandGek Gek Operand Gik Operand
+	| OperandLAhENAhE (Either (AddFree WordClause)
+			(WordClause, AddFree WordClause))
+		Operand (AddFree (Maybe WordClause))
 	deriving Show
 
 data Gihek = Gihek (Maybe WordClause) (Maybe WordClause) NaiClause
