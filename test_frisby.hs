@@ -46,7 +46,28 @@ parser = do
 		----------------------------------------------------------------
 		-- mekso
 
-		let	number = (clause _PA ## Right) <:> many
+		operand_2 <- newRule $ operand_3 <> mb (
+			joik_ek <> mb stag <> addFree (clause _BO) <> operand_2)
+			## (\(x1, x2) -> Operand2 x1 x2)
+
+		let	operand_1
+				= operand_2 <> many (joik_ek <> operand_2)
+			operand_3
+				-- =  quantifier
+				=  (lerfu_string <<- neek (clause _MOI)) <>
+					addFree (mb $ clause _BOI)
+				## (\(x1, x2) -> OperandLerfu x1 x2)
+--				// addFree (clause _NIhE) <> selbri <>
+--					addFree (mb $ clause _TEhU)
+--				// addFree (clause _MOhE) <> sumti <>
+--					addFree (mb $ clause _TEhU)
+--				// addFree (clause _JOhI) <> many1 mex_2 <>
+--					addFree (mb $ clause _TEhU)
+--				// gek <> operand <> gik <> operand_3
+--				//	(  addFree (clause _LAhE)
+--					// clause _NAhE <> addFree (clause _BO) ) <>
+--					operand <> addFree (mb $ clause _LUhU)
+			number = (clause _PA ## Right) <:> many
 				(lerfu_word ## Left // clause _PA ## Right)
 			lerfu_string = (lerfu_word ## Left) <:> many
 				(lerfu_word ## Left // clause _PA ## Right)
@@ -82,8 +103,8 @@ parser = do
 			interval = mb (clause _SE) <> nai (clause _BIhI)
 				## \(x1, x2) -> Interval x1 x2
 			joik_ek_1
-				=  addFree joik	## Left
-				// addFree ek	## Right
+				=  addFree joik	## JoikEkJoik
+				// addFree ek	## JoikEkEk
 			joik_ek_SA = joik_ek_1 <> (neek joik_ek_1 <> many
 				(  sa_word			## const ()
 				// clause _SA <> neek joik_ek_1	## const () )) <>
@@ -104,11 +125,13 @@ parser = do
 		-- Tense
 
 		let	tag = tense_modal <> many (joik_jek <> tense_modal)
-			stag	=  simple_tense_modal <>
+				## (\(x1, x2) -> Tag x1 x2)
+			stag =	(  simple_tense_modal <>
 					many	(( jek ## Right . flip AddFree []
 						// joik ## Left . flip AddFree [] )
 							<> simple_tense_modal)
-				// tense_modal <> many (joik_jek <> tense_modal)
+				// tense_modal <> many (joik_jek <> tense_modal) )
+				## uncurry Tag
 
 			tense_modal
 				=  addFree simple_tense_modal
@@ -766,7 +789,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return joik_ek_1
+	return operand_1
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -820,6 +843,12 @@ parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
 look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
 
+data Operand
+	= OperandLerfu [Either Lerfu WordClause] (AddFree (Maybe WordClause))
+	| Operand2 Operand
+		(Maybe (((JoikEk, Maybe Tag), AddFree WordClause), Operand))
+	deriving Show
+
 data Gihek = Gihek (Maybe WordClause) (Maybe WordClause) NaiClause
 	deriving Show
 
@@ -827,6 +856,11 @@ type NaiClause = Clause [CMAVO] (Nai WordClause) [Indicators]
 
 data Jek = Jek (Maybe WordClause) (Maybe WordClause)
 		(Clause [CMAVO] (Nai WordClause) [Indicators])
+	deriving Show
+
+data JoikEk
+	= JoikEkJoik (AddFree Joik)
+	| JoikEkEk (AddFree ((Maybe WordClause, Maybe WordClause), NaiClause))
 	deriving Show
 
 data Joik
@@ -843,8 +877,7 @@ data Gek
 	= GekGA (Maybe WordClause)
 		(AddFree (Clause [CMAVO] (Nai WordClause) [Indicators]))
 	| GekJoik Joik (AddFree WordClause)
-	| GekStag (TenseModal, [(Either (AddFree Joik) (AddFree Jek), TenseModal)])
-		Gik
+	| GekStag Tag Gik
 	deriving Show
 
 data Guhek = Guhek (Maybe WordClause)
@@ -852,6 +885,9 @@ data Guhek = Guhek (Maybe WordClause)
 	deriving Show
 
 data Gik = Gik (AddFree (Clause [CMAVO] (Nai WordClause) [Indicators]))
+	deriving Show
+
+data Tag = Tag TenseModal [(Either (AddFree Joik) (AddFree Jek), TenseModal)]
 	deriving Show
 
 data Nai a = Nai a | Aru a deriving Show
