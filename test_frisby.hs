@@ -22,7 +22,7 @@ parser = do
 						else Post r' y'
 					Pre pr r' -> if null y' then Pre pr r'
 						else Both pr r' y'
-					_ -> error "not occur"
+					_ -> error "not occur 7"
 			clause_i p' = pre p' <<- post_clause_ind
 			pre p' = pre_clause <> p' <<- optional spaces
 				## \(x', y') -> if null x' then Raw y'
@@ -33,14 +33,15 @@ parser = do
 						Nai ui
 					Raw _ -> Raw $ Nai ui
 					EmptyClause -> Raw $ Aru ui
-					_ -> error "not occur")
+					_ -> error "not occur 8")
 			nai p' = p' <> option EmptyClause (clause _NAI)
 				## (\(ui, nai') -> case nai' of
-					Pre bahe _ -> (Pre :: PreT a b) bahe $
-						Nai ui
+					Pre bahe _ -> Pre bahe $ Nai ui
 					Raw _ -> Raw $ Nai ui
 					EmptyClause -> Raw $ Aru ui
-					_ -> error "not occur")
+					Post _ ind -> Post (Nai ui) ind
+					Both bahe _ ind -> Both bahe (Nai ui) ind
+					_ -> error "not occur 9")
 			addFree p' = p' <> many free	## uncurry AddFree
 
 		----------------------------------------------------------------
@@ -61,16 +62,34 @@ parser = do
 		----------------------------------------------------------------
 		-- ek, gihek, jek, joik
 
-		let	guhek = mb (clause _SE) <> (addFree $ nai $ clause _GUhA)
-			gik = addFree (nai (clause _GI))
+		let	jek = mb (clause _NA) <> mb (clause _SE) <> nai (clause _JA)
+				## (\((x1, x2), x3) -> Jek x1 x2 x3)
+			joik	=  mb (clause _SE) <> nai (clause _JOI)
+				## (\(x1, x2) -> JoikJOI x1 x2)
+				// interval	## JoikInterval
+				// clause _GAhO <> interval <> clause _GAhO
+				## (\((x1, x2), x3) -> JoikGAhO x1 x2 x3)
+			interval = mb (clause _SE) <> nai (clause _BIhI)
+				## \(x1, x2) -> Interval x1 x2
+			joik_jek = addFree joik ## Left // addFree jek ## Right
+			gek	=  mb (clause _SE) <> addFree (nai $ clause _GA)
+				## (\(x1, x2) -> GekGA x1 x2)
+				// joik <> addFree (clause _GI)
+				## (\(x1, x2) -> GekJoik x1 x2)
+--				// stag <> gik
+			guhek = mb (clause _SE) <> (addFree $ nai $ clause _GUhA)
+				## \(x1, x2) -> Guhek x1 x2
+			gik = addFree (nai (clause _GI))	## Gik
 
 		----------------------------------------------------------------
 		-- Tense
 
-		let	{- tag = tense_modal <> many (joik_jek tense_modal)
+		let	tag = tense_modal <> many (joik_jek <> tense_modal)
 			stag	=  simple_tense_modal <>
-					many ((jek // joik) <> simple_tense_modal)
-				// tense_modal <> many (joik_jek <> tense_modal) -}
+					many	(( jek ## Right . flip AddFree []
+						// joik ## Left . flip AddFree [] )
+							<> simple_tense_modal)
+				// tense_modal <> many (joik_jek <> tense_modal)
 
 			tense_modal
 				=  addFree simple_tense_modal
@@ -188,8 +207,8 @@ parser = do
 					Pre pr' r' -> Pre (pr ++ pr') r'
 					Post r' pst' -> Both pr r' pst'
 					Both pr' r' pst' -> Both (pr ++ pr') r' pst'
-					_ -> error "not occur"
-				_ -> error "not occur"
+					_ -> error "not occur 1"
+				_ -> error "not occur 2"
 		zei_clause_no_pre <- newRule $
 			pre_zei_bu <> (manyCat (option [] zei_tail <++> bu_tail) <++>
 			zei_tail) <> post_clause
@@ -198,7 +217,7 @@ parser = do
 						else Post (r' : y') w
 				Pre pr r' -> if null w then Pre pr (r' : y')
 						else Both pr (r' : y') w
-				_ -> error "not occur"
+				_ -> error "not occur 3"
 
 		bu_clause <- newRule $ pre bu_clause_no_pre
 			## \x' -> case x' of
@@ -208,8 +227,8 @@ parser = do
 					Pre pr' r' -> Pre (pr ++ pr') r'
 					Post r' pst' -> Both pr r' pst'
 					Both pr' r' pst' -> Both (pr ++ pr') r' pst'
-					_ -> error "not occur"
-				_ -> error "not occur"
+					_ -> error "not occur 4"
+				_ -> error "not occur 5"
 		bu_clause_no_pre <- newRule $
 			pre_zei_bu <> (manyCat (option [] bu_tail <++> zei_tail) <++>
 			bu_tail) <> post_clause
@@ -218,7 +237,7 @@ parser = do
 						else Post (r' : y') w
 				Pre pr r' -> if null w then Pre pr (r' : y')
 						else Both pr (r' : y') w
-				_ -> error "not occur"
+				_ -> error "not occur 6"
 			
 		let	zei_tail = many1Cat (_ZEI_clause <::> any_word)
 			bu_tail = many1 _BU_clause
@@ -727,7 +746,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return (nai $ char 'c') -- gik -- guhek
+	return joik
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -781,6 +800,33 @@ parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
 look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
 
+data Jek = Jek (Maybe WordClause) (Maybe WordClause)
+		(Clause [CMAVO] (Nai WordClause) [Indicators])
+	deriving Show
+
+data Joik
+	= JoikJOI (Maybe WordClause) (Clause [CMAVO] (Nai WordClause) [Indicators])
+	| JoikInterval Interval
+	| JoikGAhO WordClause Interval WordClause
+	deriving Show
+
+data Interval = Interval (Maybe (Clause [CMAVO] CMAVO [Indicators]))
+	(Clause [CMAVO] (Nai WordClause) [Indicators])
+	deriving Show
+
+data Gek
+	= GekGA (Maybe WordClause)
+		(AddFree (Clause [CMAVO] (Nai WordClause) [Indicators]))
+	| GekJoik Joik (AddFree WordClause)
+	deriving Show
+
+data Guhek = Guhek (Maybe WordClause)
+	(AddFree (Clause [CMAVO] (Nai WordClause) [Indicators]))
+	deriving Show
+
+data Gik = Gik (AddFree (Clause [CMAVO] (Nai WordClause) [Indicators]))
+	deriving Show
+
 data Nai a = Nai a | Aru a deriving Show
 data Clause a b c = Raw b | Pre a b | Post b c | Both a b c | EmptyClause
 instance (Show a, Show b, Show c) => Show (Clause a b c) where
@@ -807,7 +853,7 @@ data Lerfu
 
 data TenseModal
 	= TMBAI (Maybe WordClause) (Maybe WordClause)
-		(Clause [CMAVO] (Nai WordClause) ()) (Maybe WordClause)
+		(Clause [CMAVO] (Nai WordClause) [Indicators]) (Maybe WordClause)
 	| TMTimeSpace (Maybe WordClause) (Maybe (Maybe Time,  Maybe Space_))
 		(Maybe WordClause) (Maybe WordClause)
 	| TMKI WordClause
@@ -817,17 +863,19 @@ data TenseModal
 
 data Time
 	= Time (Maybe WordClause)
-		[(Clause [CMAVO] (Nai WordClause) (), Maybe WordClause)]
-		(Maybe (WordClause, Maybe (Clause [CMAVO] (Nai WordClause) ())))
-		[Clause [CMAVO] (Nai Interval) ()]
+		[(Clause [CMAVO] (Nai WordClause) [Indicators], Maybe WordClause)]
+		(Maybe (WordClause,
+			Maybe (Clause [CMAVO] (Nai WordClause) [Indicators])))
+		[Clause [CMAVO] (Nai IntervalProperty) [Indicators]]
 	deriving Show
 
 data Space_
 	= Space_ (Maybe WordClause)
-		[(Clause [CMAVO] (Nai WordClause) (), WordClause)]
+		[(Clause [CMAVO] (Nai WordClause) [Indicators], WordClause)]
 		(Maybe ((WordClause, WordClause),
-			[(WordClause, Clause [CMAVO] (Nai Interval) ())]))
-		(Maybe (WordClause, (Clause [CMAVO] (Nai WordClause) (),
+			[(WordClause, Clause [CMAVO] (Nai IntervalProperty)
+				[Indicators])]))
+		(Maybe (WordClause, (Clause [CMAVO] (Nai WordClause) [Indicators],
 			WordClause)))
 	deriving Show
 
@@ -841,7 +889,7 @@ instance Show a => Show (AddFree a) where
 	show (AddFree x f) = if null f then show x ++ " -"
 		else show x ++ " - " ++ show f
 
-data Interval
+data IntervalProperty
 	= IROI LerfuString WordClause
 	| ITAhE WordClause
 	| IZAhO WordClause
