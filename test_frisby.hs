@@ -133,16 +133,17 @@ parser = do
 
 		operator_2 <- newRule
 			$  mex_operator
---			// addFree (clause _KE) <> operator <>
---				addFree (clause _KEhE)
+			// addFree (clause _KE) <> operator <>
+				addFree (clause _KEhE)
+			## \((x1, x2), x3) -> OperatorKE x1 x2 x3
 
 		mex_operator <- newRule
 			$  addFree (clause _SE) <> mex_operator
 			## (\(x1, x2) -> OperatorSE x1 x2)
 			// addFree (clause _NAhE) <> mex_operator
 			## (\(x1, x2) -> OperatorNAhE x1 x2)
---			// addFree (clause _MAhO) <> mex <> addFree (clause _TEhU)
---			## (\((x1, x2), x3) -> OperatorMAhO x1 x2 x3)
+			// addFree (clause _MAhO) <> mex <> addFree (clause _TEhU)
+			## (\((x1, x2), x3) -> OperatorMAhO x1 x2 x3)
 --			// addFree (clause _NAhU) <> selbri <> addFree (clause _TEhU)
 --			## (\((x1, x2), x3) -> OperatorNAhU x1 x2 x3)
 			// addFree (clause _VUhU)
@@ -161,8 +162,9 @@ parser = do
 --				addFree (mb $ clause _TEhU)
 --			// addFree (clause _MOhE) <> sumti <>
 --				addFree (mb $ clause _TEhU)
---			// addFree (clause _JOhI) <> many1 mex_2 <>
---				addFree (mb $ clause _TEhU)
+			// addFree (clause _JOhI) <> many1 mex_2 <>
+				addFree (mb $ clause _TEhU)
+			## (\((x1, x2), x3) -> OperandJOhI x1 x2 x3)
 			// gek <> operand <> gik <> operand_3
 			## (\(((x1, x2), x3), x4) -> OperandGek x1 x2 x3 x4)
 			//	(  addFree (clause _LAhE)		## Left
@@ -1006,6 +1008,8 @@ data Operator
 		(Either (AddFree Joik) (AddFree Jek), Operator)
 		((((Joik, Maybe Tag), AddFree WordClause), Operator),
 			AddFree (Maybe WordClause))]
+	| OperatorKE (AddFree WordClause) Operator (AddFree WordClause)
+	| OperatorMAhO (AddFree WordClause) Mex (AddFree WordClause)
 	deriving Show
 
 data Operand
@@ -1019,6 +1023,7 @@ data Operand
 	| OperandLAhENAhE (Either (AddFree WordClause)
 			(WordClause, AddFree WordClause))
 		Operand (AddFree (Maybe WordClause))
+	| OperandJOhI (AddFree WordClause) [Mex] (AddFree (Maybe WordClause))
 	deriving Show
 
 data Gihek = Gihek (Maybe WordClause) (Maybe WordClause) NaiClause
