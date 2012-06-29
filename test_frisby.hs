@@ -52,8 +52,102 @@ parser = do
 		quantifier <- newRule
 			$  (number <<- neek (clause _MOI)) <>
 				addFree (mb $ clause _BOI)
-				## \(x1, x2) -> QNumber x1 x2
---			// addFree (clause _VEI) <> mex <> addFree (clause _VEhO)
+			## (\(x1, x2) -> QNumber x1 x2)
+			// addFree (clause _VEI) <> mex <> addFree (clause _VEhO)
+			## (\((x1, x2), x3) -> QMex x1 x2 x3)
+
+		mex <- newRule $ many mex_sa ->> mex_0
+
+		mex_0 <- newRule
+			$  mex_1 <> many (operator <> mex_1)
+			## (\(x1, x2) -> Mex0 x1 x2)
+			// rp_clause
+
+		mex_sa <- newRule $
+			mex_start <> many (neek mex_start <>
+				(  sa_word			## const ()
+				// clause _SA <> neek mex_start	## const () )) <>
+			clause _SA <> peek mex_0
+			## const ()
+
+		mex_start <- newRule
+			$  clause _FUhA		## const ()
+			// clause _PEhO		## const ()
+			// clause operand_start	## const ()
+
+		rp_clause <- newRule $ addFree (clause _FUhA) <> rp_expression
+			## \(x1, x2) -> MexRP x1 x2
+
+		mex_1 <- newRule $
+			mex_2 <> mb (addFree (clause _BIhE) <> operator <> mex_1)
+			## \(x1, x2) -> Mex1 x1 x2
+
+		mex_2 <- newRule
+			$  operand
+			## MexOperand
+			// mex_forethougt
+
+		mex_forethougt <- newRule $ addFree (mb $ clause _PEhO) <>
+			operator <> fore_operands <> addFree (mb $ clause _KUhE)
+			##  \(((x1, (x2, x2')), x3), x4) ->
+				MexForethought x1 x2 x2' x3 x4
+		fore_operands <- newRule $ many1 mex_2
+
+		rp_expression <- newRule $ operand <> rp_expression_tail
+			## \(x1, x2) -> RPExpression x1 x2
+		rp_expression_tail <- newRule
+			$  rp_expression <> operator <> rp_expression_tail
+			## (\((x1, x2), x3) -> RPExpressionTail x1 x2 x3)
+			// unit RPExpressionEmpty
+
+		operator <- newRule $ many operator_sa ->> operator_0
+
+		operator_0 <- newRule $ operator_1 <> many
+			(  joik_jek <> operator_1 ) --		## Left
+{-
+			// joik <> mb stag <> addFree (clause _KE) <> operator <>
+				addFree (mb $ clause _KEhE)	## Right )
+-}
+
+		operator_sa <- newRule $ operator_start <> many
+			(neek operator_start <>
+				(  sa_word				## const ()
+				// _SA_clause <> neek operator_start	## const () )) <>
+			clause _SA <> peek operator_0
+			## const ()
+
+		operator_start <- newRule
+			$  guhek				## const ()
+			// clause _KE				## const ()
+			// mb (clause _SE) <> clause _NAhE	## const ()
+			// mb (clause _SE) <> clause _MAhO	## const ()
+			// mb (clause _SE) <> clause _VUhU	## const ()
+
+		operator_1 <- newRule
+			$  operator_2
+			// guhek <> operator_1 <> gik <> operator_2
+			## (\(((x1, x2), x3), x4) -> OperatorGuhek x1 x2 x3 x4)
+			// operator_2 <> (jek ## Left // joik ## Right) <>
+				mb stag <> addFree (clause _BO) <> operator_1
+			## (\((((x1, x2), x3), x4), x5) ->
+				OperatorJekJoik x1 x2 x3 x4 x5)
+
+		operator_2 <- newRule
+			$  mex_operator
+--			// addFree (clause _KE) <> operator <>
+--				addFree (clause _KEhE)
+
+		mex_operator <- newRule
+			$  addFree (clause _SE) <> mex_operator
+			## (\(x1, x2) -> OperatorSE x1 x2)
+			// addFree (clause _NAhE) <> mex_operator
+			## (\(x1, x2) -> OperatorNAhE x1 x2)
+--			// addFree (clause _MAhO) <> mex <> addFree (clause _TEhU)
+--			## (\((x1, x2), x3) -> OperatorMAhO x1 x2 x3)
+--			// addFree (clause _NAhU) <> selbri <> addFree (clause _TEhU)
+--			## (\((x1, x2), x3) -> OperatorNAhU x1 x2 x3)
+			// addFree (clause _VUhU)
+			## OperatorVUhU
 
 		operand <- newRule $ many operand_sa ->> operand_0
 		operand_2 <- newRule $ operand_3 <> mb (
@@ -79,9 +173,9 @@ parser = do
 
 		let	operand_0 = operand_1 <> mb (
 				joik_ek <> mb stag <>
-				(addFree (clause _KE) ## \x -> x :: AddFree WordClause) <>
+				(addFree (clause _KE) ## \x' -> x' :: AddFree WordClause) <>
 				operand <> (addFree (mb $ clause _KEhE)
-					## \x -> x :: (AddFree (Maybe WordClause))) )
+					## \x' -> x' :: (AddFree (Maybe WordClause))) )
 				## (\(x1, x2) -> Operand0 x1 x2)
 			operand_sa = operand_start <> many (neek operand_start <>
 				(  sa_word				## const ()
@@ -820,7 +914,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return operand
+	return mex
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -876,6 +970,40 @@ look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
 
 data Quantifier
 	= QNumber [Either Lerfu WordClause] (AddFree (Maybe WordClause))
+	| QMex (AddFree WordClause) Mex (AddFree WordClause)
+	deriving Show
+
+data Mex
+	= MexOperand Operand
+	| MexForethought (AddFree (Maybe WordClause))
+		Operator [(Either (AddFree Joik) (AddFree Jek), Operator)]
+		[Mex] (AddFree (Maybe WordClause))
+	| Mex1 Mex
+		(Maybe ((AddFree WordClause, (Operator,
+			[(Either (AddFree Joik) (AddFree Jek), Operator)])), Mex))
+	| Mex0 Mex [((Operator,
+		[(Either (AddFree Joik) (AddFree Jek), Operator)]), Mex)]
+	| MexRP (AddFree WordClause) RPExpression
+	deriving Show
+
+data RPExpression
+	= RPExpression Operand RPExpressionTail
+	deriving Show
+
+data RPExpressionTail
+	= RPExpressionTail RPExpression
+		(Operator, [(Either (AddFree Joik) (AddFree Jek), Operator)])
+		RPExpressionTail
+	| RPExpressionEmpty
+	deriving Show
+
+data Operator
+	= OperatorSE (AddFree WordClause) Operator
+	| OperatorNAhE (AddFree WordClause) Operator
+	| OperatorVUhU (AddFree WordClause)
+	| OperatorGuhek Guhek Operator Gik Operator
+	| OperatorJekJoik Operator (Either Jek Joik)
+		(Maybe Tag) (AddFree WordClause) Operator
 	deriving Show
 
 data Operand
