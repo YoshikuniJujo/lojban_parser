@@ -40,8 +40,7 @@ parser = do
 					Raw _ -> Raw $ Nai ui
 					EmptyClause -> Raw $ Aru ui
 					Post _ ind -> Post (Nai ui) ind
-					Both bahe _ ind -> Both bahe (Nai ui) ind
-					_ -> error "not occur 9")
+					Both bahe _ ind -> Both bahe (Nai ui) ind )
 			addFree p' = p' <> many free	## uncurry AddFree
 
 		----------------------------------------------------------------
@@ -61,8 +60,19 @@ parser = do
 
 		----------------------------------------------------------------
 		-- ek, gihek, jek, joik
+		
+		gihek <- newRule $ many gihek_sa ->> gihek_1
+		joik_ek <- newRule $ many joik_ek_SA ->> joik_ek_1
 
-		let	jek = mb (clause _NA) <> mb (clause _SE) <> nai (clause _JA)
+		let	ek = mb (clause _NA) <> mb (clause _SE) <> nai (clause _A)
+			gihek_1 = mb (clause _NA) <> mb (clause _SE) <>
+				nai (clause _GIhA)
+				## \((x1, x2), x3) -> Gihek x1 x2 x3
+			gihek_sa = gihek_1 <> many (neek gihek_1 <>
+				(  sa_word ## const ()
+				// clause _SA <> neek gihek_1 ## const () )) <>
+				(clause _SA) <> peek gihek
+			jek = mb (clause _NA) <> mb (clause _SE) <> nai (clause _JA)
 				## (\((x1, x2), x3) -> Jek x1 x2 x3)
 			joik	=  mb (clause _SE) <> nai (clause _JOI)
 				## (\(x1, x2) -> JoikJOI x1 x2)
@@ -71,12 +81,21 @@ parser = do
 				## (\((x1, x2), x3) -> JoikGAhO x1 x2 x3)
 			interval = mb (clause _SE) <> nai (clause _BIhI)
 				## \(x1, x2) -> Interval x1 x2
+			joik_ek_1
+				=  addFree joik	## Left
+				// addFree ek	## Right
+			joik_ek_SA = joik_ek_1 <> (neek joik_ek_1 <> many
+				(  sa_word			## const ()
+				// clause _SA <> neek joik_ek_1	## const () )) <>
+				clause _SA <> peek joik_ek
+				## const ()
 			joik_jek = addFree joik ## Left // addFree jek ## Right
 			gek	=  mb (clause _SE) <> addFree (nai $ clause _GA)
 				## (\(x1, x2) -> GekGA x1 x2)
 				// joik <> addFree (clause _GI)
 				## (\(x1, x2) -> GekJoik x1 x2)
---				// stag <> gik
+				// stag <> gik
+				## (\(x1, x2) -> GekStag x1 x2)
 			guhek = mb (clause _SE) <> (addFree $ nai $ clause _GUhA)
 				## \(x1, x2) -> Guhek x1 x2
 			gik = addFree (nai (clause _GI))	## Gik
@@ -283,7 +302,8 @@ parser = do
 			// zei_clause_no_pre <<- neek _ZEI_clause <<- neek _BU_clause
 				## const ()
 
-		let si_word = pre_zei_bu
+		let	sa_word = pre_zei_bu
+			si_word = pre_zei_bu
 
 
 		----------------------------------------------------------------
@@ -746,7 +766,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return joik
+	return joik_ek_1
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -800,6 +820,11 @@ parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
 look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
 
+data Gihek = Gihek (Maybe WordClause) (Maybe WordClause) NaiClause
+	deriving Show
+
+type NaiClause = Clause [CMAVO] (Nai WordClause) [Indicators]
+
 data Jek = Jek (Maybe WordClause) (Maybe WordClause)
 		(Clause [CMAVO] (Nai WordClause) [Indicators])
 	deriving Show
@@ -818,6 +843,8 @@ data Gek
 	= GekGA (Maybe WordClause)
 		(AddFree (Clause [CMAVO] (Nai WordClause) [Indicators]))
 	| GekJoik Joik (AddFree WordClause)
+	| GekStag (TenseModal, [(Either (AddFree Joik) (AddFree Jek), TenseModal)])
+		Gik
 	deriving Show
 
 data Guhek = Guhek (Maybe WordClause)
