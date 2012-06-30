@@ -44,6 +44,12 @@ parser = do
 			addFree p' = p' <> many free	## uncurry AddFree
 
 		----------------------------------------------------------------
+		-- text
+
+		----------------------------------------------------------------
+		-- statement, paragraph
+
+		----------------------------------------------------------------
 		-- sentence, bridi
 
 		----------------------------------------------------------------
@@ -61,10 +67,48 @@ parser = do
 		----------------------------------------------------------------
 		-- tanru unit
 
+		tanru_unit <- newRule $ tanru_unit_1 <>
+			many (addFree (clause _CEI) <> tanru_unit_1)
+			## uncurry TUCEI
+
+		tanru_unit_1 <- newRule $ tanru_unit_2 <> mb linkargs
+			## uncurry TanruUnit1
+
+		tanru_unit_2 <- newRule
+			$  addFree _BRIVLA_clause	## TUBrivla
+			// clause _GOhA <> addFree (mb $ clause _RAhO)
+			## (\(x1, x2) -> TUGOhA x1 x2)
+--			// addFree (clause _KE) <> selbri_3 <>
+--				addFree (clause _KEhE)
+--			## (\((x1, x2), x3) -> TUKE x1 x2 x3)
+--			// addFree (clause _ME) <>
+--				(  sumti	## 
+--				// lerfu_string	## ) <>
+--				addFree (mb $ clause _MEhO) <>
+--				addFree (mb $ clause _MOI)
+--			## (\(((x1, x2), x3), x4) -> TUME x1 x2 x3 x4)
+			// (number // lerfu_string) <>
+				addFree (clause _MOI)
+			## (\(x1, x2) -> TUMOI x1 x2)
+			// addFree (clause _NUhA) <> mex_operator
+			## (\(x1, x2) -> TUMex x1 x2)
+			// addFree (clause _SE) <> tanru_unit_2
+			## (\(x1, x2) -> TUSE x1 x2)
+			// addFree (clause _JAI) <> mb tag <> tanru_unit_2
+			## (\((x1, x2), x3) -> TUJAI x1 x2 x3)
+			// addFree (clause _NAhE) <> tanru_unit_2
+			## (\(x1, x2) -> TUNAhE x1 x2)
+--			// (clause _NU) <> addFree (mb $ clause _NAI) <>
+--				many (joik_jek <> clause _NU <>
+--					addFree (mb $ clause _NAI))
+--				subsentence <> addFree (mb $ clause _KEI)
+--			##
+
 		----------------------------------------------------------------
 		-- linkargs
 
 		linkargs <- newRule $ many linkargs_sa ->> linkargs_1
+			## \(((x1, x2), x3), x4) -> LinkArgs x1 x2 x3 x4
 
 		linkargs_1 <- newRule $ addFree (clause _BE) <> term <>
 			many links <> addFree (mb $ clause _BEhO)
@@ -506,6 +550,10 @@ parser = do
 		_BAhE_post <- newRule $ {- optional si_clause <<- -}
 			neek _ZEI_clause <<- neek _BU_clause
 
+		_BRIVLA_clause <- newRule
+			$  clause _BRIVLA	## BCBRIVLA
+			// zei_clause		## BCZEI
+
 		_BU_clause <- newRule $ _BU <<- optional spaces
 
 		let	_BY_clause
@@ -606,11 +654,11 @@ parser = do
 		any_extended_rafsi <- newRule $
 			fuhivla // extended_rafsi // stressed_extended_rafsi
 
-		fuhivla <- newRule $ neek slinkuhi ->>
+		fuhivla <- newRule $ neek cmavo ->> neek slinkuhi ->>
 			{-- fuhivla_head <++> --} stressed_syllable <++>
 			many1Cat consonantal_syllable <++> final_syllable
 			//
-			{-- fuhivla_head <++> --} unstressed_syllable <++>
+			{-- fuhivla_head <++> --} neek cmavo ->> unstressed_syllable <++>
 			many1Cat consonantal_syllable <++>
 			many (neek stressed_syllable ->> (consonant // vowel)) <++>
 			stressed_syllable <++> final_syllable
@@ -958,7 +1006,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return linkargs
+	return tanru_unit
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -1011,6 +1059,27 @@ parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
 
 look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
+
+data TanruUnit
+	= TUBrivla (AddFree BRIVLAClause)
+	| TUGOhA WordClause (AddFree (Maybe WordClause))
+	| TUMOI [Either Lerfu WordClause] (AddFree WordClause)
+	| TUMex (AddFree WordClause) Operator
+	| TUSE (AddFree WordClause) TanruUnit
+	| TUJAI (AddFree WordClause) (Maybe Tag) TanruUnit
+	| TUNAhE (AddFree WordClause) TanruUnit
+	| TanruUnit1 TanruUnit (Maybe LinkArgs)
+	| TUCEI TanruUnit [(AddFree WordClause, TanruUnit)]
+	deriving Show
+
+data BRIVLAClause
+	= BCBRIVLA WordClause
+	| BCZEI (Clause [CMAVO] [CMAVO] [Indicators])
+	deriving Show
+
+data LinkArgs = LinkArgs (AddFree WordClause) CMAVO [(AddFree WordClause, CMAVO)]
+	(AddFree (Maybe WordClause))
+	deriving Show
 
 data Quantifier
 	= QNumber [Either Lerfu WordClause] (AddFree (Maybe WordClause))
