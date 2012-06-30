@@ -46,6 +46,32 @@ parser = do
 		----------------------------------------------------------------
 		-- linkargs
 
+		linkargs <- newRule $ many linkargs_sa ->> linkargs_1
+
+		linkargs_1 <- newRule $ addFree (clause _BE) <> term <>
+			many links <> addFree (mb $ clause _BEhO)
+
+		linkargs_sa <- newRule $
+			linkargs_start <> many (neek linkargs_start <>
+			(  sa_word				## const ()
+			// clause _SA <> neek linkargs_start	## const () )) <>
+			clause _SA <> peek linkargs_1
+
+		linkargs_start <- newRule $ clause _BE
+
+		term <- newRule $ _KOhA
+
+		links <- newRule $ many links_sa ->> links_1
+
+		links_1 <- newRule $ addFree (clause _BEI) <> term
+
+		links_sa <- newRule $ links_start <> many (neek links_start <>
+			(  sa_word				## const ()
+			// clause _SA <> neek links_start	## const () )) <>
+			clause _SA <> peek links_1
+
+		links_start <- newRule $ clause _BEI
+
 		----------------------------------------------------------------
 		-- mekso
 
@@ -427,7 +453,6 @@ parser = do
 		post_clause <- newRule $
 			optional spaces ->> optional si_clause ->>
 			neek _ZEI_clause ->> neek _BU_clause ->> many indicators
---			## const ([] :: [Indicators])
 		post_clause_ind <- newRule $
 			optional spaces ->> optional si_clause <<-
 			neek _ZEI_clause <<- neek _BU_clause
@@ -915,7 +940,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return mex
+	return linkargs
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
