@@ -64,6 +64,12 @@ parser = do
 		----------------------------------------------------------------
 		-- selbri
 
+		selbri_6 <- newRule
+			$  tanru_unit <> mb(addFree (clause _BO) <> selbri_6)
+			## uncurry SelbriBO
+--			// addFree (clause _NAhE) <> guhek <> selbri <> gik <>
+--				selbri_6
+
 		----------------------------------------------------------------
 		-- tanru unit
 
@@ -1006,7 +1012,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return tanru_unit
+	return selbri_6
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -1059,6 +1065,10 @@ parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
 
 look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
+
+data Selbri
+	= SelbriBO TanruUnit (Maybe (AddFree WordClause, Selbri))
+	deriving Show
 
 data TanruUnit
 	= TUBrivla (AddFree BRIVLAClause)
