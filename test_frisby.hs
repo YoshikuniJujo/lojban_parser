@@ -64,9 +64,16 @@ parser = do
 		----------------------------------------------------------------
 		-- selbri
 
+		selbri_5 <- newRule $ selbri_6 <> mb
+			((jek ## Left // joik ## Right) <> mb stag <>
+				addFree (clause _BO) <> selbri_5)
+			## \(x1, x2) -> maybe x1
+				(uncurry $ uncurry $ uncurry $ SelbriJekJoikBO x1)
+				x2
+
 		selbri_6 <- newRule
 			$  tanru_unit <> mb(addFree (clause _BO) <> selbri_6)
-			## uncurry SelbriBO
+			## \(x1, x2) -> maybe (STanruUnit x1) (uncurry $ SelbriBO x1) x2
 --			// addFree (clause _NAhE) <> guhek <> selbri <> gik <>
 --				selbri_6
 
@@ -75,10 +82,10 @@ parser = do
 
 		tanru_unit <- newRule $ tanru_unit_1 <>
 			many (addFree (clause _CEI) <> tanru_unit_1)
-			## uncurry TUCEI
+			## \(x1, x2) -> if null x2 then x1 else TUCEI x1 x2
 
 		tanru_unit_1 <- newRule $ tanru_unit_2 <> mb linkargs
-			## uncurry TanruUnit1
+			## \(x1, x2) -> maybe x1 (TanruUnit1 x1) x2
 
 		tanru_unit_2 <- newRule
 			$  addFree _BRIVLA_clause	## TUBrivla
@@ -1012,7 +1019,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return selbri_6
+	return selbri_5
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -1067,7 +1074,10 @@ look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
 
 data Selbri
-	= SelbriBO TanruUnit (Maybe (AddFree WordClause, Selbri))
+	= STanruUnit TanruUnit
+	| SelbriBO TanruUnit (AddFree WordClause) Selbri
+	| SelbriJekJoikBO Selbri (Either Jek Joik) (Maybe Tag)
+		(AddFree WordClause) Selbri
 	deriving Show
 
 data TanruUnit
@@ -1078,7 +1088,7 @@ data TanruUnit
 	| TUSE (AddFree WordClause) TanruUnit
 	| TUJAI (AddFree WordClause) (Maybe Tag) TanruUnit
 	| TUNAhE (AddFree WordClause) TanruUnit
-	| TanruUnit1 TanruUnit (Maybe LinkArgs)
+	| TanruUnit1 TanruUnit LinkArgs
 	| TUCEI TanruUnit [(AddFree WordClause, TanruUnit)]
 	deriving Show
 
