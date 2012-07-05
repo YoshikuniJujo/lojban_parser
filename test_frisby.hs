@@ -71,7 +71,8 @@ parser = do
 				## Left
 				// joik <> mb stag <> addFree (clause _KE) <>
 					selbri_3 <> addFree (mb $ clause _KEhE)
-				## Right )
+				## \((((x1, x2), x3), x4), x5) ->
+					Right (x1, x2, x3, x4, x5) )
 			## \(x1, x2) -> if null x2 then x1 else Selbri4 x1 x2
 
 		selbri_5 <- newRule $ selbri_6 <> mb
@@ -1089,7 +1090,7 @@ data Selbri
 	| SelbriJekJoikBO Selbri (Either Jek Joik) (Maybe Tag)
 		(AddFree WordClause) Selbri
 	| Selbri4 Selbri [Either (Either (AddFree Joik) (AddFree Jek), Selbri)
-		((((Joik, Maybe Tag), AddFree WordClause), [Selbri]),
+		(Joik, Maybe Tag, AddFree WordClause, [Selbri],
 		AddFree (Maybe WordClause))]
 	deriving Show
 
