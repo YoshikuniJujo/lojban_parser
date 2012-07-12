@@ -64,7 +64,15 @@ parser = do
 		----------------------------------------------------------------
 		-- selbri
 
+		selbri_2 <- newRule $ selbri_3 <>
+			mb ((addFree $ clause _CO) <> selbri_2)
+			## \(x1, x2) ->
+				maybe x1 (uncurry $ Selbri2 x1) x2
+
 		selbri_3 <- newRule $ many1 selbri_4
+			## \x1 -> case x1 of
+				[s] -> s
+				_ -> Selbris x1
 
 		selbri_4 <- newRule $ selbri_5 <> many
 				(  joik_jek <> selbri_5
@@ -1030,7 +1038,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return selbri_3
+	return selbri_2
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -1090,8 +1098,10 @@ data Selbri
 	| SelbriJekJoikBO Selbri (Either Jek Joik) (Maybe Tag)
 		(AddFree WordClause) Selbri
 	| Selbri4 Selbri [Either (Either (AddFree Joik) (AddFree Jek), Selbri)
-		(Joik, Maybe Tag, AddFree WordClause, [Selbri],
+		(Joik, Maybe Tag, AddFree WordClause, Selbri,
 		AddFree (Maybe WordClause))]
+	| Selbri2 Selbri (AddFree WordClause) Selbri
+	| Selbris [Selbri]
 	deriving Show
 
 data TanruUnit
