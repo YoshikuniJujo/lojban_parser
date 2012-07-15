@@ -64,6 +64,14 @@ parser = do
 		----------------------------------------------------------------
 		-- selbri
 
+		selbri <- newRule $ mb tag <> selbri_1
+			## \(x1, x2) -> maybe x2 (flip SelbriTag x2) x1
+
+		selbri_1 <- newRule
+			$  selbri_2
+			// addFree (clause _NA) <> selbri
+			## uncurry SelbriNA
+
 		selbri_2 <- newRule $ selbri_3 <>
 			mb ((addFree $ clause _CO) <> selbri_2)
 			## \(x1, x2) ->
@@ -1038,7 +1046,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return selbri_2
+	return selbri
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -1102,6 +1110,8 @@ data Selbri
 		AddFree (Maybe WordClause))]
 	| Selbri2 Selbri (AddFree WordClause) Selbri
 	| Selbris [Selbri]
+	| SelbriNA (AddFree WordClause) Selbri
+	| SelbriTag Tag Selbri
 	deriving Show
 
 data TanruUnit
