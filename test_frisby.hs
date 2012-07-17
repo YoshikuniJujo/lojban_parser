@@ -58,8 +58,17 @@ parser = do
 		----------------------------------------------------------------
 		-- sumti
 
+		sumti_tail_1 <- newRule
+			$  selbri -- <> mb relative_clauses
+			## STSelbri
+			// quantifier <> selbri -- <> mb relative_clauses
+			## \(x1, x2) -> STQSelbri x1 x2
+--			// quantifier <> sumti
+
 		----------------------------------------------------------------
 		-- relative clause
+
+--		relative_clause_1 <- 
 
 		----------------------------------------------------------------
 		-- selbri
@@ -1046,7 +1055,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return selbri
+	return sumti_tail_1
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -1099,6 +1108,11 @@ parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
 
 look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
+
+data SumtiTail
+	= STSelbri Selbri
+	| STQSelbri Quantifier Selbri
+	deriving Show
 
 data Selbri
 	= STanruUnit TanruUnit
