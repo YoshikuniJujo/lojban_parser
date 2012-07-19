@@ -58,6 +58,16 @@ parser = do
 		----------------------------------------------------------------
 		-- sumti
 
+		li_clause <- newRule $ addFree (clause _LI) <> mex <>
+			addFree (mb $ clause _LOhO)
+
+		sumti_tail <- newRule sumti_tail_1
+{-
+		sumti_tail <- newRule
+			$  mb (sumti_6 <> mb relative_clauses) <> sumti_tail_1
+			// relative_clauses <> sumti_tail_1
+-}
+
 		sumti_tail_1 <- newRule
 			$  selbri -- <> mb relative_clauses
 			## STSelbri
@@ -1055,7 +1065,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return sumti_tail_1
+	return li_clause
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
