@@ -11,7 +11,14 @@ import Data.Maybe
 
 main :: IO ()
 main = do
-	interact $ (++ "\n") . show . runPeg parser
+	interact $ (++ "\n") . show . runPeg parser . unwords . processZOI . words
+
+processZOI :: [String] -> [String]
+processZOI [] = []
+processZOI ("zoi" : w : rest) = "zoi" : "\NUL" : quot ++ ["\NUL"] ++ processZOI r'
+	where
+	(quot, _ : r') = span (/= w) rest
+processZOI (w : ws) = w : processZOI ws
 
 -- parser :: PM s (P s (Clause [CMAVO] [CMAVO] [Indicators]))
 parser = do
@@ -57,6 +64,12 @@ parser = do
 
 		----------------------------------------------------------------
 		-- sumti
+
+		sumti_6 <- newRule
+			$  addFree _ZO_clause
+			## SumtiZO
+			// addFree _ZOI_clause
+			## SumtiZOI
 
 		li_clause <- newRule $ addFree (clause _LI) <> mex <>
 			addFree (mb $ clause _LOhO)
@@ -625,6 +638,16 @@ parser = do
 		_SI_clause <- newRule $ optional spaces ->> _SI <<- optional spaces
 
 		_ZEI_clause <- newRule $ _ZEI <<- optional spaces
+
+		_ZO_clause <- newRule $ pre_clause <> _ZO <> mb spaces <> any_word <>
+			mb spaces <> post_clause
+			## \(((((x1, _), _), x4), _), x6) -> (x1, x4, x6)
+
+		_ZOI_clause <- newRule $ pre_clause <> _ZOI <> mb spaces <>
+			char '\NUL' <> many (noneOf "\NUL") <> char '\NUL' <>
+			mb spaces <> post_clause
+			## \(((((((x1, _), _), _), x5), _), _), x8) ->
+				(x1, x5, x8)
 			
 
 -- MORPHOLOGY	----------------------------------------------------------------
@@ -1065,7 +1088,7 @@ parser = do
 
 		----------------------------------------------------------------
 
-	return li_clause
+	return sumti_6
 
 alphabet :: Char -> P s Char
 alphabet c = many comma ->> oneOf [c, toUpper c]
@@ -1118,6 +1141,11 @@ parse_cmavo dict pre post selmaho = let pairs = look selmaho cmavo_list in
 
 look :: (Eq a, Show a) => a -> [(a, b)] -> b
 look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
+
+data Sumti
+	= SumtiZO (AddFree ([CMAVO], CMAVO, [Indicators]))
+	| SumtiZOI (AddFree ([CMAVO], String, [Indicators]))
+	deriving Show
 
 data SumtiTail
 	= STSelbri Selbri
