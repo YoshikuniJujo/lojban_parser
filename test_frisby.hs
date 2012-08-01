@@ -70,6 +70,8 @@ parser = do
 			## SumtiZO
 			// addFree _ZOI_clause
 			## SumtiZOI
+			// addFree _LOhU_clause
+			## SumtiLOhU
 
 		li_clause <- newRule $ addFree (clause _LI) <> mex <>
 			addFree (mb $ clause _LOhO)
@@ -634,6 +636,12 @@ parser = do
 
 		_FAhO_clause <- newRule $ pre _FAhO <<- optional spaces
 
+		_LOhU_clause <- newRule $ pre_clause <> _LOhU <> mb spaces <>
+			many (neek _LEhU ->> any_word) <> (clause _LEhU) <>
+			post_clause
+			## \(((((x1, x2), x3), x4), x5), x6) ->
+				(x1, x4, x5, x6)
+
 		_SA_clause <- newRule $ pre _SA
 		_SI_clause <- newRule $ optional spaces ->> _SI <<- optional spaces
 
@@ -1145,6 +1153,7 @@ look x = fromMaybe (error $ "no such item " ++ show x) . lookup x
 data Sumti
 	= SumtiZO (AddFree ([CMAVO], CMAVO, [Indicators]))
 	| SumtiZOI (AddFree ([CMAVO], String, [Indicators]))
+	| SumtiLOhU (AddFree ([CMAVO], [CMAVO], WordClause, [Indicators]))
 	deriving Show
 
 data SumtiTail
