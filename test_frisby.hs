@@ -72,6 +72,9 @@ parser = do
 			## SumtiZOI
 			// addFree _LOhU_clause
 			## SumtiLOhU
+			// lerfu_string <> neek (clause _MOI) <>
+				addFree (mb $ clause _BOI)
+			## \((x1, _), x3) -> SumtiLerfuStr x1 x3
 
 		li_clause <- newRule $ addFree (clause _LI) <> mex <>
 			addFree (mb $ clause _LOhO)
@@ -1154,6 +1157,7 @@ data Sumti
 	= SumtiZO (AddFree ([CMAVO], CMAVO, [Indicators]))
 	| SumtiZOI (AddFree ([CMAVO], String, [Indicators]))
 	| SumtiLOhU (AddFree ([CMAVO], [CMAVO], WordClause, [Indicators]))
+	| SumtiLerfuStr [Either Lerfu WordClause] (AddFree (Maybe WordClause))
 	deriving Show
 
 data SumtiTail
