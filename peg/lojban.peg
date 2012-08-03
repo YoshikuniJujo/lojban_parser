@@ -190,7 +190,9 @@ sumti-tail-1 <-
 
 relative-clauses <- relative-clause (ZIhE-clause free* relative-clause)*
 
-;; relative-clause <- GOI-clause free* term GEhU-clause? free* / NOI-clause free* subsentence KUhO-clause? free*
+;; relative-clause <-
+;;	GOI-clause free* term GEhU-clause? free* /
+;;	NOI-clause free* subsentence KUhO-clause? free*
 
 relative-clause <- relative-clause-sa* relative-clause-1
 

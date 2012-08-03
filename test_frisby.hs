@@ -79,6 +79,10 @@ parser = do
 --			// LAhE
 			// addFree (clause _KOhA)
 			## SumtiKOhA
+--			// clause _LA
+--			// (clause _LA / clause _LE)
+			// li_clause
+			## (\((x1, x2), x3) -> SumtiLI x1 x2 x3)
 
 		li_clause <- newRule $ addFree (clause _LI) <> mex <>
 			addFree (mb $ clause _LOhO)
@@ -99,6 +103,8 @@ parser = do
 
 		----------------------------------------------------------------
 		-- relative clause
+
+		relative_clauses <- newRule $ text "" ## const RelativeClauses
 
 --		relative_clause_1 <- 
 
@@ -1163,6 +1169,11 @@ data Sumti
 	| SumtiLOhU (AddFree ([CMAVO], [CMAVO], WordClause, [Indicators]))
 	| SumtiLerfuStr [Either Lerfu WordClause] (AddFree (Maybe WordClause))
 	| SumtiKOhA (AddFree WordClause)
+	| SumtiLI (AddFree WordClause) Mex (AddFree (Maybe WordClause))
+	deriving Show
+
+data RelativeClauses
+	= RelativeClauses
 	deriving Show
 
 data SumtiTail
