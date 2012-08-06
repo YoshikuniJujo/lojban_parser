@@ -1,6 +1,12 @@
 parser TestPappy:
 
-top syllabic
+{
+
+import Data.Maybe
+
+}
+
+top consonant
 
 -----------------------------------------------------------------
 
@@ -31,12 +37,29 @@ y :: Char = comma* y:('y' / 'Y')	-> { y }
 -----------------------------------------------------------------
 -- consonant
 
+cluster :: String = c:consonant cs:consonant+ -> { c : cs }
+
+initial_pair :: String = &initial c:consonant d:consonant !consonant -> { [c, d] }
+
+initial :: String = i:(
+	  affricate
+	/ s:sibilant? o:other? l:liquid?	-> {
+		maybeToList s ++ maybeToList o ++ maybeToList l })
+	!consonant !glide	-> { i }
+
 affricate :: String =
 	  t:t c:c				-> { [t, c] }
 	/ t:t s:s				-> { [t, s] }
 	/ d:d j:j				-> { [d, j] }
 	/ d:d z:z				-> { [d, z] }
 
+liquid :: Char = l / r
+other :: Char =
+	  p / t:t !l -> { t } / k / f / x
+	/ b / d:d !l -> { d } / g / v / m / n:n !liquid -> { n }
+sibilant :: Char = c / s:s !x -> { s } / jz:(j / z) !n !liquid -> { jz }
+
+consonant :: Char = voiced / unvoiced / syllabic
 syllabic :: Char = l / m / n / r
 voiced :: Char = b / d / g / j / v / z
 unvoiced :: Char = c / f / k / p / s / t / x
@@ -76,7 +99,7 @@ import System.Environment
 
 main = do
 	[str] <- getArgs
-	case testPappysyllabic $ testPappyParse "syllabic" str of
+	case testPappyconsonant $ testPappyParse "consonant" str of
 		Parsed v _ _ -> print v
 		NoParse e -> error (show e)
 

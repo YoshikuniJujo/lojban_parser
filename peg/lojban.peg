@@ -1584,53 +1584,31 @@ initial <- (affricate / sibilant? other? liquid?) !consonant !glide
 affricate <- t c / t s / d j / d z
 
 liquid <- l / r
-
 other <- p / t !l / k / f / x / b / d !l / g / v / m / n !liquid
-
 sibilant <- c / s !x / (j / z) !n !liquid
 
 consonant <- voiced / unvoiced / syllabic
-
 syllabic <- l / m / n / r
-
 voiced <- b / d / g / j / v / z
-
 unvoiced <- c / f / k / p / s / t / x
 
 l <- comma* [lL] !h !l
-
 m <- comma* [mM] !h !m !z
-
 n <- comma* [nN] !h !n !affricate
-
 r <- comma* [rR] !h !r
-
 b <- comma* [bB] !h !b !unvoiced
-
 d <- comma* [dD] !h !d !unvoiced
-
 g <- comma* [gG] !h !g !unvoiced
-
 v <- comma* [vV] !h !v !unvoiced
-
 j <- comma* [jJ] !h !j !z !unvoiced
-
 z <- comma* [zZ] !h !z !j !unvoiced
-
 s <- comma* [sS] !h !s !c !voiced
-
 c <- comma* [cC] !h !c !s !x !voiced
-
 x <- comma* [xX] !h !x !c !k !voiced
-
 k <- comma* [kK] !h !k !x !voiced
-
 f <- comma* [fF] !h !f !voiced
-
 p <- comma* [pP] !h !p !voiced
-
 t <- comma* [tT] !h !t !voiced
-
 h <- comma* ['h] &nucleus
 
 ;-------------------------------------------------------------------
