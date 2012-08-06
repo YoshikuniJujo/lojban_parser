@@ -2,18 +2,87 @@ parser TestPappy:
 
 {
 
+import System.Environment
 import Data.Maybe
+
+ml = maybeToList
 
 }
 
-top consonant
+top final_syllable
 
 -----------------------------------------------------------------
+-- MORPHOLOGY                                                  --
+-----------------------------------------------------------------
 
-nucleus :: String =
-	  v:vowel	-> { [v] }
-	/ diphthong
-	/ y		-> { [y] }
+-----------------------------------------------------------------
+-- words
+
+-- lojban_word :: String = cmene / cmavo / brivla
+lojban_word :: String = cmene
+
+-----------------------------------------------------------------
+-- cmene
+
+cmene :: String =
+	!h &consonant_final c:coda? r:(any_syllable / d:digit -> { [d] })* &pause ->
+		{ fromMaybe "" c ++ concat r }
+consonant_final :: String =
+	s:non_space_and_non_space* c:consonant &pause -> { s ++ [c] }
+non_space_and_non_space :: Char =
+	n:non_space &non_space -> { n }
+
+-----------------------------------------------------------------
+-- cmavo
+
+-----------------------------------------------------------------
+-- brivla
+
+-----------------------------------------------------------------
+-- fuhivla
+
+-----------------------------------------------------------------
+-- gismu
+
+-----------------------------------------------------------------
+-- syllable
+
+final_syllable :: String =
+	o:onset !y !stressed n:nucleus !cmene &post_word -> { o ++ n }
+
+stressed_syllable :: String
+	= &stressed s:syllable	-> { s }
+	/ s:syllable &stress	-> { s }
+stressed_diphthong :: String
+	= &stressed d:diphthong	-> { d }
+	/ d:diphthong &stress	-> { d }
+stressed_vowel :: Char
+	= &stressed v:vowel	-> { v }
+	/ v:vowel &stress	-> { v }
+
+unstressed_syllable :: String
+	= !stressed s:syllable !stress	-> { s }
+	/ consonantal_syllable
+unstressed_diphthong :: String = !stressed d:diphthong !stress -> { d }
+unstressed_vowel :: Char = !stressed v:vowel !stress -> { v }
+
+stress :: String = c:consonant* y:y? s:syllable pause -> { c ++ ml y ++ s }
+stressed :: String = o:onset comma* v:('A' / 'E' / 'I' / 'O' / 'U') -> { o ++ [v] }
+
+any_syllable :: String
+	= o:onset n:nucleus c:coda?		-> { o ++ n ++ fromMaybe "" c }
+	/ consonantal_syllable
+syllable :: String = o:onset !y n:nucleus c:coda? -> { o ++ n ++ fromMaybe "" c }
+consonantal_syllable :: String =
+	c:consonant s:syllabic
+	&(consonantal_syllable / onset)
+	c':(cin:consonant &spaces -> { c })?		-> { c : s : ml c' }
+
+coda :: String
+	= !any_syllable c:consonant &any_syllable	-> { [c] }
+	/ s:syllabic? c:consonant? &pause	-> { ml s ++ ml c }
+onset :: String = h:h -> { [h] } / c:consonant? g:glide -> { ml c ++ [g] } / initial
+nucleus :: String = v:vowel -> { [v] } / diphthong / y:y -> { [y] }
 
 -----------------------------------------------------------------
 -- vowel
@@ -40,11 +109,8 @@ y :: Char = comma* y:('y' / 'Y')	-> { y }
 cluster :: String = c:consonant cs:consonant+ -> { c : cs }
 
 initial_pair :: String = &initial c:consonant d:consonant !consonant -> { [c, d] }
-
-initial :: String = i:(
-	  affricate
-	/ s:sibilant? o:other? l:liquid?	-> {
-		maybeToList s ++ maybeToList o ++ maybeToList l })
+initial :: String = i:(affricate /
+		s:sibilant? o:other? l:liquid? -> { ml s ++ ml o ++ ml l })
 	!consonant !glide	-> { i }
 
 affricate :: String =
@@ -84,8 +150,46 @@ t :: Char = comma* t:('t' / 'T') !h !t !voiced		-> { t }
 h :: Char = comma* h:('h' / '\'') &nucleus		-> { h }
 
 -----------------------------------------------------------------
+-- other chars
+
+digit :: Char =
+	comma* d:('0' / '1' / '2' / '3' / '4' / '5' / '6' / '7' / '8' / '9')
+		!h ! nucleus	-> { d }
+
+post_word :: String
+	= pause				-> { "" }
+	/ !nucleus l:lojban_word	-> { l }
+
+pause :: { () } = comma* space_char -> { () } / EOF
+EOF :: { () } = !anyChar	-> { () }
+anyChar :: Char = c:Char &{ True } -> { c }
 
 comma :: Char = ','
+
+non_space :: Char = !space_char c:anyChar	-> { c }
+
+space_char :: { () } = ('.' / '?' / '!' / ' ' / '\t' / '\r' / '\n') -> { () }
+
+-----------------------------------------------------------------
+-- Spaces, LUJUVO
+
+spaces :: { () } = !Y i:initial_spaces	-> { i }
+initial_spaces :: { () }
+	= (comma_space_char / !ybu Y -> { () })+ EOF?			-> { () }
+	/ EOF								-> { () }
+comma_space_char :: { () } = comma* space_char				-> { () }
+ybu :: { () } = Y space_char* BU	-> { () }
+
+-- lujvo :: String = !gismu !fuhivla brivla
+
+-----------------------------------------------------------------
+-- CMAVO
+
+BU :: { () } = b u			-> { () }
+-- BU :: { () } = &cmavo b u &post_word	-> { () }
+
+Y :: { () } = y+			-> { () }
+-- Y :: { () } = &cmavo y+ &post_word	-> { () }
 
 -----------------------------------------------------------------
 
@@ -95,11 +199,9 @@ dummy :: {()} =
 
 {
 
-import System.Environment
-
 main = do
 	[str] <- getArgs
-	case testPappyconsonant $ testPappyParse "consonant" str of
+	case testPappyfinal_syllable $ testPappyParse "final_syllable" str of
 		Parsed v _ _ -> print v
 		NoParse e -> error (show e)
 

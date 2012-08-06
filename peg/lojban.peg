@@ -1409,14 +1409,14 @@ CMAVO <-
 ; mi'e ((xorxes))
 
 ;-------------------------------------------------------------------
+;-- words
 
 words <- pause? (word pause?)*
-
 word <- lojban-word / non-lojban-word
-
 lojban-word <- cmene / cmavo / brivla
 
 ;-------------------------------------------------------------------
+;-- cmene
 
 cmene <- !h &consonant-final coda? (any-syllable / digit)* &pause
 
@@ -1429,6 +1429,7 @@ consonant-final <- (non-space &non-space)* consonant &pause
 ;doi-la-lai-lahi <- (d o i / l a (h? i)?) !h !nucleus
 
 ;-------------------------------------------------------------------
+;-- cmavo
 
 cmavo <- !cmene !CVCy-lujvo cmavo-form &post-word
 
@@ -1441,6 +1442,7 @@ cmavo-form <-
 	y+ / digit
 
 ;-------------------------------------------------------------------
+;-- brivla
 
 brivla <- !cmavo initial-rafsi* brivla-core
 
@@ -1454,6 +1456,7 @@ stressed-initial-rafsi <-
 initial-rafsi <- extended-rafsi / y-rafsi / !any-extended-rafsi y-less-rafsi
 
 ;-------------------------------------------------------------------
+;-- fuhivla
 
 any-extended-rafsi <- fuhivla / extended-rafsi / stressed-extended-rafsi
 
@@ -1482,6 +1485,7 @@ rafsi-string <- y-less-rafsi*
 		y-rafsi / stressed-y-rafsi / stressed-y-less-rafsi? initial-pair y)
 
 ;-------------------------------------------------------------------
+;-- gismu
 
 gismu <- stressed-long-rafsi &final-syllable vowel &post-word
 
@@ -1521,39 +1525,32 @@ CVV-rafsi <- consonant
 r-hyphen <- r &consonant / n &r
 
 ;-------------------------------------------------------------------
+;-- syllable
 
 final-syllable <- onset !y !stressed nucleus !cmene &post-word
 
 stressed-syllable <- &stressed syllable / syllable &stress
-
 stressed-diphthong <- &stressed diphthong / diphthong &stress
-
 stressed-vowel <- &stressed vowel / vowel &stress
 
 unstressed-syllable <- !stressed syllable !stress / consonantal-syllable
-
 unstressed-diphthong <- !stressed diphthong !stress
-
 unstressed-vowel <- !stressed vowel !stress
 
 stress <- consonant* y? syllable pause
-
 stressed <- onset comma* [AEIOU]
 
 any-syllable <- onset nucleus coda? / consonantal-syllable
-
 syllable <- onset !y nucleus coda?
-
 consonantal-syllable <- consonant syllabic &(consonantal-syllable / onset)
 	(consonant &spaces)?
 
 coda <- !any-syllable consonant &any-syllable / syllabic? consonant? &pause
-
 onset <- h / consonant? glide / initial
-
 nucleus <- vowel / diphthong / y !nucleus
 
 ;-----------------------------------------------------------------
+;-- vowel
 
 glide <- (i / u) &nucleus !glide
 
@@ -1574,6 +1571,7 @@ u <- comma* [uU]
 y <- comma* [yY]
 
 ;-------------------------------------------------------------------
+;-- consonant
 
 cluster <- consonant consonant+
 
@@ -1612,6 +1610,7 @@ t <- comma* [tT] !h !t !voiced
 h <- comma* ['h] &nucleus
 
 ;-------------------------------------------------------------------
+;-- other chars
 
 digit <- comma* [0123456789] !h !nucleus
 
