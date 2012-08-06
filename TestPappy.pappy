@@ -1,0 +1,83 @@
+parser TestPappy:
+
+top syllabic
+
+-----------------------------------------------------------------
+
+nucleus :: String =
+	  v:vowel	-> { [v] }
+	/ diphthong
+	/ y		-> { [y] }
+
+-----------------------------------------------------------------
+-- vowel
+
+glide :: Char = v:(i / u) &nucleus !glide		-> { v }
+
+diphthong :: String = d:(
+	  v:a w:i -> { [v, w] }
+	/ v:a w:u -> { [v, w] }
+	/ v:e w:i -> { [v, w] }
+	/ v:o w:i -> { [v, w] }) !nucleus !glide	-> { d }
+vowel :: Char = v:(a / e / i / o / u) !nucleus		-> { v }
+
+a :: Char = comma* a:('a' / 'A')	-> { a }
+e :: Char = comma* e:('e' / 'E')	-> { e }
+i :: Char = comma* i:('i' / 'I')	-> { i }
+o :: Char = comma* o:('o' / 'O')	-> { o }
+u :: Char = comma* u:('u' / 'U')	-> { u }
+y :: Char = comma* y:('y' / 'Y')	-> { y }
+
+-----------------------------------------------------------------
+-- consonant
+
+affricate :: String =
+	  t:t c:c				-> { [t, c] }
+	/ t:t s:s				-> { [t, s] }
+	/ d:d j:j				-> { [d, j] }
+	/ d:d z:z				-> { [d, z] }
+
+syllabic :: Char = l / m / n / r
+voiced :: Char = b / d / g / j / v / z
+unvoiced :: Char = c / f / k / p / s / t / x
+
+l :: Char = comma* l:('l' / 'L') !h !l			-> { l }
+m :: Char = comma* m:('m' / 'M') !h !m !z		-> { m }
+n :: Char = comma* n:('n' / 'N') !h !n !affricate	-> { n }
+r :: Char = comma* r:('r' / 'R') !h !r			-> { r }
+b :: Char = comma* b:('b' / 'B') !h !b !unvoiced	-> { b }
+d :: Char = comma* d:('d' / 'D') !h !d !unvoiced	-> { d }
+g :: Char = comma* g:('g' / 'G') !h !g !unvoiced	-> { g }
+v :: Char = comma* v:('v' / 'V') !h !v !unvoiced	-> { v }
+j :: Char = comma* j:('j' / 'J') !h !j !z !unvoiced	-> { j }
+z :: Char = comma* z:('z' / 'Z') !h !z !j !unvoiced	-> { z }
+s :: Char = comma* s:('s' / 'S') !h !s !c !voiced	-> { s }
+c :: Char = comma* c:('c' / 'C') !h !c !s !x !voiced	-> { c }
+x :: Char = comma* x:('x' / 'X') !h !x !c !k !voiced	-> { x }
+k :: Char = comma* k:('k' / 'K') !h !k !x !voiced	-> { k }
+f :: Char = comma* f:('f' / 'F') !h !f !voiced		-> { f }
+p :: Char = comma* p:('p' / 'P') !h !p !voiced		-> { p }
+t :: Char = comma* t:('t' / 'T') !h !t !voiced		-> { t }
+h :: Char = comma* h:('h' / '\'') &nucleus		-> { h }
+
+-----------------------------------------------------------------
+
+comma :: Char = ','
+
+-----------------------------------------------------------------
+
+dummy :: {()} =
+	  l:dummy "a" dummy -> { () }
+	/ "a" dummy 	-> { () }
+
+{
+
+import System.Environment
+
+main = do
+	[str] <- getArgs
+	case testPappysyllabic $ testPappyParse "syllabic" str of
+		Parsed v _ _ -> print v
+		NoParse e -> error (show e)
+
+}
