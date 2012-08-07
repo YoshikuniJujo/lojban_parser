@@ -9,7 +9,7 @@ ml = maybeToList
 
 }
 
-top slinkuhi
+top word
 
 -----------------------------------------------------------------
 -- MORPHOLOGY                                                  --
@@ -18,8 +18,13 @@ top slinkuhi
 -----------------------------------------------------------------
 -- words
 
--- lojban_word :: String = cmene / cmavo / brivla
-lojban_word :: String = cmene / "mi"
+-- words :: { [String] } = pause? ws:(w:word pause? -> { w })*	-> { ws }
+words_ :: { [String] } = sw*
+sw :: String = space_char w:word	-> { w }
+--	= pause ws:words_ w:word	-> { w : ws }
+--	/ pause			-> { [] }
+word :: String = lojban_word / non_lojban_word
+lojban_word :: String = cmene / cmavo / brivla
 
 -----------------------------------------------------------------
 -- cmene
@@ -35,14 +40,58 @@ non_space_and_non_space :: Char =
 -----------------------------------------------------------------
 -- cmavo
 
+cmavo :: String = !cmene !CVCy_lujvo c:cmavo_form &post_word	-> { c }
+CVCy_lujvo :: String
+	= r:CVC_rafsi y:y h:h? rs:initial_rafsi* b:brivla_core
+			-> { r ++ [y] ++ ml h ++ concat rs ++ b }
+	/ r:stressed_CVC_rafsi y:y f:short_final_rafsi
+			-> { r ++ [y] ++ f }
+cmavo_form :: String
+	= !h !cluster o:onset nh:nucleus_h* nn:
+		( !stressed n:nucleus	-> { n }
+		/ n:nucleus !cluster	-> { n } )	-> { o ++ concat nh ++ nn }
+	/ y+ / d:digit -> { [d] }
+nucleus_h :: String = n:nucleus h:h -> { n ++ [h] }
+
 -----------------------------------------------------------------
 -- brivla
+
+brivla :: String = !cmavo
+	rs:initial_rafsi* b:brivla_core		-> { concat rs ++ b }
+
+brivla_core :: String
+	= fuhivla / gismu / CVV_final_rafsi
+	/ i:stressed_initial_rafsi f:short_final_rafsi	-> { i ++ f }
+
+stressed_initial_rafsi :: String
+	= stressed_extended_rafsi / stressed_y_rafsi / stressed_y_less_rafsi
+
+initial_rafsi :: String
+	= extended_rafsi / y_rafsi
+	/ !any_extended_rafsi r:y_less_rafsi	-> { r }
 
 -----------------------------------------------------------------
 -- fuhivla
 
-any_extended_rafsi :: String = "aiueo"
-
+any_extended_rafsi :: String = fuhivla / extended_rafsi / stressed_extended_rafsi
+fuhivla :: String =
+	f:fuhivla_head s:stressed_syllable ss:consonantal_syllable* t:final_syllable
+		-> { f ++ s ++ concat ss ++ t }
+stressed_extended_rafsi :: String = stressed_brivla_rafsi / stressed_fuhivla_rafsi
+extended_rafsi :: String = brivla_rafsi / fuhivla_rafsi
+stressed_brivla_rafsi :: String = &unstressed_syllable
+	b:brivla_head s:stressed_syllable h:h y:y	-> { b ++ s ++ [h, y] }
+brivla_rafsi :: String = &(syllable consonantal_syllable* syllable -> { () })
+	b:brivla_head h:h y:y i:h?	-> { b ++ [h, y] ++ ml i }
+stressed_fuhivla_rafsi :: String =
+	f:fuhivla_head s:stressed_syllable &consonant o:onset y:y
+			-> { f ++ s ++ o ++ [y] }
+fuhivla_rafsi :: String =
+	&unstressed_syllable f:fuhivla_head &consonant o:onset y:y h:h?
+			-> { f ++ o ++ [y] ++ ml h }
+fuhivla_head :: String = !rafsi_string b:brivla_head	-> { b }
+brivla_head :: String = !cmavo !slinkuhi !h &onset ss:unstressed_syllable*
+							-> { concat ss }
 slinkuhi :: String = c:consonant r:rafsi_string		-> { c : r }
 rafsi_string :: String = ylrs:y_less_rafsi* r:
 	( gismu
@@ -221,6 +270,8 @@ anyChar :: Char = c:Char &{ True } -> { c }
 
 comma :: Char = ','
 
+non_lojban_word :: String = !lojban_word ns:non_space+	-> { ns }
+
 non_space :: Char = !space_char c:anyChar	-> { c }
 
 space_char :: { () } = ('.' / '?' / '!' / ' ' / '\t' / '\r' / '\n') -> { () }
@@ -256,7 +307,7 @@ dummy :: {()} =
 
 main = do
 	[str] <- getArgs
-	case testPappyslinkuhi $ testPappyParse "slinkuhi" str of
+	case testPappyword $ testPappyParse "word" str of
 		Parsed v _ _ -> print v
 		NoParse e -> error (show e)
 
