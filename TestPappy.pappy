@@ -9,7 +9,7 @@ ml = maybeToList
 
 }
 
-top stressed_CVV_rafsi
+top slinkuhi
 
 -----------------------------------------------------------------
 -- MORPHOLOGY                                                  --
@@ -19,7 +19,7 @@ top stressed_CVV_rafsi
 -- words
 
 -- lojban_word :: String = cmene / cmavo / brivla
-lojban_word :: String = cmene
+lojban_word :: String = cmene / "mi"
 
 -----------------------------------------------------------------
 -- cmene
@@ -43,9 +43,41 @@ non_space_and_non_space :: Char =
 
 any_extended_rafsi :: String = "aiueo"
 
+slinkuhi :: String = c:consonant r:rafsi_string		-> { c : r }
+rafsi_string :: String = ylrs:y_less_rafsi* r:
+	( gismu
+	/ CVV_final_rafsi
+	/ ylr:stressed_y_less_rafsi sfr:short_final_rafsi	-> { ylr ++ sfr }
+	/ y_rafsi
+	/ stressed_y_rafsi
+	/ ylr:stressed_y_less_rafsi? p:initial_pair y:y
+		-> { fromMaybe "" ylr ++ p ++ [y] } )	-> { concat ylrs ++ r }
+
 -----------------------------------------------------------------
 -- gismu
 
+gismu :: String = r:stressed_long_rafsi &final_syllable v:vowel &post_word
+		-> { r ++ [v] }
+CVV_final_rafsi :: String =
+	c:consonant v:stressed_vowel h:h &final_syllable w:vowel &post_word
+		-> { c : v : h : w : [] }
+short_final_rafsi :: String = &final_syllable r:
+	( c:consonant d:diphthong	-> { c : d }
+	/ p:initial_pair v:vowel	-> { p ++ [v] } ) &post_word
+		-> { r }
+
+stressed_y_rafsi :: String =
+	r:(stressed_long_rafsi / stressed_CVC_rafsi) y:y	-> { r ++ [y] }
+stressed_y_less_rafsi :: String
+	= r:stressed_CVC_rafsi !y		-> { r }
+	/ stressed_CCV_rafsi
+	/ stressed_CVV_rafsi
+stressed_long_rafsi :: String =
+	r:(stressed_CCV_rafsi / stressed_CVC_rafsi) c:consonant	-> { r ++ [c] }
+stressed_CVC_rafsi :: String = c:consonant v:stressed_vowel d:consonant
+							-> { [c, v, d] }
+stressed_CCV_rafsi :: String = p:initial_pair v:stressed_vowel
+							-> { p ++ [v] }
 stressed_CVV_rafsi :: String = c:consonant vv:
 	( v:unstressed_vowel h:h w:stressed_vowel	-> { [v, h, w] }
 	/ stressed_diphthong ) r:r_hyphen?		-> { c : vv ++ ml r }
@@ -224,7 +256,7 @@ dummy :: {()} =
 
 main = do
 	[str] <- getArgs
-	case testPappystressed_CVV_rafsi $ testPappyParse "stressed_CVV_rafsi" str of
+	case testPappyslinkuhi $ testPappyParse "slinkuhi" str of
 		Parsed v _ _ -> print v
 		NoParse e -> error (show e)
 

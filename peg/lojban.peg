@@ -1419,24 +1419,19 @@ lojban-word <- cmene / cmavo / brivla
 ;-- cmene
 
 cmene <- !h &consonant-final coda? (any-syllable / digit)* &pause
-
 consonant-final <- (non-space &non-space)* consonant &pause
 
 ;cmene <- !h cmene-syllable* &consonant coda? consonantal-syllable* onset &pause
-
 ;cmene-syllable <- !doi-la-lai-lahi coda? consonantal-syllable* onset nucleus / digit
-
 ;doi-la-lai-lahi <- (d o i / l a (h? i)?) !h !nucleus
 
 ;-------------------------------------------------------------------
 ;-- cmavo
 
 cmavo <- !cmene !CVCy-lujvo cmavo-form &post-word
-
 CVCy-lujvo <-
 	CVC-rafsi y h? initial-rafsi* brivla-core /
 	stressed-CVC-rafsi y short-final-rafsi
-
 cmavo-form <-
 	!h !cluster onset (nucleus h)* (!stressed nucleus / nucleus !cluster) /
 	y+ / digit
