@@ -9,7 +9,7 @@ ml = maybeToList
 
 }
 
-top final_syllable
+top stressed_CVV_rafsi
 
 -----------------------------------------------------------------
 -- MORPHOLOGY                                                  --
@@ -41,8 +41,31 @@ non_space_and_non_space :: Char =
 -----------------------------------------------------------------
 -- fuhivla
 
+any_extended_rafsi :: String = "aiueo"
+
 -----------------------------------------------------------------
 -- gismu
+
+stressed_CVV_rafsi :: String = c:consonant vv:
+	( v:unstressed_vowel h:h w:stressed_vowel	-> { [v, h, w] }
+	/ stressed_diphthong ) r:r_hyphen?		-> { c : vv ++ ml r }
+
+y_rafsi :: String = r:(long_rafsi / CVC_rafsi) y:y h:h?
+	-> { r ++ [y] ++ ml h }
+y_less_rafsi :: String = !y_rafsi r:
+	( cvcr:CVC_rafsi !y	-> { cvcr }
+	/ CCV_rafsi
+	/ CVV_rafsi) !any_extended_rafsi			-> { r }
+long_rafsi :: String = r:(CCV_rafsi / CVC_rafsi) c:consonant	-> { r ++ [c] }
+CVC_rafsi :: String = c:consonant v:unstressed_vowel d:consonant
+	-> { [c, v, d] }
+CCV_rafsi :: String = i:initial_pair v:unstressed_vowel	-> { i ++ [v] }
+CVV_rafsi :: String = c:consonant vv:
+	( v:unstressed_vowel h:h w:unstressed_vowel	-> { [v, h, w] }
+	/ d:unstressed_diphthong			-> { d })
+	r:r_hyphen?		-> { c : vv ++ ml r }
+
+r_hyphen :: Char = r:r &consonant -> { r } / n:n &r -> { n }
 
 -----------------------------------------------------------------
 -- syllable
@@ -201,7 +224,7 @@ dummy :: {()} =
 
 main = do
 	[str] <- getArgs
-	case testPappyfinal_syllable $ testPappyParse "final_syllable" str of
+	case testPappystressed_CVV_rafsi $ testPappyParse "stressed_CVV_rafsi" str of
 		Parsed v _ _ -> print v
 		NoParse e -> error (show e)
 

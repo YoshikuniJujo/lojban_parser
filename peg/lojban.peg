@@ -1488,37 +1488,25 @@ rafsi-string <- y-less-rafsi*
 ;-- gismu
 
 gismu <- stressed-long-rafsi &final-syllable vowel &post-word
-
 CVV-final-rafsi <- consonant stressed-vowel h &final-syllable vowel &post-word
-
 short-final-rafsi <-
 	&final-syllable (consonant diphthong / initial-pair vowel) &post-word
 
 stressed-y-rafsi <- (stressed-long-rafsi / stressed-CVC-rafsi) y
-
 stressed-y-less-rafsi <-
 	stressed-CVC-rafsi !y / stressed-CCV-rafsi / stressed-CVV-rafsi
-
 stressed-long-rafsi <- (stressed-CCV-rafsi / stressed-CVC-rafsi) consonant
-
 stressed-CVC-rafsi <- consonant stressed-vowel consonant
-
 stressed-CCV-rafsi <- initial-pair stressed-vowel
-
 stressed-CVV-rafsi <- consonant
 	(unstressed-vowel h stressed-vowel / stressed-diphthong) r-hyphen?
 
 y-rafsi <- (long-rafsi / CVC-rafsi) y h?
-
 y-less-rafsi <-
 	!y-rafsi (CVC-rafsi !y / CCV-rafsi / CVV-rafsi) !any-extended-rafsi
-
 long-rafsi <- (CCV-rafsi / CVC-rafsi) consonant
-
 CVC-rafsi <- consonant unstressed-vowel consonant
-
 CCV-rafsi <- initial-pair unstressed-vowel
-
 CVV-rafsi <- consonant
 	(unstressed-vowel h unstressed-vowel / unstressed-diphthong) r-hyphen?
 
@@ -1553,21 +1541,14 @@ nucleus <- vowel / diphthong / y !nucleus
 ;-- vowel
 
 glide <- (i / u) &nucleus !glide
-
 diphthong <- (a i / a u / e i / o i) !nucleus !glide
-
 vowel <- (a / e / i / o / u) !nucleus
 
 a <- comma* [aA]
-
 e <- comma* [eE]
-
 i <- comma* [iI]
-
 o <- comma* [oO]
-
 u <- comma* [uU]
-
 y <- comma* [yY]
 
 ;-------------------------------------------------------------------
