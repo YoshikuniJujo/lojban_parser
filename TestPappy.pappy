@@ -11,26 +11,30 @@ ml = maybeToList
 
 top test
 
-test :: { (([String], String), Maybe ([String], String)) } = t:indicator EOF	-> { t }
+test :: { ([String], String, Indicators) }
+	= t:BRIVLA_clause EOF	-> { t }
 
-indicator :: { (([String], String), Maybe ([String], String)) } = i:
-	( uc:(UI_clause / CAI_clause) n:NAI_clause?	-> { (uc, n) }
-	/ d:DAhO_clause					-> { (d, Nothing) }
-	/ f:FUhO_clause					-> { (f, Nothing) } )
+indicators :: { [([String], String)] }
+	= f:FUhE_clause is:indicator+		-> { f : concat is }
+
+indicator :: { [([String], String)] } = i:
+	( uc:(UI_clause / CAI_clause) n:NAI_clause?	-> { uc : ml n }
+	/ d:DAhO_clause					-> { d : [] }
+	/ f:FUhO_clause					-> { f : [] } )
 	!BU_clause
 	-> { i }
 
 -----------------------------------------------------------------
 -- Magic Words
 
-zei_clause_no_pre :: { [String], String, ()) }
+zei_clause_no_pre :: { [String], String, Indicators) }
 	= p:pre_zei_bu zb:zeit_but* z:zei_tail q:post_clause
 	-> { let (bahe, pre) = p in (bahe, pre ++ concat zb ++ concatMap (" zei " ++) z, q) }
 zeit_but :: String
 	= z:zei_tail? b:bu_tail
 	-> { concatMap (" zei " ++) (fromMaybe [] z) ++ concat (replicate b " bu") }
 
-bu_clause_no_pre :: { ([String], String, ()) }
+bu_clause_no_pre :: { ([String], String, Indicators) }
 	= p:pre_zei_bu bz:but_zeit* b:bu_tail q:post_clause
 	-> { let (bahe, pre) = p in (bahe, pre ++ concat bz ++ concat (replicate b " bu"), q) }
 but_zeit :: String
@@ -50,9 +54,10 @@ pre_zei_bu :: { ([String], String) } =
 --	1. Space (including '.y') and UI are eaten *after* a word.
 --	3. BAhE is eaten *before* a word.
 
--- post_clause :: { [Indicators] }
---	= spaces? si_clause? !ZEI_clause !BU_clause indicators*
-post_clause :: { () } = spaces? si_clause? !ZEI_clause !BU_clause -> { () }
+post_clause :: { [[([String], String)]] }
+	= spaces? si_clause? !ZEI_clause !BU_clause is:indicators*
+	-> { is }
+-- post_clause :: { () } = spaces? si_clause? !ZEI_clause !BU_clause -> { () }
 
 pre_clause :: { [String] } = b:BAhE_clause?	-> { fromMaybe [] b }
 
@@ -85,10 +90,12 @@ si_word :: { ([String], String) } = pre_zei_bu
 -----------------------------------------------------------------
 -- SELMAHO
 
--- BRIVLA_clause :: { (([String], String), (String, Maybe String) }
+BRIVLA_clause :: { ([String], String, Indicators) }
+	= pre:BRIVLA_pre post:BRIVLA_post
+	-> { let (bahe, brivla) = pre in (bahe, brivla, post) }
 BRIVLA_pre :: { ([String], String) }
 	= p:pre_clause b:BRIVLA spaces?		-> { (p, b) }
--- BRIVLA_post :: { (String, Maybe String) } = post_clause
+BRIVLA_post :: Indicators = post_clause
 
 CMENE_pre :: { [String], String) }
 	= p:pre_clause c:CMENE spaces?		-> { (p, c) }
@@ -110,28 +117,34 @@ CAI_clause :: { ([String], String) }
 	= pre:CAI_pre post:CAI_post	-> { pre }
 CAI_pre :: { ([String], String) }
 	= p:pre_clause c:CAI spaces?	-> { (p, c) }
-CAI_post :: { () } = post_clause
+CAI_post :: Indicators = post_clause
 
 DAhO_clause :: { ([String], String) }
 	= pre:DAhO_pre post:DAhO_post	-> { pre }
 DAhO_pre :: { ([String], String) }
 	= p:pre_clause d:DAhO spaces?	-> { (p, d) }
-DAhO_post :: { () } = post_clause
+DAhO_post :: Indicators = post_clause
 
 FAhO_clause :: { ([String], String) }
 	= p:pre_clause f:FAhO spaces?	-> { (p, f) }
+
+FUhE_clause :: { ([String], String) }
+	= pre:FUhE_pre post:FUhO_post	-> { pre }
+FUhE_pre :: { ([String], String) }
+	= p:pre_clause f:FUhE spaces?	-> { (p, f) }
+FUhE_post :: Indicators = post_clause
 
 FUhO_clause :: { ([String], String) }
 	= pre:FUhO_pre post:FUhO_post	-> { pre }
 FUhO_pre :: { ([String], String) }
 	= p:pre_clause f:FUhO spaces?	-> { (p, f) }
-FUhO_post :: { () } = post_clause
+FUhO_post :: Indicators = post_clause
 
 NAI_clause :: { ([String], String) }
 	= pre:NAI_pre post:NAI_post	-> { pre }
 NAI_pre :: { ([String], String) }
 	= p:pre_clause n:NAI spaces?	-> { (p, n) }
-NAI_post :: { () } = post_clause
+NAI_post :: Indicators = post_clause
 
 NAhE_pre :: { ([String], String) } = p:pre_clause n:NAhE spaces?
 	-> { (p, n) }
@@ -144,13 +157,13 @@ SI_clause :: { () } = spaces? SI spaces?	-> { () }
 
 SU_clause :: { () } = SU_pre SU_post		-> { () }
 SU_pre :: { () } = pre_clause SU spaces?	-> { () }
-SU_post :: { () } = post_clause			-> { () }
+SU_post :: Indicators = post_clause		-> { () }
 
 UI_clause :: { ([String], String) }
 	= pre:UI_pre post:UI_post		-> { pre }
 UI_pre :: { ([String], String) }
 	= p:pre_clause u:UI spaces?		-> { (p, u) }
-UI_post :: { () } = post_clause
+UI_post :: Indicators = post_clause
 
 ZEI_clause :: { () } = ZEI_pre
 -- ZEI_pre :: String = pre_clause z:ZEI spaces?
@@ -1422,6 +1435,8 @@ dummy :: {()} =
 	/ "a" dummy 	-> { () }
 
 {
+
+type Indicators = [[([String], String)]]
 
 main = do
 	[str] <- getArgs
