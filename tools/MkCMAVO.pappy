@@ -1,0 +1,49 @@
+parser MkCMAVO:
+
+top mkCMAVO
+
+mkCMAVO :: { (String, [String]) } = and_cmavo
+
+and_cmavo :: { (String, [String]) } =
+	s:selmaho spaces "<-" spaces "&cmavo" spaces "(" spaces
+	cs:cmavo_list ')' spaces "&post-word"
+	-> { (s, cs) }
+
+cmavo_list :: { [String] }
+	= c:cmavo '/' cs:cmavo_list	-> { c : cs }
+	/ c:cmavo			-> { [c] }
+cmavo :: String
+	= spaces l:lower_s*	-> { l }
+selmaho :: String
+	= s:upper+	-> { s }
+upper :: Char = c:Char &{ c `elem` "ABCDEFGhIJKLMNOPRSTUVXYZ" }	-> { c }
+lower_s :: Char = c:lower spaces				-> { c }
+lower :: Char = c:Char &{ c `elem` "abcdefghijklmnoprstuvxyz" } -> { c }
+spaces :: { () } = ( ' ' / '\t' / '\n' )*
+
+{
+
+import System.Environment
+import Data.List
+import Data.Char
+
+main = do
+	str <- getContents
+	let (s, cs) =case mkCMAVOmkCMAVO $ mkCMAVOParse "mkCMAVO" str of
+		Parsed v _ _	-> v
+		NoParse e	-> error $ show e
+	putChar '\n'
+	putStr $ mkPappys s cs
+
+mkPappys :: String -> [String] -> String
+mkPappys s cs =
+	s ++ " :: String = &cmavo " ++ map toLower s ++ ":\n" ++
+	"\t( " ++ intercalate "\n\t/ " (map mkOneLine cs) ++ " )\n\t-> { " ++
+	map toLower s ++ " }\n"
+
+mkOneLine :: String -> String
+mkOneLine s =
+	unwords (map (\c -> c : ':' : [c]) s) ++ "\t-> { [" ++
+	intercalate ", " (map (: []) s) ++ "] }"
+
+}
