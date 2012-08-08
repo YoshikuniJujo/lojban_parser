@@ -11,7 +11,109 @@ ml = maybeToList
 
 top test
 
-test :: String = c:CMAVO EOF	-> { c }
+test :: { (Maybe String, String, ()) }
+	= t:zei_clause_no_pre EOF	-> { t }
+-- test :: { (Maybe String, String, ()) }
+--	= t:bu_clause_no_pre EOF	-> { t }
+
+-----------------------------------------------------------------
+-- Magic Words
+
+zei_clause_no_pre :: { (Maybe String, String, ()) }
+	= p:pre_zei_bu zb:zeit_but* z:zei_tail q:post_clause
+	-> { let (bahe, pre) = p in (bahe, pre ++ concat zb ++ concatMap (" zei " ++) z, q) }
+zeit_but :: String
+	= z:zei_tail? b:bu_tail
+	-> { concatMap (" zei " ++) (fromMaybe [] z) ++ concat (replicate b " bu") }
+
+bu_clause_no_pre :: { (Maybe String, String, ()) }
+	= p:pre_zei_bu bz:but_zeit* b:bu_tail q:post_clause
+	-> { let (bahe, pre) = p in (bahe, pre ++ concat bz ++ concat (replicate b " bu"), q) }
+but_zeit :: String
+	= b:bu_tail? z:zei_tail
+	-> { concat (replicate (fromMaybe 0 b) " bu") ++ concatMap (" zei " ++) z }
+
+zei_tail :: { [String] } = ws:zei_word+		-> { ws }
+zei_word :: { String } = ZEI_clause w:any_word	-> { w }
+bu_tail :: Int = b:BU_clause+	-> { length b }
+
+pre_zei_bu :: { (Maybe String, String) } =
+	!BU_clause !ZEI_clause !SI_clause !SA_clause !SU_clause !FAhO_clause
+	w:any_word_SA_handling si_clause?	-> { w }
+
+-----------------------------------------------------------------
+-- General Morphology Issues
+--	1. Space (including '.y') and UI are eaten *after* a word.
+--	3. BAhE is eaten *before* a word.
+
+-- post_clause :: { [Indicators] }
+--	= spaces? si_clause? !ZEI_clause !BU_clause indicators*
+post_clause :: { () } = spaces? si_clause? !ZEI_clause !BU_clause -> { () }
+
+pre_clause :: { Maybe String } = "ba'e"? -- BAhE_clause?
+
+any_word_SA_handling :: { (Maybe String, String) }
+	= BRIVLA_pre
+	/ known_cmavo_SA
+	/ CMAVO_pre
+	/ CMENE_pre
+
+known_cmavo_SA :: { (Maybe String, String) }
+	= A_pre
+	/ NAhE_pre
+
+-----------------------------------------------------------------
+-- SPACE
+
+si_clause :: { () } = "zo'e si"?	-> { () }
+-- si_clause :: { () } =
+--	((erasable_clause / si_word / SA_clause) si_clause? SI_clause -> { () })+
+--	-> { () }
+
+-- erasable_clause :: { () }
+--	= bu_clause_no_pre !ZEI_clause !BU_clause		-> { () }
+--	/ zei_clause_no_pre !ZEI_clause !BU_clause		-> { () }
+
+si_word :: { (Maybe String, String) } = pre_zei_bu
+
+-----------------------------------------------------------------
+-- SELMAHO
+
+BRIVLA_pre :: { (Maybe String, String) }
+	= p:pre_clause b:BRIVLA spaces?		-> { (p, b) }
+CMENE_pre :: { (Maybe String, String) }
+	= p:pre_clause c:CMENE spaces?		-> { (p, c) }
+CMAVO_pre :: { (Maybe String, String) }
+	= p:pre_clause c:CMAVO spaces?		-> { (p, c) }
+
+A_pre :: { (Maybe String, String) } = p:pre_clause a:A spaces?	-> { (p, a) }
+
+BU_clause :: { () } = BU_pre
+-- BU_pre :: String = pre_clause BU spaces?
+BU_pre :: { () } = BU spaces?		-> { () }
+
+BAhE_pre :: String = b:BAhE spaces?			-> { b }
+-- BAhE_post :: { () } = si_clause? !ZEI_clause !BU_clause	-> { () }
+
+FAhO_clause :: { (Maybe String, String) }
+	= p:pre_clause f:FAhO spaces?	-> { (p, f) }
+
+NAhE_pre :: { (Maybe String, String) } = p:pre_clause n:NAhE spaces?
+	-> { (p, n) }
+
+SA_clause :: { () } = SA_pre SA_post		-> { () }
+SA_pre :: { () } = pre_clause SA spaces?	-> { () }
+SA_post :: { () } = spaces?			-> { () }
+
+SI_clause :: { () } = spaces? SI spaces?	-> { () }
+
+SU_clause :: { () } = SU_pre SU_post		-> { () }
+SU_pre :: { () } = pre_clause SU spaces?	-> { () }
+SU_post :: { () } = post_clause			-> { () }
+
+ZEI_clause :: { () } = ZEI_pre
+-- ZEI_pre :: String = pre_clause z:ZEI spaces?
+ZEI_pre :: { () } = ZEI spaces?	-> { () }
 
 -----------------------------------------------------------------
 -- MORPHOLOGY                                                  --
@@ -41,6 +143,7 @@ CMAVO :: String
 words :: { [String] } = pause? ws:word_pause*	-> { ws }
 word_pause :: String = w:word pause?	-> { w }
 word :: String = lojban_word / non_lojban_word
+any_word :: String = w:lojban_word spaces?	-> { w }
 lojban_word :: String = cmene / cmavo / brivla
 
 -----------------------------------------------------------------
