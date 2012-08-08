@@ -9,7 +9,9 @@ ml = maybeToList
 
 }
 
-top UI
+top test
+
+test :: String = c:CMAVO EOF	-> { c }
 
 -----------------------------------------------------------------
 -- MORPHOLOGY                                                  --
@@ -18,7 +20,20 @@ top UI
 CMENE :: String = cmene
 BRIVLA :: String = gismu / lujvo / fuhivla
 CMAVO :: String
-	= A    / BAI
+	= A    / BAI  / BAhE / BE   / BEI  / BEhO / BIhE / BIhI / BO
+	/ BOI  / BU   / BY   / CAhA / CAI  / CEI  / CEhE / CO   / COI
+	/ CU   / CUhE / DAhO / DOI  / DOhU / FA   / FAhA / FAhO / FEhE
+	/ FEhU / FIhO / FOI  / FUhA / FUhE / FUhO / GA   / GAhO / GEhU
+	/ GI   / GIhA / GOI  / GOhA / GUhA / I    / JA   / JAI  / JOhI
+	/ JOI  / KE   / KEhE / KEI  / KI   / KOhA / KU   / KUhE / KUhO
+	/ LA   / LAU  / LAhE / LE   / LEhU / LI   / LIhU / LOhO / LOhU
+	/ LU   / LUhU / MAhO / MAI  / ME   / MEhU / MOhE / MOhI / MOI
+	/ NA   / NAI  / NAhE / NAhU / NIhE / NIhO / NOI  / NU   / NUhA
+	/ NUhI / NUhU / PA   / PEhE / PEhO / PU   / RAhO / ROI  / SA
+	/ SE   / SEI  / SEhU / SI   / SOI  / SU   / TAhE / TEhU / TEI
+	/ TO   / TOI  / TUhE / TUhU / UI   / VA   / VAU  / VEI  / VEhO
+	/ VUhU / VEhA / VIhA / VUhO / XI   / ZAhO / ZEhA / ZEI  / ZI
+	/ ZIhE / ZO   / ZOI  / ZOhU / cmavo
 
 -----------------------------------------------------------------
 -- words
@@ -627,6 +642,14 @@ GOhA :: String = &cmavo goha:
 	/ c:c o:o h:h e:e	-> { [c, o, h, e] } )
 	-> { goha }
 
+GUhA :: String = &cmavo guha:
+	( g:g u:u h:h e:e	-> { [g, u, h, e] }
+	/ g:g u:u h:h i:i	-> { [g, u, h, i] }
+	/ g:g u:u h:h o:o	-> { [g, u, h, o] }
+	/ g:g u:u h:h a:a	-> { [g, u, h, a] }
+	/ g:g u:u h:h u:u	-> { [g, u, h, u] } )
+	-> { guha }
+
 I :: String = &cmavo i:
 	( i:i	-> { [i] } )
 	-> { i }
@@ -670,6 +693,10 @@ KEhE :: String = &cmavo kehe:
 KEI :: String = &cmavo kei:
 	( k:k e:e i:i	-> { [k, e, i] } )
 	-> { kei }
+
+KI :: String = &cmavo ki:
+	( k:k i:i	-> { [k, i] } )
+	-> { ki }
 
 KOhA :: String = &cmavo koha:
 	( d:d a:a h:h u:u	-> { [d, a, h, u] }
@@ -1227,6 +1254,10 @@ ZI :: String = &cmavo zi:
 	/ z:z i:i	-> { [z, i] } )
 	-> { zi }
 
+ZIhE :: String = &cmavo zihe:
+	( z:z i:i h:h e:e	-> { [z, i, h, e] } )
+	-> { zihe }
+
 ZO :: String = &cmavo zo:
 	( z:z o:o	-> { [z, o] } )
 	-> { zo }
@@ -1250,7 +1281,7 @@ dummy :: {()} =
 
 main = do
 	[str] <- getArgs
-	case testPappyUI $ testPappyParse "UI" str of
+	case testPappytest $ testPappyParse "test" str of
 		Parsed v _ _ -> print v
 		NoParse e -> error (show e)
 
