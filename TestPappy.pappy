@@ -9,7 +9,7 @@ ml = maybeToList
 
 }
 
-top BAhE
+top BY
 
 -----------------------------------------------------------------
 -- MORPHOLOGY                                                  --
@@ -286,7 +286,7 @@ initial_spaces :: { () }
 	= (comma_space_char / !ybu Y -> { () })+ EOF?			-> { () }
 	/ EOF								-> { () }
 comma_space_char :: { () } = comma* space_char				-> { () }
-ybu :: { () } = Y space_char* BU	-> { () }
+ybu :: String = y:Y space_char* b:BU	-> { y ++ b }
 
 lujvo :: String = !gismu !fuhivla b:brivla	-> { b }
 
@@ -408,7 +408,37 @@ BU :: String = &cmavo bu:
 	( b:b u:u	-> { [b, u] } )
 	-> { bu }
 
-Y :: { () } = &cmavo y+ &post_word	-> { () }
+BY :: String = ybu / &cmavo by:
+	( j:j o:o h:h o:o	-> { [j, o, h, o] }
+	/ r:r u:u h:h o:o	-> { [r, u, h, o] }
+	/ g:g e:e h:h o:o	-> { [g, e, h, o] }
+	/ j:j e:e h:h o:o	-> { [j, e, h, o] }
+	/ l:l o:o h:h a:a	-> { [l, o, h, a] }
+	/ n:n a:a h:h a:a	-> { [n, a, h, a] }
+	/ s:s e:e h:h e:e	-> { [s, e, h, e] }
+	/ t:t o:o h:h a:a	-> { [t, o, h, a] }
+	/ g:g a:a h:h e:e	-> { [g, a, h, e] }
+	/ y:y h:h y:y	-> { [y, h, y] }
+	/ b:b y:y	-> { [b, y] }
+	/ c:c y:y	-> { [c, y] }
+	/ d:d y:y	-> { [d, y] }
+	/ f:f y:y	-> { [f, y] }
+	/ g:g y:y	-> { [g, y] }
+	/ j:j y:y	-> { [j, y] }
+	/ k:k y:y	-> { [k, y] }
+	/ l:l y:y	-> { [l, y] }
+	/ m:m y:y	-> { [m, y] }
+	/ n:n y:y	-> { [n, y] }
+	/ p:p y:y	-> { [p, y] }
+	/ r:r y:y	-> { [r, y] }
+	/ s:s y:y	-> { [s, y] }
+	/ t:t y:y	-> { [t, y] }
+	/ v:v y:y	-> { [v, y] }
+	/ x:x y:y	-> { [x, y] }
+	/ z:z y:y	-> { [z, y] } )
+	-> { by }
+
+Y :: String = &cmavo y:y+ &post_word	-> { y }
 
 -----------------------------------------------------------------
 
@@ -420,7 +450,7 @@ dummy :: {()} =
 
 main = do
 	[str] <- getArgs
-	case testPappyBAhE $ testPappyParse "BAhE" str of
+	case testPappyBY $ testPappyParse "BY" str of
 		Parsed v _ _ -> print v
 		NoParse e -> error (show e)
 

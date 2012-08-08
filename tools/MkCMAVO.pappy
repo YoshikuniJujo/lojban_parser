@@ -5,7 +5,9 @@ top mkCMAVO
 mkCMAVO :: { (String, [String]) } = and_cmavo
 
 and_cmavo :: { (String, [String]) } =
-	s:selmaho spaces "<-" spaces "&cmavo" spaces "(" spaces
+	s:selmaho spaces "<-" spaces
+	("ybu" spaces '/' spaces -> { () })?
+	"&cmavo" spaces "(" spaces
 	cs:cmavo_list ')' spaces "&post-word"
 	-> { (s, cs) }
 
