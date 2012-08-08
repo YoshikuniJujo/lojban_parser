@@ -9,7 +9,7 @@ ml = maybeToList
 
 }
 
-top word
+top words
 
 -----------------------------------------------------------------
 -- MORPHOLOGY                                                  --
@@ -18,11 +18,8 @@ top word
 -----------------------------------------------------------------
 -- words
 
--- words :: { [String] } = pause? ws:(w:word pause? -> { w })*	-> { ws }
-words_ :: { [String] } = sw*
-sw :: String = space_char w:word	-> { w }
---	= pause ws:words_ w:word	-> { w : ws }
---	/ pause			-> { [] }
+words :: { [String] } = pause? ws:word_pause*	-> { ws }
+word_pause :: String = w:word pause?	-> { w }
 word :: String = lojban_word / non_lojban_word
 lojban_word :: String = cmene / cmavo / brivla
 
@@ -30,8 +27,8 @@ lojban_word :: String = cmene / cmavo / brivla
 -- cmene
 
 cmene :: String =
-	!h &consonant_final c:coda? r:(any_syllable / d:digit -> { [d] })* &pause ->
-		{ fromMaybe "" c ++ concat r }
+	!h &consonant_final c:coda? r:(any_syllable / d:digit -> { [d] })+ &pause
+		-> { fromMaybe "" c ++ concat r }
 consonant_final :: String =
 	s:non_space_and_non_space* c:consonant &pause -> { s ++ [c] }
 non_space_and_non_space :: Char =
@@ -291,11 +288,9 @@ ybu :: { () } = Y space_char* BU	-> { () }
 -----------------------------------------------------------------
 -- CMAVO
 
-BU :: { () } = b u			-> { () }
--- BU :: { () } = &cmavo b u &post_word	-> { () }
+BU :: { () } = &cmavo b u &post_word	-> { () }
 
-Y :: { () } = y+			-> { () }
--- Y :: { () } = &cmavo y+ &post_word	-> { () }
+Y :: { () } = &cmavo y+ &post_word	-> { () }
 
 -----------------------------------------------------------------
 
@@ -307,7 +302,7 @@ dummy :: {()} =
 
 main = do
 	[str] <- getArgs
-	case testPappyword $ testPappyParse "word" str of
+	case testPappywords $ testPappyParse "words" str of
 		Parsed v _ _ -> print v
 		NoParse e -> error (show e)
 
