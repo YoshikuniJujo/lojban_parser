@@ -11,10 +11,10 @@ ml = maybeToList
 
 top test
 
-test :: { (Maybe String, String, ()) }
-	= t:zei_clause_no_pre EOF	-> { t }
+test :: { () } = t:si_clause	-> { t }
+
 -- test :: { (Maybe String, String, ()) }
---	= t:bu_clause_no_pre EOF	-> { t }
+--	= t:zei_clause_no_pre EOF	-> { t }
 
 -----------------------------------------------------------------
 -- Magic Words
@@ -65,14 +65,16 @@ known_cmavo_SA :: { (Maybe String, String) }
 -----------------------------------------------------------------
 -- SPACE
 
-si_clause :: { () } = "zo'e si"?	-> { () }
--- si_clause :: { () } =
---	((erasable_clause / si_word / SA_clause) si_clause? SI_clause -> { () })+
---	-> { () }
+si_clause :: { () } = si_clause_single+				-> { () }
+si_clause_single :: { () } = er_si_sa si_clause? SI_clause	-> { () }
+er_si_sa :: { () }
+	= erasable_clause
+	/ si_word		-> { () }
+	/ SA_clause
 
--- erasable_clause :: { () }
---	= bu_clause_no_pre !ZEI_clause !BU_clause		-> { () }
---	/ zei_clause_no_pre !ZEI_clause !BU_clause		-> { () }
+erasable_clause :: { () }
+	= bu_clause_no_pre !ZEI_clause !BU_clause		-> { () }
+	/ zei_clause_no_pre !ZEI_clause !BU_clause		-> { () }
 
 si_word :: { (Maybe String, String) } = pre_zei_bu
 
