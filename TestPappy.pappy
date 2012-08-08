@@ -11,7 +11,14 @@ ml = maybeToList
 
 top test
 
-test :: { ([String], String) } = t:any_word_SA_handling	-> { t }
+test :: { (([String], String), Maybe ([String], String)) } = t:indicator EOF	-> { t }
+
+indicator :: { (([String], String), Maybe ([String], String)) } = i:
+	( uc:(UI_clause / CAI_clause) n:NAI_clause?	-> { (uc, n) }
+	/ d:DAhO_clause					-> { (d, Nothing) }
+	/ f:FUhO_clause					-> { (f, Nothing) } )
+	!BU_clause
+	-> { i }
 
 -----------------------------------------------------------------
 -- Magic Words
@@ -78,8 +85,11 @@ si_word :: { ([String], String) } = pre_zei_bu
 -----------------------------------------------------------------
 -- SELMAHO
 
+-- BRIVLA_clause :: { (([String], String), (String, Maybe String) }
 BRIVLA_pre :: { ([String], String) }
 	= p:pre_clause b:BRIVLA spaces?		-> { (p, b) }
+-- BRIVLA_post :: { (String, Maybe String) } = post_clause
+
 CMENE_pre :: { [String], String) }
 	= p:pre_clause c:CMENE spaces?		-> { (p, c) }
 CMAVO_pre :: { [String], String) }
@@ -96,8 +106,32 @@ BAhE_clause_single :: String = b:BAhE_pre BAhE_post	-> { b }
 BAhE_pre :: String = b:BAhE spaces?			-> { b }
 BAhE_post :: { () } = si_clause? !ZEI_clause !BU_clause	-> { () }
 
+CAI_clause :: { ([String], String) }
+	= pre:CAI_pre post:CAI_post	-> { pre }
+CAI_pre :: { ([String], String) }
+	= p:pre_clause c:CAI spaces?	-> { (p, c) }
+CAI_post :: { () } = post_clause
+
+DAhO_clause :: { ([String], String) }
+	= pre:DAhO_pre post:DAhO_post	-> { pre }
+DAhO_pre :: { ([String], String) }
+	= p:pre_clause d:DAhO spaces?	-> { (p, d) }
+DAhO_post :: { () } = post_clause
+
 FAhO_clause :: { ([String], String) }
 	= p:pre_clause f:FAhO spaces?	-> { (p, f) }
+
+FUhO_clause :: { ([String], String) }
+	= pre:FUhO_pre post:FUhO_post	-> { pre }
+FUhO_pre :: { ([String], String) }
+	= p:pre_clause f:FUhO spaces?	-> { (p, f) }
+FUhO_post :: { () } = post_clause
+
+NAI_clause :: { ([String], String) }
+	= pre:NAI_pre post:NAI_post	-> { pre }
+NAI_pre :: { ([String], String) }
+	= p:pre_clause n:NAI spaces?	-> { (p, n) }
+NAI_post :: { () } = post_clause
 
 NAhE_pre :: { ([String], String) } = p:pre_clause n:NAhE spaces?
 	-> { (p, n) }
@@ -111,6 +145,12 @@ SI_clause :: { () } = spaces? SI spaces?	-> { () }
 SU_clause :: { () } = SU_pre SU_post		-> { () }
 SU_pre :: { () } = pre_clause SU spaces?	-> { () }
 SU_post :: { () } = post_clause			-> { () }
+
+UI_clause :: { ([String], String) }
+	= pre:UI_pre post:UI_post		-> { pre }
+UI_pre :: { ([String], String) }
+	= p:pre_clause u:UI spaces?		-> { (p, u) }
+UI_post :: { () } = post_clause
 
 ZEI_clause :: { () } = ZEI_pre
 -- ZEI_pre :: String = pre_clause z:ZEI spaces?
