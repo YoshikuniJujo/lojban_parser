@@ -9,7 +9,7 @@ ml = maybeToList
 
 }
 
-top BY
+top COI
 
 -----------------------------------------------------------------
 -- MORPHOLOGY                                                  --
@@ -438,6 +438,140 @@ BY :: String = ybu / &cmavo by:
 	/ z:z y:y	-> { [z, y] } )
 	-> { by }
 
+CAhA :: String = &cmavo caha:
+	( c:c a:a h:h a:a	-> { [c, a, h, a] }
+	/ p:p u:u h:h i:i	-> { [p, u, h, i] }
+	/ n:n u:u h:h o:o	-> { [n, u, h, o] }
+	/ k:k a:a h:h e:e	-> { [k, a, h, e] } )
+	-> { caha }
+
+CAI :: String = &cmavo cai:
+	( p:p e:e i:i	-> { [p, e, i] }
+	/ c:c a:a i:i	-> { [c, a, i] }
+	/ c:c u:u h:h i:i	-> { [c, u, h, i] }
+	/ s:s a:a i:i	-> { [s, a, i] }
+	/ r:r u:u h:h e:e	-> { [r, u, h, e] } )
+	-> { cai }
+
+CEI :: String = &cmavo cei:
+	( c:c e:e i:i	-> { [c, e, i] } )
+	-> { cei }
+
+CEhE :: String = &cmavo cehe:
+	( c:c e:e h:h e:e	-> { [c, e, h, e] } )
+	-> { cehe }
+
+CO :: String = &cmavo co:
+	( c:c o:o	-> { [c, o] } )
+	-> { co }
+
+COI :: String = &cmavo coi:
+	( j:j u:u h:h i:i	-> { [j, u, h, i] }
+	/ c:c o:o i:i	-> { [c, o, i] }
+	/ f:f i:i h:h i:i	-> { [f, i, h, i] }
+	/ t:t a:a h:h a:a	-> { [t, a, h, a] }
+	/ m:m u:u h:h o:o	-> { [m, u, h, o] }
+	/ f:f e:e h:h o:o	-> { [f, e, h, o] }
+	/ c:c o:o h:h o:o	-> { [c, o, h, o] }
+	/ p:p e:e h:h u:u	-> { [p, e, h, u] }
+	/ k:k e:e h:h o:o	-> { [k, e, h, o] }
+	/ n:n u:u h:h e:e	-> { [n, u, h, e] }
+	/ r:r e:e h:h i:i	-> { [r, e, h, i] }
+	/ b:b e:e h:h e:e	-> { [b, e, h, e] }
+	/ j:j e:e h:h e:e	-> { [j, e, h, e] }
+	/ m:m i:i h:h e:e	-> { [m, i, h, e] }
+	/ k:k i:i h:h e:e	-> { [k, i, h, e] }
+	/ v:v i:i h:h o:o	-> { [v, i, h, o] } )
+	-> { coi }
+
+CU :: String = &cmavo cu:
+	( c:c u:u	-> { [c, u] } )
+	-> { cu }
+
+CUhE :: String = &cmavo cuhe:
+	( c:c u:u h:h e:e	-> { [c, u, h, e] }
+	/ n:n a:a u:u	-> { [n, a, u] } )
+	-> { cuhe }
+
+DAhO :: String = &cmavo daho:
+	( d:d a:a h:h o:o	-> { [d, a, h, o] } )
+	-> { daho }
+
+DOI :: String = &cmavo doi:
+	( d:d o:o i:i	-> { [d, o, i] } )
+	-> { doi }
+
+DOhU :: String = &cmavo dohu:
+	( d:d o:o h:h u:u	-> { [d, o, h, u] } )
+	-> { dohu }
+
+FA :: String = &cmavo fa:
+	( f:f a:a i:i	-> { [f, a, i] }
+	/ f:f a:a	-> { [f, a] }
+	/ f:f e:e	-> { [f, e] }
+	/ f:f o:o	-> { [f, o] }
+	/ f:f u:u	-> { [f, u] }
+	/ f:f i:i h:h a:a	-> { [f, i, h, a] }
+	/ f:f i:i	-> { [f, i] } )
+	-> { fa }
+
+FAhA :: String = &cmavo faha:
+	( d:d u:u h:h a:a	-> { [d, u, h, a] }
+	/ b:b e:e h:h a:a	-> { [b, e, h, a] }
+	/ n:n e:e h:h u:u	-> { [n, e, h, u] }
+	/ v:v u:u h:h a:a	-> { [v, u, h, a] }
+	/ g:g a:a h:h u:u	-> { [g, a, h, u] }
+	/ t:t i:i h:h a:a	-> { [t, i, h, a] }
+	/ n:n i:i h:h a:a	-> { [n, i, h, a] }
+	/ c:c a:a h:h u:u	-> { [c, a, h, u] }
+	/ z:z u:u h:h a:a	-> { [z, u, h, a] }
+	/ r:r i:i h:h u:u	-> { [r, i, h, u] }
+	/ r:r u:u h:h u:u	-> { [r, u, h, u] }
+	/ r:r e:e h:h o:o	-> { [r, e, h, o] }
+	/ t:t e:e h:h e:e	-> { [t, e, h, e] }
+	/ b:b u:u h:h u:u	-> { [b, u, h, u] }
+	/ n:n e:e h:h a:a	-> { [n, e, h, a] }
+	/ p:p a:a h:h o:o	-> { [p, a, h, o] }
+	/ n:n e:e h:h i:i	-> { [n, e, h, i] }
+	/ t:t o:o h:h o:o	-> { [t, o, h, o] }
+	/ z:z o:o h:h i:i	-> { [z, o, h, i] }
+	/ z:z e:e h:h o:o	-> { [z, e, h, o] }
+	/ z:z o:o h:h a:a	-> { [z, o, h, a] }
+	/ f:f a:a h:h a:a	-> { [f, a, h, a] } )
+	-> { faha }
+
+FAhO :: String = &cmavo faho:
+	( f:f a:a h:h o:o	-> { [f, a, h, o] } )
+	-> { faho }
+
+FEhE :: String = &cmavo fehe:
+	( f:f e:e h:h e:e	-> { [f, e, h, e] } )
+	-> { fehe }
+
+FEhU :: String = &cmavo fehu:
+	( f:f e:e h:h u:u	-> { [f, e, h, u] } )
+	-> { fehu }
+
+FIhO :: String = &cmavo fiho:
+	( f:f i:i h:h o:o	-> { [f, i, h, o] } )
+	-> { fiho }
+
+FOI :: String = &cmavo foi:
+	( f:f o:o i:i	-> { [f, o, i] } )
+	-> { foi }
+
+FUhA :: String = &cmavo fuha:
+	( f:f u:u h:h a:a	-> { [f, u, h, a] } )
+	-> { fuha }
+
+FUhE :: String = &cmavo fuhe:
+	( f:f u:u h:h e:e	-> { [f, u, h, e] } )
+	-> { fuhe }
+
+FUhO :: String = &cmavo fuho:
+	( f:f u:u h:h o:o	-> { [f, u, h, o] } )
+	-> { fuho }
+
 Y :: String = &cmavo y:y+ &post_word	-> { y }
 
 -----------------------------------------------------------------
@@ -450,9 +584,8 @@ dummy :: {()} =
 
 main = do
 	[str] <- getArgs
-	case testPappyBY $ testPappyParse "BY" str of
+	case testPappyCOI $ testPappyParse "COI" str of
 		Parsed v _ _ -> print v
 		NoParse e -> error (show e)
 
 }
-
