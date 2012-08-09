@@ -22,6 +22,9 @@
 
 ; --- GRAMMAR ---
 
+;-------------------------------------------------------------------
+;-- #01 text paragraph statement
+
 text <-	intro-null
 	NAI-clause*
 	text-part-2
@@ -70,6 +73,9 @@ prenex <- terms ZOhU-clause free*
 
 ;; sentence <- (terms CU-clause? free*)? bridi-tail / bridi-tail
 
+;-------------------------------------------------------------------
+;-- #02 sentence bridi
+
 sentence <- (terms bridi-tail-sa* CU-clause? free*)? bridi-tail-sa* bridi-tail
 
 sentence-sa <-
@@ -107,6 +113,9 @@ gek-sentence <-
 	gek subsentence gik subsentence tail-terms /
 	tag? KE-clause free* gek-sentence KEhE-clause? free* /
 	NA-clause free* gek-sentence
+
+;-------------------------------------------------------------------
+;-- #03 term sumti
 
 tail-terms <- terms? VAU-clause? free*
 
@@ -188,6 +197,9 @@ sumti-tail-1 <-
 	quantifier selbri relative-clauses? /
 	quantifier sumti
 
+;-------------------------------------------------------------------
+;-- #04 relative clauses
+
 relative-clauses <- relative-clause (ZIhE-clause free* relative-clause)*
 
 ;; relative-clause <-
@@ -207,6 +219,9 @@ relative-clause-1 <-
 	NOI-clause free* subsentence KUhO-clause? free*
 
 relative-clause-start <- GOI-clause / NOI-clause
+
+;-------------------------------------------------------------------
+;-- #05 selbri
 
 selbri <- tag? selbri-1
 
@@ -246,6 +261,9 @@ tanru-unit-2 <-
 	NU-clause NAI-clause? free* (joik-jek NU-clause NAI-clause? free*)*
 		subsentence KEI-clause? free*
 
+;-------------------------------------------------------------------
+;-- #06 linkargs
+
 ;; linkargs <- BE-clause free* term links? BEhO-clause? free*
 
 linkargs <- linkargs-sa* linkargs-1
@@ -273,6 +291,9 @@ links-sa <-
 	&links-1
 
 links-start <- BEI-clause
+
+;-------------------------------------------------------------------
+;-- #07 mex
 
 quantifier <-
 	number !MOI-clause BOI-clause? free* /
@@ -380,6 +401,9 @@ lerfu-word <-
 	LAU-clause lerfu-word /
 	TEI-clause lerfu-string FOI-clause
 
+;-------------------------------------------------------------------
+;-- #08 ek gihek jek joik gek guhek gik
+
 ek <- NA-clause? SE-clause? A-clause NAI-clause?
 
 ;; gihek <- NA-clause? SE-clause? GIhA-clause NAI-clause?
@@ -412,6 +436,9 @@ gek <- SE-clause? GA-clause NAI-clause? free* / joik GI-clause free* / stag gik
 guhek <- SE-clause? GUhA-clause NAI-clause? free*
 
 gik <- GI-clause NAI-clause? free*
+
+;-------------------------------------------------------------------
+;-- #09 tense and modal tag
 
 tag <- tense-modal (joik-jek tense-modal)*
 
@@ -465,7 +492,8 @@ interval-property <-
 	TAhE-clause NAI-clause? /
 	ZAhO-clause NAI-clause?
 
-; -- free --
+;-------------------------------------------------------------------
+;-- #0a free
 
 free <-
 	SEI-clause free* (terms CU-clause? free*)? selbri SEhU-clause? /
@@ -493,9 +521,8 @@ indicator <-
 	((UI-clause / CAI-clause) NAI-clause? / DAhO-clause / FUhO-clause)
 	!BU-clause
 
-; ****************
-; Magic Words
-; ****************
+;-------------------------------------------------------------------
+;-- #0b Magic words
 
 zei-clause <- pre-clause zei-clause-no-pre
 zei-clause-no-pre <- pre-zei-bu (zei-tail? bu-tail)* zei-tail post-clause
@@ -518,7 +545,8 @@ pre-zei-bu-no-SA <- LOhU-pre / ZO-pre / ZOI-pre /
 
 dot-star <- .*
 
-; -- General Morphology Issues
+;-------------------------------------------------------------------
+;-- #0c General Morphology Issues
 ;
 ; 1.  Spaces (including '.y') and UI are eaten *after* a word.
 ;
@@ -553,7 +581,9 @@ known-cmavo-SA <-
 	VUhO-pre / VUhU-pre / XI-pre / ZAhO-pre / ZEI-pre / ZEhA-pre / ZI-pre /
 	ZIhE-pre / ZO-pre / ZOI-pre / ZOhU-pre
 
-; Handling of spaces and things like spaces.
+;-------------------------------------------------------------------
+;-- #0d Handling of spaces and things like spaces.
+
 ; --- SPACE ---
 ; Do *NOT* delete the line above!
 
@@ -575,8 +605,8 @@ si-word <- pre-zei-bu
 su-word <- !NIhO-clause !LU-clause !TUhE-clause !TO-clause !SU-clause
 	!FAhO-clause any-word-SA-handling
 
-; --- SELMAHO ---
-; Do *NOT* delete the line above!
+;-------------------------------------------------------------------
+;-- #0e SELMAHO
 
 BRIVLA-clause <- BRIVLA-pre BRIVLA-post / zei-clause
 BRIVLA-pre <- pre-clause BRIVLA spaces?
@@ -1355,7 +1385,11 @@ ZOhU-pre <- pre-clause ZOhU spaces?
 ZOhU-post <- post-clause
 ZOhU-no-SA-handling <- pre-clause ZOhU post-clause
 
-; --- MORPHOLOGY ---
+;-------------------------------------------------------------------
+;--- MORPHOLOGY ---
+
+;-------------------------------------------------------------------
+;-- #0f CMENE BRIVLA CMAVO
 
 CMENE <- cmene
 BRIVLA <- gismu / lujvo / fuhivla
@@ -1410,14 +1444,14 @@ CMAVO <-
 ; mi'e ((xorxes))
 
 ;-------------------------------------------------------------------
-;-- words
+;-- #10 words
 
 words <- pause? (word pause?)*
 word <- lojban-word / non-lojban-word
 lojban-word <- cmene / cmavo / brivla
 
 ;-------------------------------------------------------------------
-;-- cmene
+;-- #11 cmene
 
 cmene <- !h &consonant-final coda? (any-syllable / digit)* &pause
 consonant-final <- (non-space &non-space)* consonant &pause
@@ -1427,7 +1461,7 @@ consonant-final <- (non-space &non-space)* consonant &pause
 ;doi-la-lai-lahi <- (d o i / l a (h? i)?) !h !nucleus
 
 ;-------------------------------------------------------------------
-;-- cmavo
+;-- #12 cmavo
 
 cmavo <- !cmene !CVCy-lujvo cmavo-form &post-word
 CVCy-lujvo <-
@@ -1438,7 +1472,7 @@ cmavo-form <-
 	y+ / digit
 
 ;-------------------------------------------------------------------
-;-- brivla
+;-- #13 brivla
 
 brivla <- !cmavo initial-rafsi* brivla-core
 
@@ -1452,7 +1486,7 @@ stressed-initial-rafsi <-
 initial-rafsi <- extended-rafsi / y-rafsi / !any-extended-rafsi y-less-rafsi
 
 ;-------------------------------------------------------------------
-;-- fuhivla
+;-- #14 fuhivla
 
 any-extended-rafsi <- fuhivla / extended-rafsi / stressed-extended-rafsi
 
@@ -1481,7 +1515,7 @@ rafsi-string <- y-less-rafsi*
 		y-rafsi / stressed-y-rafsi / stressed-y-less-rafsi? initial-pair y)
 
 ;-------------------------------------------------------------------
-;-- gismu
+;-- #15 gismu
 
 gismu <- stressed-long-rafsi &final-syllable vowel &post-word
 CVV-final-rafsi <- consonant stressed-vowel h &final-syllable vowel &post-word
@@ -1509,7 +1543,7 @@ CVV-rafsi <- consonant
 r-hyphen <- r &consonant / n &r
 
 ;-------------------------------------------------------------------
-;-- syllable
+;-- #16 syllable
 
 final-syllable <- onset !y !stressed nucleus !cmene &post-word
 
@@ -1534,7 +1568,7 @@ onset <- h / consonant? glide / initial
 nucleus <- vowel / diphthong / y !nucleus
 
 ;-----------------------------------------------------------------
-;-- vowel
+;-- #17 vowel
 
 glide <- (i / u) &nucleus !glide
 diphthong <- (a i / a u / e i / o i) !nucleus !glide
@@ -1548,7 +1582,7 @@ u <- comma* [uU]
 y <- comma* [yY]
 
 ;-------------------------------------------------------------------
-;-- consonant
+;-- #18 consonant
 
 cluster <- consonant consonant+
 
@@ -1587,7 +1621,7 @@ t <- comma* [tT] !h !t !voiced
 h <- comma* ['h] &nucleus
 
 ;-------------------------------------------------------------------
-;-- other chars
+;-- #19 other chars
 
 digit <- comma* [0123456789] !h !nucleus
 
@@ -1611,7 +1645,7 @@ space-char1 <- '	'
 space-char2 <- ''
 
 ;-------------------------------------------------------------------
-; Spaces, LUJVO
+; #1a Spaces, LUJVO
 
 spaces <- !Y initial-spaces
 
@@ -1622,7 +1656,7 @@ ybu <- Y space-char* BU
 lujvo <- !gismu !fuhivla brivla
 
 ;-------------------------------------------------------------------
-; CMAVO
+; #1b CMAVO
 
 A <- &cmavo ( a / e / j i / o / u ) &post-word
 
