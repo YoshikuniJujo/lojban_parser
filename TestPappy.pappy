@@ -11,8 +11,8 @@ ml = maybeToList
 
 top test
 
-test :: { [([String], String, Indicators)] }
-	= t:vocative EOF	-> { t }
+test :: Selbri
+	= t:selbri EOF	-> { t }
 
 -----------------------------------------------------------------
 -- #01 text paragraph statement
@@ -23,19 +23,33 @@ test :: { [([String], String, Indicators)] }
 -----------------------------------------------------------------
 -- #03 term sumti
 
+sumti :: Sumti = "mi "
+
 -----------------------------------------------------------------
 -- #04 relative clauses
 
 -----------------------------------------------------------------
 -- #05 selbri
 
--- selbri :: Selbri = tanru_unit_2
+selbri :: Selbri = tanru_unit
 
--- tanru_unit_2 :: Selbri
---	= BRIVLA_clause
+tanru_unit :: Selbri
+	= t:tanru_unit_1 cs:cei_tanru_unit_1*
+	-> { if null cs then t else CEI t cs }
+
+cei_tanru_unit_1 :: { ([Free], Selbri) }
+	= CEI_clause f:free* u:tanru_unit_1	-> { (f, u) }
+
+tanru_unit_1 :: Selbri
+	= t:tanru_unit_2 l:linkargs?	-> { maybe t (Linkargs t) l }
+
+tanru_unit_2 :: Selbri
+	= b:BRIVLA_clause f:free*	-> { Brivla b f }
 
 -----------------------------------------------------------------
 -- #06 linkargs
+
+linkargs :: Linkargs = "be mi "
 
 -----------------------------------------------------------------
 -- #07 mex
@@ -49,7 +63,10 @@ test :: { [([String], String, Indicators)] }
 -----------------------------------------------------------------
 -- #0a free
 
--- free :: Free
+free :: Free
+	= v:vocative s:sumti? DOhU_clause?	-> { VocativeSumti v s }
+
+-- xi_clause ::
 
 vocative :: { [([String], String, Indicators)] }
 	= cns:coi_nai+ d:DOI_clause	-> { concat cns ++ [d] }
@@ -167,6 +184,11 @@ CAI_pre :: { ([String], String) }
 CAI_post :: Indicators = post_clause
 CAI_post_no_ind :: { () } = post_clause_no_ind
 
+CEI_clause :: Clause
+	= pre:CEI_pre post:post_clause	-> { (fst pre, snd pre, post) }
+CEI_pre :: { ([String], String) }
+	= p:pre_clause c:CEI spaces?	-> { (p, c) }
+
 COI_clause :: { ([String], String, Indicators) }
 	= pre:COI_pre post:COI_post	-> { (fst pre, snd pre, post) }
 COI_pre :: { ([String], String) }
@@ -187,6 +209,12 @@ DOI_clause :: { ([String], String, Indicators) }
 DOI_pre :: { ([String], String) }
 	= p:pre_clause d:DOI spaces?	-> { (p, d) }
 DOI_post :: Indicators = post_clause
+
+DOhU_clause :: { ([String], String, Indicators) }
+	= pre:DOhU_pre post:DOhU_post	-> { (fst pre, snd pre, post) }
+DOhU_pre :: { ([String], String) }
+	= p:pre_clause d:DOhU spaces?	-> { (p, d) }
+DOhU_post :: Indicators = post_clause
 
 FAhO_clause :: { ([String], String) }
 	= p:pre_clause f:FAhO spaces?	-> { (p, f) }
@@ -1514,9 +1542,21 @@ dummy :: {()} =
 
 {
 
-type Selbri = String
-makeSelbri = id
+type Sumti = String
 
+data Selbri
+	= Brivla Clause [Free]
+	| Linkargs Selbri Linkargs
+	| CEI Selbri [([Free], Selbri)]
+	deriving Show
+
+type Linkargs = String
+
+data Free
+	= VocativeSumti [Clause] (Maybe Sumti)
+	deriving Show
+
+type Clause = ([String], String, Indicators)
 type Indicators = [[([String], String)]]
 
 main = do
