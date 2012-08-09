@@ -11,8 +11,8 @@ ml = maybeToList
 
 top test
 
-test :: { ([String], String, Indicators) }
-	= t:BRIVLA_clause EOF	-> { t }
+test :: { [([String], String, Indicators)] }
+	= t:vocative EOF	-> { t }
 
 -----------------------------------------------------------------
 -- #01 text paragraph statement
@@ -29,6 +29,11 @@ test :: { ([String], String, Indicators) }
 -----------------------------------------------------------------
 -- #05 selbri
 
+-- selbri :: Selbri = tanru_unit_2
+
+-- tanru_unit_2 :: Selbri
+--	= BRIVLA_clause
+
 -----------------------------------------------------------------
 -- #06 linkargs
 
@@ -44,13 +49,24 @@ test :: { ([String], String, Indicators) }
 -----------------------------------------------------------------
 -- #0a free
 
+-- free :: Free
+
+vocative :: { [([String], String, Indicators)] }
+	= cns:coi_nai+ d:DOI_clause	-> { concat cns ++ [d] }
+	/ cn:coi_nai cns:coi_nai*	-> { cn ++ concat cns }
+	/ d:DOI_clause			-> { [d] }
+
+coi_nai :: { [([String], String, Indicators)] }
+	= c:COI_clause n:NAI_clause?	-> { c : ml n }
+
 indicators :: { [([String], String)] }
-	= f:FUhE_clause is:indicator+		-> { f : concat is }
+	= f:FUhE_clause_no_ind? is:indicator+		-> { ml f ++ concat is }
 
 indicator :: { [([String], String)] } = i:
-	( uc:(UI_clause / CAI_clause) n:NAI_clause?	-> { uc : ml n }
-	/ d:DAhO_clause					-> { d : [] }
-	/ f:FUhO_clause					-> { f : [] } )
+	( uc:(UI_clause_no_ind / CAI_clause_no_ind) n:NAI_clause_no_ind?
+		-> { uc : ml n }
+	/ d:DAhO_clause_no_ind				-> { d : [] }
+	/ f:FUhO_clause_no_ind				-> { f : [] } )
 	!BU_clause
 	-> { i }
 
@@ -90,6 +106,8 @@ pre_zei_bu :: { String } = !BAhE_clause
 
 post_clause :: { [[([String], String)]] }
 	= spaces? si_clause? !ZEI_clause !BU_clause is:indicators*	-> { is }
+post_clause_no_ind :: { () }
+	= spaces? si_clause? !ZEI_clause !BU_clause	-> { () }
 
 pre_clause :: { [String] } = b:BAhE_clause?	-> { fromMaybe [] b }
 
@@ -142,36 +160,63 @@ BAhE_post :: { () } = si_clause? !ZEI_clause !BU_clause	-> { () }
 
 CAI_clause :: { ([String], String) }
 	= pre:CAI_pre post:CAI_post	-> { pre }
+CAI_clause_no_ind :: { ([String], STring) }
+	= pre:CAI_pre CAI_post_no_ind	-> { pre }
 CAI_pre :: { ([String], String) }
 	= p:pre_clause c:CAI spaces?	-> { (p, c) }
 CAI_post :: Indicators = post_clause
+CAI_post_no_ind :: { () } = post_clause_no_ind
+
+COI_clause :: { ([String], String, Indicators) }
+	= pre:COI_pre post:COI_post	-> { (fst pre, snd pre, post) }
+COI_pre :: { ([String], String) }
+	= p:pre_clause c:COI spaces?	-> { (p, c) }
+COI_post :: Indicators = post_clause
 
 DAhO_clause :: { ([String], String) }
 	= pre:DAhO_pre post:DAhO_post	-> { pre }
+DAhO_clause_no_ind :: { ([String], String) }
+	= pre:DAhO_pre DAhO_post_no_ind	-> { pre }
 DAhO_pre :: { ([String], String) }
 	= p:pre_clause d:DAhO spaces?	-> { (p, d) }
 DAhO_post :: Indicators = post_clause
+DAhO_post_no_ind :: { () } = post_clause_no_ind
+
+DOI_clause :: { ([String], String, Indicators) }
+	= pre:DOI_pre post:DOI_post	-> { (fst pre, snd pre, post) }
+DOI_pre :: { ([String], String) }
+	= p:pre_clause d:DOI spaces?	-> { (p, d) }
+DOI_post :: Indicators = post_clause
 
 FAhO_clause :: { ([String], String) }
 	= p:pre_clause f:FAhO spaces?	-> { (p, f) }
 
 FUhE_clause :: { ([String], String) }
-	= pre:FUhE_pre post:FUhO_post	-> { pre }
+	= pre:FUhE_pre post:FUhE_post	-> { pre }
+FUhE_clause_no_ind :: { ([String], String) }
+	= pre:FUhE_pre FUhE_post_no_ind	-> { pre }
 FUhE_pre :: { ([String], String) }
 	= p:pre_clause f:FUhE spaces?	-> { (p, f) }
 FUhE_post :: Indicators = post_clause
+FUhE_post_no_ind :: { () } = post_clause_no_ind
 
 FUhO_clause :: { ([String], String) }
 	= pre:FUhO_pre post:FUhO_post	-> { pre }
+FUhO_clause_no_ind :: { ([String], String) }
+	= pre:FUhO_pre post:FUhO_post_no_ind	-> { pre }
 FUhO_pre :: { ([String], String) }
 	= p:pre_clause f:FUhO spaces?	-> { (p, f) }
 FUhO_post :: Indicators = post_clause
+FUhO_post_no_ind :: { () } = post_clause_no_ind
 
-NAI_clause :: { ([String], String) }
-	= pre:NAI_pre post:NAI_post	-> { pre }
+NAI_clause :: { ([String], String, Indicators) }
+	= pre:NAI_pre post:NAI_post	-> { (fst pre, snd pre, post) }
+NAI_clause_no_ind :: { ([String], String) }
+	= pre:NAI_pre NAI_post_no_ind	-> { pre }
 NAI_pre :: { ([String], String) }
 	= p:pre_clause n:NAI spaces?	-> { (p, n) }
 NAI_post :: Indicators = post_clause
+NAI_post_no_ind :: { () } = post_clause_no_ind
 
 NAhE_pre :: { ([String], String) } = p:pre_clause n:NAhE spaces?
 	-> { (p, n) }
@@ -188,9 +233,12 @@ SU_post :: Indicators = post_clause		-> { () }
 
 UI_clause :: { ([String], String) }
 	= pre:UI_pre post:UI_post		-> { pre }
+UI_clause_no_ind :: { ([String], String) }
+	= pre:UI_pre UI_post_no_ind		-> { pre }
 UI_pre :: { ([String], String) }
 	= p:pre_clause u:UI spaces?		-> { (p, u) }
 UI_post :: Indicators = post_clause
+UI_post_no_ind :: { () } = post_clause_no_ind
 
 ZEI_clause :: { () } = ZEI_pre
 -- ZEI_pre :: String = pre_clause z:ZEI spaces?
@@ -1465,6 +1513,9 @@ dummy :: {()} =
 	/ "a" dummy 	-> { () }
 
 {
+
+type Selbri = String
+makeSelbri = id
 
 type Indicators = [[([String], String)]]
 
