@@ -14,6 +14,9 @@ top test
 test :: { ([String], String, Indicators) }
 	= t:BRIVLA_clause EOF	-> { t }
 
+-----------------------------------------------------------------
+-- free
+
 indicators :: { [([String], String)] }
 	= f:FUhE_clause is:indicator+		-> { f : concat is }
 
@@ -27,16 +30,20 @@ indicator :: { [([String], String)] } = i:
 -----------------------------------------------------------------
 -- Magic Words
 
-zei_clause_no_pre :: { [String], String, Indicators) }
+zei_clause :: { ([String], String, Indicators) }
+	= p:pre_clause z:zei_clause_no_pre	-> { (p, fst z, snd z) }
+zei_clause_no_pre :: { (String, Indicators) }
 	= p:pre_zei_bu zb:zeit_but* z:zei_tail q:post_clause
-	-> { let (bahe, pre) = p in (bahe, pre ++ concat zb ++ concatMap (" zei " ++) z, q) }
+	-> { (p ++ concat zb ++ concatMap (" zei " ++) z, q) }
 zeit_but :: String
 	= z:zei_tail? b:bu_tail
 	-> { concatMap (" zei " ++) (fromMaybe [] z) ++ concat (replicate b " bu") }
 
-bu_clause_no_pre :: { ([String], String, Indicators) }
+bu_clause :: { ([String], String, Indicators) }
+	= p:pre_clause b:bu_clause_no_pre	-> { (p, fst b, snd b) }
+bu_clause_no_pre :: { (String, Indicators) }
 	= p:pre_zei_bu bz:but_zeit* b:bu_tail q:post_clause
-	-> { let (bahe, pre) = p in (bahe, pre ++ concat bz ++ concat (replicate b " bu"), q) }
+	-> { (p ++ concat bz ++ concat (replicate b " bu"), q) }
 but_zeit :: String
 	= b:bu_tail? z:zei_tail
 	-> { concat (replicate (fromMaybe 0 b) " bu") ++ concatMap (" zei " ++) z }
@@ -45,9 +52,9 @@ zei_tail :: { [String] } = ws:zei_word+		-> { ws }
 zei_word :: { String } = ZEI_clause w:any_word	-> { w }
 bu_tail :: Int = b:BU_clause+	-> { length b }
 
-pre_zei_bu :: { ([String], String) } =
+pre_zei_bu :: { String } = !BAhE_clause
 	!BU_clause !ZEI_clause !SI_clause !SA_clause !SU_clause !FAhO_clause
-	w:any_word_SA_handling si_clause?	-> { w }
+	w:any_word_SA_handling si_clause?	-> { snd w }
 
 -----------------------------------------------------------------
 -- General Morphology Issues
@@ -55,17 +62,12 @@ pre_zei_bu :: { ([String], String) } =
 --	3. BAhE is eaten *before* a word.
 
 post_clause :: { [[([String], String)]] }
-	= spaces? si_clause? !ZEI_clause !BU_clause is:indicators*
-	-> { is }
--- post_clause :: { () } = spaces? si_clause? !ZEI_clause !BU_clause -> { () }
+	= spaces? si_clause? !ZEI_clause !BU_clause is:indicators*	-> { is }
 
 pre_clause :: { [String] } = b:BAhE_clause?	-> { fromMaybe [] b }
 
 any_word_SA_handling :: { ([String], String) }
-	= BRIVLA_pre
-	/ known_cmavo_SA
-	/ CMAVO_pre
-	/ CMENE_pre
+	= BRIVLA_pre / known_cmavo_SA / CMAVO_pre / CMENE_pre
 
 known_cmavo_SA :: { ([String], String) }
 	= A_pre
@@ -76,23 +78,21 @@ known_cmavo_SA :: { ([String], String) }
 
 si_clause :: { () } = si_clause_single+				-> { () }
 si_clause_single :: { () } = er_si_sa si_clause? SI_clause	-> { () }
-er_si_sa :: { () }
-	= erasable_clause
-	/ si_word		-> { () }
-	/ SA_clause
+er_si_sa :: { () } = erasable_clause / si_word / SA_clause
 
 erasable_clause :: { () }
 	= bu_clause_no_pre !ZEI_clause !BU_clause		-> { () }
 	/ zei_clause_no_pre !ZEI_clause !BU_clause		-> { () }
 
-si_word :: { ([String], String) } = pre_zei_bu
+si_word :: { () } = pre_zei_bu	-> { () }
 
 -----------------------------------------------------------------
 -- SELMAHO
 
 BRIVLA_clause :: { ([String], String, Indicators) }
 	= pre:BRIVLA_pre post:BRIVLA_post
-	-> { let (bahe, brivla) = pre in (bahe, brivla, post) }
+		-> { let (bahe, brivla) = pre in (bahe, brivla, post) }
+	/ zei_clause
 BRIVLA_pre :: { ([String], String) }
 	= p:pre_clause b:BRIVLA spaces?		-> { (p, b) }
 BRIVLA_post :: Indicators = post_clause

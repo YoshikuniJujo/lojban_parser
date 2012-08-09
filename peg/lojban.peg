@@ -465,6 +465,8 @@ interval-property <-
 	TAhE-clause NAI-clause? /
 	ZAhO-clause NAI-clause?
 
+; -- free --
+
 free <-
 	SEI-clause free* (terms CU-clause? free*)? selbri SEhU-clause? /
 	SOI-clause free* sumti sumti? SEhU-clause? /
