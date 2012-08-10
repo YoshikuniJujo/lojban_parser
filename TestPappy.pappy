@@ -31,13 +31,14 @@ sumti :: Sumti = "mi "
 -----------------------------------------------------------------
 -- #05 selbri
 
-selbri :: Selbri = tanru_unit
+selbri :: Selbri = selbri_6
 
--- selbri_6 :: Selbri
---	= tanru_unit 
+selbri_6 :: Selbri
+	= t:tanru_unit b:bo_selbri_6?
+		-> { maybe t (uncurry3 $ BO t) b }
 
--- bo_selbri_6 :: { (Clause, Free, Selbri) }
---	= b:BO_clause f:free*
+bo_selbri_6 :: { (Clause, [Free], Selbri) }
+	= b:BO_clause f:free* s:selbri_6	-> { (b, f, s) }
 
 tanru_unit :: Selbri
 	= t:tanru_unit_1 cs:cei_tanru_unit_1*
@@ -1561,6 +1562,7 @@ data Selbri
 	= Brivla Clause [Free]
 	| Linkargs Selbri Linkargs
 	| CEI Selbri [(Clause, [Free], Selbri)]
+	| BO Selbri Clause [Free] Selbri
 	deriving Show
 
 type Linkargs = String
@@ -1577,5 +1579,8 @@ main = do
 	case testPappytest $ testPappyParse "test" str of
 		Parsed v _ _ -> print v
 		NoParse e -> error (show e)
+
+uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
+uncurry3 f (x, y, z) = f x y z
 
 }
