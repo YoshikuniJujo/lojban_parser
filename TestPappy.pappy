@@ -33,12 +33,18 @@ sumti :: Sumti = "mi "
 
 selbri :: Selbri = tanru_unit
 
+-- selbri_6 :: Selbri
+--	= tanru_unit 
+
+-- bo_selbri_6 :: { (Clause, Free, Selbri) }
+--	= b:BO_clause f:free*
+
 tanru_unit :: Selbri
 	= t:tanru_unit_1 cs:cei_tanru_unit_1*
 	-> { if null cs then t else CEI t cs }
 
-cei_tanru_unit_1 :: { ([Free], Selbri) }
-	= CEI_clause f:free* u:tanru_unit_1	-> { (f, u) }
+cei_tanru_unit_1 :: { (Clause, [Free], Selbri) }
+	= c:CEI_clause f:free* u:tanru_unit_1	-> { (c, f, u) }
 
 tanru_unit_1 :: Selbri
 	= t:tanru_unit_2 l:linkargs?	-> { maybe t (Linkargs t) l }
@@ -64,7 +70,7 @@ linkargs :: Linkargs = "be mi "
 -- #0a free
 
 free :: Free
-	= v:vocative s:sumti? DOhU_clause?	-> { VocativeSumti v s }
+	= v:vocative s:sumti? d:DOhU_clause?	-> { VocativeSumti v s d }
 
 -- xi_clause ::
 
@@ -166,6 +172,11 @@ CMAVO_pre :: { [String], String) }
 
 A_pre :: { ([String], String) } = p:pre_clause a:A spaces?	-> { (p, a) }
 
+BO_clause :: Clause
+	= pre:BO_pre post:post_clause		-> { (fst pre, snd pre, post) }
+BO_pre :: { ([String], String) }
+	= p:pre_clause b:BO spaces?		-> { (p, b) }
+
 BU_clause :: { () } = BU_pre
 -- BU_pre :: String = pre_clause BU spaces?
 BU_pre :: { () } = BU spaces?		-> { () }
@@ -246,6 +257,8 @@ NAI_pre :: { ([String], String) }
 NAI_post :: Indicators = post_clause
 NAI_post_no_ind :: { () } = post_clause_no_ind
 
+NAhE_clause :: Clause
+	= pre:NAhE_pre post:post_clause	-> { (fst pre, snd pre, post) }
 NAhE_pre :: { ([String], String) } = p:pre_clause n:NAhE spaces?
 	-> { (p, n) }
 
@@ -1547,13 +1560,13 @@ type Sumti = String
 data Selbri
 	= Brivla Clause [Free]
 	| Linkargs Selbri Linkargs
-	| CEI Selbri [([Free], Selbri)]
+	| CEI Selbri [(Clause, [Free], Selbri)]
 	deriving Show
 
 type Linkargs = String
 
 data Free
-	= VocativeSumti [Clause] (Maybe Sumti)
+	= VocativeSumti [Clause] (Maybe Sumti) (Maybe Clause)
 	deriving Show
 
 type Clause = ([String], String, Indicators)
