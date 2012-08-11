@@ -11,8 +11,7 @@ ml = maybeToList
 
 top test
 
-test :: { Selbri }
-	= t:selbri EOF	-> { t }
+test :: Sumti = t:sumti EOF	-> { t }
 
 -----------------------------------------------------------------
 -- #01 text paragraph statement
@@ -23,10 +22,21 @@ test :: { Selbri }
 -----------------------------------------------------------------
 -- #03 term sumti
 
-sumti :: Sumti = "mi "
+sumti :: Sumti = sumti_5
+
+sumti_5 :: Sumti
+	= q:quantifier? s:sumti_6 r:relative_clauses?
+	-> { if isNothing q && isNothing r then s else OuterQuantifier q s r }
+	/ q:quantifier s:selbri k:KU_clause? f:free* r:relative_clauses?
+	-> { QuantifierSelbri q s k f r }
+
+sumti_6 :: Sumti
+	= k:KOhA_clause f:free*		-> { KOhA k f }
 
 -----------------------------------------------------------------
 -- #04 relative clauses
+
+relative_clauses :: RelativeClauses = "pe mi "
 
 -----------------------------------------------------------------
 -- #05 selbri
@@ -88,6 +98,8 @@ linkargs :: Linkargs = "be mi "
 
 -----------------------------------------------------------------
 -- #07 mex
+
+quantifier :: Quantifier = "pa "
 
 -----------------------------------------------------------------
 -- #08 ek gihek jek joik gek guhek gik
@@ -319,6 +331,12 @@ KE_pre :: Pre = p:pre_clause k:KE spaces?		-> { (p, k) }
 
 KEhE_clause :: Clause = p:KEhE_pre q:post_clause	-> { (fst p, snd p, q) }
 KEhE_pre :: Pre = p:pre_clause k:KEhE spaces?		-> { (p, k) }
+
+KOhA_clause :: Clause = p:KOhA_pre q:post_clause	-> { (fst p, snd p, q) }
+KOhA_pre :: Pre = p:pre_clause k:KOhA spaces?		-> { (p, k) }
+
+KU_clause :: Clause = p:KU_pre q:post_clause		-> { (fst p, snd p, q) }
+KU_pre :: Pre = p:pre_clause k:KU spaces?		-> { (p, k) }
 
 NA_clause :: Clause = p:NA_pre q:post_clause		-> { (fst p, snd p, q) }
 NA_pre :: Pre = p:pre_clause n:NA spaces?		-> { (p, n) }
@@ -1628,7 +1646,12 @@ dummy :: {()} =
 
 {
 
-type Sumti = String
+data Sumti
+	= KOhA Clause [Free]
+	| OuterQuantifier (Maybe Quantifier) Sumti (Maybe RelativeClauses)
+	| QuantifierSelbri Quantifier Selbri (Maybe Clause) [Free]
+		(Maybe RelativeClauses)
+	deriving Show
 
 data Selbri
 	= Brivla Clause [Free]
@@ -1644,10 +1667,14 @@ data Selbri
 	| Tag Tag Selbri
 	deriving Show
 
+type RelativeClauses = String
+
 type JoikJekSelbri5 = Either (JoikJek, [Free], Selbri)
 	(Joik, (Maybe Tag), Clause, [Free], Selbri, Maybe Clause, [Free])
 
 type Linkargs = String
+
+type Quantifier = String
 
 data Free
 	= VocativeSumti [Clause] (Maybe Sumti) (Maybe Clause)
