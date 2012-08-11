@@ -11,7 +11,7 @@ ml = maybeToList
 
 top test
 
-test :: Selbri
+test :: { Selbri }
 	= t:selbri EOF	-> { t }
 
 -----------------------------------------------------------------
@@ -31,7 +31,26 @@ sumti :: Sumti = "mi "
 -----------------------------------------------------------------
 -- #05 selbri
 
-selbri :: Selbri = selbri_5
+selbri :: Selbri = t:tag? s:selbri_1	-> { maybe s (flip Tag s) t }
+
+selbri_1 :: Selbri
+	= selbri_2
+	/ n:NA_clause f:free* s:selbri	-> { NA n f s }
+
+selbri_2 :: Selbri = s3:selbri_3 s2:co_selbri_2?
+	-> { maybe s3 (uncurry3 $ CO s3) s2 }
+co_selbri_2 :: { (Clause, [Free], Selbri) }
+	= c:CO_clause f:free* s:selbri_2	-> { (c, f, s) }
+
+selbri_3 :: Selbri = s:selbri_4+	-> { case s of [t] -> t; _ -> Tanru s }
+
+selbri_4 :: Selbri = s:selbri_5 js:joik_jek_selbri_5*
+	-> { if null js then s else JoikJek s js }
+joik_jek_selbri_5 :: JoikJekSelbri5
+	= jf:joik_jek s:selbri_5
+		-> { let (j, f) = jf in Left (j, f, s) }
+	/ j:joik t:stag? k:KE_clause f:free* s:selbri_3 l:KEhE_clause? g:free*
+		-> { Right (j, t, k, f, s, l, g) }
 
 selbri_5 :: Selbri
  	= s6:selbri_6 jb:jek_joik_bo_selbri_5?
@@ -80,6 +99,10 @@ jek :: Jek
 joik :: Joik
 	= s:SE_clause? j:JOI_clause n:NAI_clause?	-> { JOI s j n }
 
+joik_jek :: { (JoikJek, [Free]) }
+	= j:joik f:free*	-> { (j, f) }
+	/ j:jek f:free*		-> { (j, f) }
+
 guhek :: Guhek
 	= s:SE_clause? g:GUhA_clause n:NAI_clause? f:free*
 		-> { (s, g, n, f) }
@@ -91,6 +114,8 @@ gik :: Gik
 
 -----------------------------------------------------------------
 -- #09 tense and modal tag
+
+tag :: Tag = stag
 
 stag :: Tag = "pu "
 
@@ -223,10 +248,11 @@ CAI_pre :: { ([String], String) }
 CAI_post :: Indicators = post_clause
 CAI_post_no_ind :: { () } = post_clause_no_ind
 
-CEI_clause :: Clause
-	= pre:CEI_pre post:post_clause	-> { (fst pre, snd pre, post) }
-CEI_pre :: { ([String], String) }
-	= p:pre_clause c:CEI spaces?	-> { (p, c) }
+CEI_clause :: Clause = p:CEI_pre q:post_clause		-> { (fst p, snd p, q) }
+CEI_pre :: Pre = p:pre_clause c:CEI spaces?		-> { (p, c) }
+
+CO_clause :: Clause = p:CO_pre q:post_clause		-> { (fst p, snd p, q) }
+CO_pre :: Pre = p:pre_clause c:CO spaces?		-> { (p, c) }
 
 COI_clause :: { ([String], String, Indicators) }
 	= pre:COI_pre post:COI_post	-> { (fst pre, snd pre, post) }
@@ -287,6 +313,12 @@ JA_pre :: Pre = p:pre_clause j:JA spaces?		-> { (p, j) }
 
 JOI_clause :: Clause = p:JOI_pre q:post_clause		-> { (fst p, snd p, q) }
 JOI_pre :: Pre = p:pre_clause j:JOI spaces?		-> { (p, j) }
+
+KE_clause :: Clause = p:KE_pre q:post_clause		-> { (fst p, snd p, q) }
+KE_pre :: Pre = p:pre_clause k:KE spaces?		-> { (p, k) }
+
+KEhE_clause :: Clause = p:KEhE_pre q:post_clause	-> { (fst p, snd p, q) }
+KEhE_pre :: Pre = p:pre_clause k:KEhE spaces?		-> { (p, k) }
 
 NA_clause :: Clause = p:NA_pre q:post_clause		-> { (fst p, snd p, q) }
 NA_pre :: Pre = p:pre_clause n:NA spaces?		-> { (p, n) }
@@ -1605,7 +1637,15 @@ data Selbri
 	| BO Selbri Clause [Free] Selbri
 	| GuhekGik (Maybe Clause) [Free] Guhek Selbri Gik Selbri
 	| JekJoikBO Selbri JoikJek (Maybe Tag) Clause [Free] Selbri
+	| JoikJek Selbri [JoikJekSelbri5]
+	| Tanru [Selbri]
+	| CO Selbri Clause [Free] Selbri
+	| NA Clause [Free] Selbri
+	| Tag Tag Selbri
 	deriving Show
+
+type JoikJekSelbri5 = Either (JoikJek, [Free], Selbri)
+	(Joik, (Maybe Tag), Clause, [Free], Selbri, Maybe Clause, [Free])
 
 type Linkargs = String
 
