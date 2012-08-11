@@ -22,7 +22,11 @@ test :: Sumti = t:sumti EOF	-> { t }
 -----------------------------------------------------------------
 -- #03 term sumti
 
-sumti :: Sumti = sumti_5
+sumti :: Sumti = sumti_4
+
+sumti_4 :: Sumti
+	= sumti_5
+	/ ge:gek s:sumti gi:gik s4:sumti_4	-> { GekSumti ge s gi s4 }
 
 sumti_5 :: Sumti
 	= q:quantifier? s:sumti_6 r:relative_clauses?
@@ -114,6 +118,14 @@ joik :: Joik
 joik_jek :: { (JoikJek, [Free]) }
 	= j:joik f:free*	-> { (j, f) }
 	/ j:jek f:free*		-> { (j, f) }
+
+gek :: Gek
+	= s:SE_clause? g:GA_clause n:NAI_clause? f:free*
+		-> { GA s g n f }
+	/ j:joik g:GI_clause f:free*
+		-> { JoikGI j g f }
+	/ s:stag g:gik
+		-> { STagGik s g }
 
 guhek :: Guhek
 	= s:SE_clause? g:GUhA_clause n:NAI_clause? f:free*
@@ -313,6 +325,9 @@ FUhO_pre :: { ([String], String) }
 	= p:pre_clause f:FUhO spaces?	-> { (p, f) }
 FUhO_post :: Indicators = post_clause
 FUhO_post_no_ind :: { () } = post_clause_no_ind
+
+GA_clause :: Clause = p:GA_pre q:post_clause		-> { (fst p, snd p, q) }
+GA_pre :: Pre = p:pre_clause g:GA spaces?		-> { (p, g) }
 
 GI_clause :: Clause = p:GI_pre q:post_clause		-> { (fst p, snd p, q) }
 GI_pre :: Pre = p:pre_clause g:GI spaces?		-> { (p, g) }
@@ -1651,6 +1666,7 @@ data Sumti
 	| OuterQuantifier (Maybe Quantifier) Sumti (Maybe RelativeClauses)
 	| QuantifierSelbri Quantifier Selbri (Maybe Clause) [Free]
 		(Maybe RelativeClauses)
+	| GekSumti Gek Sumti Gik Sumti
 	deriving Show
 
 data Selbri
@@ -1689,6 +1705,11 @@ type Joik = JoikJek
 data JoikJek
 	= JOI (Maybe Clause) (Clause) (Maybe Clause)
 	| Jek (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
+	deriving Show
+data Gek
+	= GA (Maybe Clause) Clause (Maybe Clause) [Free]
+	| JoikGI Joik Clause [Free]
+	| STagGik Tag Gik
 	deriving Show
 -- type Guhek = ([Clause], [Free])
 -- type Gik = ([Clause], [Free])
