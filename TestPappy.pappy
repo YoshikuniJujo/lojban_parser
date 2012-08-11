@@ -35,7 +35,7 @@ selbri :: Selbri = selbri_5
 
 selbri_5 :: Selbri
  	= s6:selbri_6 jb:jek_joik_bo_selbri_5?
-		-> { let (j, t, b, f, s5) = jb in JekJoikBO s6 j t b f s5 }
+	-> { maybe s6 (\(j, t, b, f, s5) -> JekJoikBO s6 j t b f s5) jb }
 jek_joik_bo_selbri_5 :: Selbri
 	= j:(jek / joik) t:stag? b:BO_clause f:free* s:selbri_5
 		-> { (j, t, b, f, s) }
@@ -973,10 +973,10 @@ I :: String = &cmavo i:
 
 JA :: String = &cmavo ja:
 	( j:j e:e h:h i:i	-> { [j, e, h, i] }
-	/ j:j e:e	-> { [j, e] }
-	/ j:j o:o	-> { [j, o] }
-	/ j:j a:a	-> { [j, a] }
-	/ j:j u:u	-> { [j, u] } )
+	/ j:j e:e		-> { [j, e] }
+	/ j:j o:o !h !vowel	-> { [j, o] }
+	/ j:j a:a		-> { [j, a] }
+	/ j:j u:u		-> { [j, u] } )
 	-> { ja }
 
 JAI :: String = &cmavo jai:
