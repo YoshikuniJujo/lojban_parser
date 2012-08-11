@@ -31,11 +31,20 @@ sumti :: Sumti = "mi "
 -----------------------------------------------------------------
 -- #05 selbri
 
-selbri :: Selbri = selbri_6
+selbri :: Selbri = selbri_5
+
+selbri_5 :: Selbri
+ 	= s6:selbri_6 jb:jek_joik_bo_selbri_5?
+		-> { let (j, t, b, f, s5) = jb in JekJoikBO s6 j t b f s5 }
+jek_joik_bo_selbri_5 :: Selbri
+	= j:(jek / joik) t:stag? b:BO_clause f:free* s:selbri_5
+		-> { (j, t, b, f, s) }
 
 selbri_6 :: Selbri
 	= t:tanru_unit b:bo_selbri_6?
 		-> { maybe t (uncurry3 $ BO t) b }
+	/ n:NAhE_clause? f:free* gu:guhek s:selbri gi:gik s6:selbri_6
+		-> { GuhekGik n f gu s gi s6 }
 
 bo_selbri_6 :: { (Clause, [Free], Selbri) }
 	= b:BO_clause f:free* s:selbri_6	-> { (b, f, s) }
@@ -64,8 +73,26 @@ linkargs :: Linkargs = "be mi "
 -----------------------------------------------------------------
 -- #08 ek gihek jek joik gek guhek gik
 
+jek :: Jek
+	= na:NA_clause?  s:SE_clause? j:JA_clause nai:NAI_clause?
+	-> { Jek na s j nai }
+
+joik :: Joik
+	= s:SE_clause? j:JOI_clause n:NAI_clause?	-> { JOI s j n }
+
+guhek :: Guhek
+	= s:SE_clause? g:GUhA_clause n:NAI_clause? f:free*
+		-> { (s, g, n, f) }
+--		-> { (ml s ++ [g] ++ ml n, f) }
+
+gik :: Gik
+	= g:GI_clause n:NAI_clause? f:free*	-> { (g, n, f) }
+--	= g:GI_clause n:NAI_clause? f:free*	-> { (g : ml n, f) }
+
 -----------------------------------------------------------------
 -- #09 tense and modal tag
+
+stag :: Tag = "pu "
 
 -----------------------------------------------------------------
 -- #0a free
@@ -249,14 +276,24 @@ FUhO_pre :: { ([String], String) }
 FUhO_post :: Indicators = post_clause
 FUhO_post_no_ind :: { () } = post_clause_no_ind
 
-NAI_clause :: { ([String], String, Indicators) }
-	= pre:NAI_pre post:NAI_post	-> { (fst pre, snd pre, post) }
-NAI_clause_no_ind :: { ([String], String) }
-	= pre:NAI_pre NAI_post_no_ind	-> { pre }
-NAI_pre :: { ([String], String) }
-	= p:pre_clause n:NAI spaces?	-> { (p, n) }
-NAI_post :: Indicators = post_clause
-NAI_post_no_ind :: { () } = post_clause_no_ind
+GI_clause :: Clause = p:GI_pre q:post_clause		-> { (fst p, snd p, q) }
+GI_pre :: Pre = p:pre_clause g:GI spaces?		-> { (p, g) }
+
+GUhA_clause :: Clause = p:GUhA_pre q:post_clause	-> { (fst p, snd p, q) }
+GUhA_pre :: Pre = p:pre_clause g:GUhA spaces?		-> { (p, g) }
+
+JA_clause :: Clause = p:JA_pre q:post_clause		-> { (fst p, snd p, q) }
+JA_pre :: Pre = p:pre_clause j:JA spaces?		-> { (p, j) }
+
+JOI_clause :: Clause = p:JOI_pre q:post_clause		-> { (fst p, snd p, q) }
+JOI_pre :: Pre = p:pre_clause j:JOI spaces?		-> { (p, j) }
+
+NA_clause :: Clause = p:NA_pre q:post_clause		-> { (fst p, snd p, q) }
+NA_pre :: Pre = p:pre_clause n:NA spaces?		-> { (p, n) }
+
+NAI_clause :: Clause = p:NAI_pre q:post_clause		-> { (fst p, snd p, q) }
+NAI_clause_no_ind :: Pre = p:NAI_pre post_clause_no_ind	-> { p }
+NAI_pre :: Pre = p:pre_clause n:NAI spaces?		-> { (p, n) }
 
 NAhE_clause :: Clause
 	= pre:NAhE_pre post:post_clause	-> { (fst pre, snd pre, post) }
@@ -266,6 +303,9 @@ NAhE_pre :: { ([String], String) } = p:pre_clause n:NAhE spaces?
 SA_clause :: { () } = SA_pre SA_post		-> { () }
 SA_pre :: { () } = pre_clause SA spaces?	-> { () }
 SA_post :: { () } = spaces?			-> { () }
+
+SE_clause :: Clause = p:SE_pre q:post_clause		-> { (fst p, snd p, q) }
+SE_pre :: Pre = p:pre_clause s:SE spaces?		-> { (p, s) }
 
 SI_clause :: { () } = spaces? SI spaces?	-> { () }
 
@@ -1563,6 +1603,8 @@ data Selbri
 	| Linkargs Selbri Linkargs
 	| CEI Selbri [(Clause, [Free], Selbri)]
 	| BO Selbri Clause [Free] Selbri
+	| GuhekGik (Maybe Clause) [Free] Guhek Selbri Gik Selbri
+	| JekJoikBO Selbri JoikJek (Maybe Tag) Clause [Free] Selbri
 	deriving Show
 
 type Linkargs = String
@@ -1572,7 +1614,21 @@ data Free
 	deriving Show
 
 type Clause = ([String], String, Indicators)
+type Pre = ([String], String)
 type Indicators = [[([String], String)]]
+
+type Jek = JoikJek -- (Maybe Clause, Maybe Clause, Clause, Maybe Clause)
+type Joik = JoikJek
+data JoikJek
+	= JOI (Maybe Clause) (Clause) (Maybe Clause)
+	| Jek (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
+	deriving Show
+-- type Guhek = ([Clause], [Free])
+-- type Gik = ([Clause], [Free])
+type Guhek = (Maybe Clause, Clause, Maybe Clause, [Free])
+type Gik = (Clause, Maybe Clause, [Free])
+
+type Tag = String
 
 main = do
 	[str] <- getArgs
