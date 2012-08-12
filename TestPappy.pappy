@@ -22,7 +22,18 @@ test :: Sumti = t:sumti EOF	-> { t }
 -----------------------------------------------------------------
 -- #03 term sumti
 
-sumti :: Sumti = sumti_2
+sumti :: Sumti = s:sumti_1 vr:vuho_relative_clauses?
+	-> { maybe s (\(v, f, r) -> VUhO s v f r) vr }
+vuho_relative_clauses :: { (Clause, [Free], RelativeClauses) }
+	= v:VUhO_clause f:free* r:relative_clauses	-> { (v, f, r) }
+
+sumti_1 :: Sumti
+	= s2:sumti_2 s:joik_ek_ke_sumti?
+	-> { maybe s2 (\((je, f), t, k, g, s, l, h) -> JoikEkKESumti s2 je f t k g s l h) s }
+joik_ek_ke_sumti ::
+	{ ((JoikEk, [Free]), Maybe Tag, Clause, [Free], Sumti, Maybe Clause,[Free]) }
+	= je:joik_ek t:stag? k:KE_clause f:free* s:sumti l:KEhE_clause? g:free*
+	-> { (je, t, k, f, s, l, g) }
 
 sumti_2 :: Sumti = s:sumti_3 ss:joik_ek_sumti_3*
 	-> { if null ss then s else JoikEkSumti s ss }
@@ -414,6 +425,9 @@ UI_pre :: { ([String], String) }
 	= p:pre_clause u:UI spaces?		-> { (p, u) }
 UI_post :: Indicators = post_clause
 UI_post_no_ind :: { () } = post_clause_no_ind
+
+VUhO_clause :: Clause = p:VUhO_pre q:post_clause	-> { (fst p, snd p, q) }
+VUhO_pre :: Pre = p:pre_clause v:VUhO spaces?		-> { (p, v) }
 
 ZEI_clause :: { () } = ZEI_pre
 -- ZEI_pre :: String = pre_clause z:ZEI spaces?
@@ -1697,6 +1711,9 @@ data Sumti
 	| GekSumti Gek Sumti Gik Sumti
 	| JoikEkBOSumti Sumti JoikEk [Free] (Maybe Tag) Clause [Free] Sumti
 	| JoikEkSumti Sumti [(JoikEk, [Free], Sumti)]
+	| JoikEkKESumti Sumti JoikEk [Free] (Maybe Tag) Clause [Free] Sumti
+		(Maybe Clause) [Free]
+	| VUhO Sumti Clause [Free] RelativeClauses
 	deriving Show
 
 data Selbri
