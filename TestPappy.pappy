@@ -11,7 +11,7 @@ ml = maybeToList
 
 top test
 
-test :: Sumti = t:sumti EOF	-> { t }
+test :: { ([Term], Maybe Clause, [Free]) } = t:tail_terms EOF	-> { t }
 
 -----------------------------------------------------------------
 -- #01 text paragraph statement
@@ -21,6 +21,13 @@ test :: Sumti = t:sumti EOF	-> { t }
 
 -----------------------------------------------------------------
 -- #03 term sumti
+
+tail_terms :: { ([Term], Maybe Clause, [Free]) }
+	= t:terms? v:VAU_clause? f:free*	-> { (fromMaybe [] t, v, f) }
+
+terms :: { [Term] } = term+
+
+term :: Term = sumti
 
 sumti :: Sumti = s:sumti_1 vr:vuho_relative_clauses?
 	-> { maybe s (\(v, f, r) -> VUhO s v f r) vr }
@@ -425,6 +432,9 @@ UI_pre :: { ([String], String) }
 	= p:pre_clause u:UI spaces?		-> { (p, u) }
 UI_post :: Indicators = post_clause
 UI_post_no_ind :: { () } = post_clause_no_ind
+
+VAU_clause :: Clause = p:VAU_pre q:post_clause		-> { (fst p, snd p, q) }
+VAU_pre :: Pre = p:pre_clause v:VAU spaces?		-> { (p, v) }
 
 VUhO_clause :: Clause = p:VUhO_pre q:post_clause	-> { (fst p, snd p, q) }
 VUhO_pre :: Pre = p:pre_clause v:VUhO spaces?		-> { (p, v) }
@@ -1702,6 +1712,8 @@ dummy :: {()} =
 	/ "a" dummy 	-> { () }
 
 {
+
+type Term = Sumti
 
 data Sumti
 	= KOhA Clause [Free]
