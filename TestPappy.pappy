@@ -11,13 +11,21 @@ ml = maybeToList
 
 top test
 
-test :: { ([Term], Maybe Clause, [Free]) } = t:tail_terms EOF	-> { t }
+test :: Sentence = t:sentence EOF	-> { t }
 
 -----------------------------------------------------------------
 -- #01 text paragraph statement
 
 -----------------------------------------------------------------
 -- #02 sentence bridi
+
+sentence :: Sentence = bridi_tail_3
+
+bridi_tail_3 :: Sentence
+	= s:selbri tvf:tail_terms
+	-> { let (t, v, f) = tvf in SelbriTailTerms s t v f }
+
+-- gek_sentence
 
 -----------------------------------------------------------------
 -- #03 term sumti
@@ -1714,6 +1722,10 @@ dummy :: {()} =
 {
 
 type Term = Sumti
+
+data Sentence
+	= SelbriTailTerms Selbri [Term] (Maybe Clause) [Free]
+	deriving Show
 
 data Sumti
 	= KOhA Clause [Free]
