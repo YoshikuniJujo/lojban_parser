@@ -22,7 +22,18 @@ test :: Sumti = t:sumti EOF	-> { t }
 -----------------------------------------------------------------
 -- #03 term sumti
 
-sumti :: Sumti = sumti_4
+sumti :: Sumti = sumti_2
+
+sumti_2 :: Sumti = s:sumti_3 ss:joik_ek_sumti_3*
+	-> { if null ss then s else JoikEkSumti s ss }
+joik_ek_sumti_3 :: { (JoikEk, [Free], Sumti) }
+	= jf:joik_ek s:sumti_3		-> { (fst jf, snd jf, s) }
+
+sumti_3 :: Sumti = s4:sumti_4 s3:joik_ek_bo_sumti_3?
+	-> { maybe s4 (\((je, f), t, b, g, s) -> JoikEkBOSumti s4 je f t b g s) s3 }
+joik_ek_bo_sumti_3 :: { ((JoikEk, [Free]), Maybe Tag, Clause, [Free], Sumti) }
+	= je:joik_ek t:stag? b:BO_clause f:free* s:sumti_3
+	-> { (je, t, b, f, s) }
 
 sumti_4 :: Sumti
 	= sumti_5
@@ -108,12 +119,27 @@ quantifier :: Quantifier = "pa "
 -----------------------------------------------------------------
 -- #08 ek gihek jek joik gek guhek gik
 
+ek :: Ek = na:NA_clause? s:SE_clause? a:A_clause nai:NAI_clause?
+	-> { Ek na s a nai }
+
 jek :: Jek
 	= na:NA_clause?  s:SE_clause? j:JA_clause nai:NAI_clause?
 	-> { Jek na s j nai }
 
 joik :: Joik
 	= s:SE_clause? j:JOI_clause n:NAI_clause?	-> { JOI s j n }
+
+joik_ek :: { (JoikEk, [Free]) }
+	= joik_ek_sa* j:joik_ek_1	-> { j }
+
+joik_ek_1 :: { (JoikEk, [Free]) }
+	= j:joik f:free*	-> { (j, f) }
+	/ e:ek f:free*		-> { (e, f) }
+
+joik_ek_sa :: { () }
+	= joik_ek_1 sa_not_joik_ek* SA_clause &joik_ek	-> { () }
+sa_not_joik_ek :: { () }
+	= !joik_ek_1 (sa_word / SA_clause !joik_ek_1 -> { () })	-> { () }
 
 joik_jek :: { (JoikJek, [Free]) }
 	= j:joik f:free*	-> { (j, f) }
@@ -229,7 +255,8 @@ erasable_clause :: { () }
 	= bu_clause_no_pre !ZEI_clause !BU_clause		-> { () }
 	/ zei_clause_no_pre !ZEI_clause !BU_clause		-> { () }
 
-si_word :: { () } = pre_zei_bu	-> { () }
+sa_word :: { () } = pre_zei_bu		-> { () }
+si_word :: { () } = pre_zei_bu		-> { () }
 
 -----------------------------------------------------------------
 -- #0e SELMAHO
@@ -247,7 +274,8 @@ CMENE_pre :: { [String], String) }
 CMAVO_pre :: { [String], String) }
 	= p:pre_clause c:CMAVO spaces?		-> { (p, c) }
 
-A_pre :: { ([String], String) } = p:pre_clause a:A spaces?	-> { (p, a) }
+A_clause :: Clause = p:A_pre q:post_clause		-> { (fst p, snd p, q) }
+A_pre :: Pre = p:pre_clause a:A spaces?			-> { (p, a) }
 
 BO_clause :: Clause
 	= pre:BO_pre post:post_clause		-> { (fst pre, snd pre, post) }
@@ -1667,6 +1695,8 @@ data Sumti
 	| QuantifierSelbri Quantifier Selbri (Maybe Clause) [Free]
 		(Maybe RelativeClauses)
 	| GekSumti Gek Sumti Gik Sumti
+	| JoikEkBOSumti Sumti JoikEk [Free] (Maybe Tag) Clause [Free] Sumti
+	| JoikEkSumti Sumti [(JoikEk, [Free], Sumti)]
 	deriving Show
 
 data Selbri
@@ -1700,11 +1730,14 @@ type Clause = ([String], String, Indicators)
 type Pre = ([String], String)
 type Indicators = [[([String], String)]]
 
-type Jek = JoikJek -- (Maybe Clause, Maybe Clause, Clause, Maybe Clause)
+type Ek = JoikJek
+type Jek = JoikJek
 type Joik = JoikJek
+type JoikEk = JoikJek
 data JoikJek
 	= JOI (Maybe Clause) (Clause) (Maybe Clause)
 	| Jek (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
+	| Ek (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
 	deriving Show
 data Gek
 	= GA (Maybe Clause) Clause (Maybe Clause) [Free]
