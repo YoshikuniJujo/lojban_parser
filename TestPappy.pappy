@@ -19,13 +19,21 @@ test :: Sentence = t:sentence EOF	-> { t }
 -----------------------------------------------------------------
 -- #02 sentence bridi
 
-sentence :: Sentence = bridi_tail_3
+sentence :: Sentence = bridi_tail_2
+
+bridi_tail_2 :: Sentence = b3:bridi_tail_3 g:gihek_bo_bridi_tail_2? ->
+  { maybe b3 (\(h, s, bo, f, bt, (t, v, i)) -> GihekBO b3 h s bo f bt t v i) g }
+
+gihek_bo_bridi_tail_2 :: { (Gihek, Maybe Tag, Clause, [Free], Sentence, TailTerms) }
+	= g:gihek s:stag? bo:BO_clause f:free* bt:bridi_tail_2 t:tail_terms
+	-> { (g, s, bo, f, bt, t) }
 
 bridi_tail_3 :: Sentence
 	= s:selbri tvf:tail_terms
 	-> { let (t, v, f) = tvf in SelbriTailTerms s t v f }
+--	/ gek_sentence
 
--- gek_sentence
+-- gek_sentence :: Sentence
 
 -----------------------------------------------------------------
 -- #03 term sumti
@@ -147,6 +155,18 @@ quantifier :: Quantifier = "pa "
 
 ek :: Ek = na:NA_clause? s:SE_clause? a:A_clause nai:NAI_clause?
 	-> { Ek na s a nai }
+
+gihek :: Gihek
+	= gihek_sa* g:gihek_1	-> { g }
+
+gihek_1 :: Gihek
+	= na:NA_clause? s:SE_clause? g:GIhA_clause nai:NAI_clause?
+	-> { Gihek na s g nai }
+
+gihek_sa :: { () }
+	= gihek_1 sa_not_gihek* SA_clause &gihek		-> { () }
+sa_not_gihek :: { () }
+	= !gihek_1 (sa_word / SA_clause !gihek_1 -> { () })	-> { () }
 
 jek :: Jek
 	= na:NA_clause?  s:SE_clause? j:JA_clause nai:NAI_clause?
@@ -385,6 +405,9 @@ GA_pre :: Pre = p:pre_clause g:GA spaces?		-> { (p, g) }
 
 GI_clause :: Clause = p:GI_pre q:post_clause		-> { (fst p, snd p, q) }
 GI_pre :: Pre = p:pre_clause g:GI spaces?		-> { (p, g) }
+
+GIhA_clause :: Clause = p:GIhA_pre q:post_clause	-> { (fst p, snd p, q) }
+GIhA_pre :: Pre = p:pre_clause g:GIhA			-> { (p, g) }
 
 GUhA_clause :: Clause = p:GUhA_pre q:post_clause	-> { (fst p, snd p, q) }
 GUhA_pre :: Pre = p:pre_clause g:GUhA spaces?		-> { (p, g) }
@@ -1721,10 +1744,13 @@ dummy :: {()} =
 
 {
 
+type TailTerms = ([Term], Maybe Clause, [Free])
 type Term = Sumti
 
 data Sentence
 	= SelbriTailTerms Selbri [Term] (Maybe Clause) [Free]
+	| GihekBO Sentence Gihek (Maybe Tag) Clause [Free] Sentence [Term]
+		(Maybe Clause) [Free]
 	deriving Show
 
 data Sumti
@@ -1775,10 +1801,12 @@ type Ek = JoikJek
 type Jek = JoikJek
 type Joik = JoikJek
 type JoikEk = JoikJek
+type Gihek = JoikJek
 data JoikJek
 	= JOI (Maybe Clause) (Clause) (Maybe Clause)
 	| Jek (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
 	| Ek (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
+	| Gihek (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
 	deriving Show
 data Gek
 	= GA (Maybe Clause) Clause (Maybe Clause) [Free]
