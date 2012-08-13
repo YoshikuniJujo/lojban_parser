@@ -19,7 +19,14 @@ test :: Sentence = t:sentence EOF	-> { t }
 -----------------------------------------------------------------
 -- #02 sentence bridi
 
-sentence :: Sentence = bridi_tail_2
+sentence :: Sentence = bridi_tail_1
+
+bridi_tail_1 :: Sentence
+	= b:bridi_tail_2 g:gihek_bridi_tail_2* -> { GihekSentence b g }
+gihek_bridi_tail_2 :: { (Gihek, [Free], Sentence, [Term], Maybe Clause, [Free]) }
+	= g:gihek !(stag? BO_clause -> { () }) !(stag? KE_clause -> { () })
+		f:free* b:bridi_tail_2 tvi:tail_terms
+		-> { let (t, v, i) = tvi in (g, f, b, t, v, i) }
 
 bridi_tail_2 :: Sentence = b3:bridi_tail_3 g:gihek_bo_bridi_tail_2? ->
   { maybe b3 (\(h, s, bo, f, bt, (t, v, i)) -> GihekBO b3 h s bo f bt t v i) g }
@@ -1751,6 +1758,8 @@ data Sentence
 	= SelbriTailTerms Selbri [Term] (Maybe Clause) [Free]
 	| GihekBO Sentence Gihek (Maybe Tag) Clause [Free] Sentence [Term]
 		(Maybe Clause) [Free]
+	| GihekSentence Sentence
+		[(Gihek, [Free], Sentence, [Term], Maybe Clause, [Free])]
 	deriving Show
 
 data Sumti
