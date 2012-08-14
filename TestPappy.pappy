@@ -16,7 +16,11 @@ test :: Text = t:text_1 EOF	-> { t }
 -----------------------------------------------------------------
 -- #01 text paragraph statement
 
-text_1 :: Text = statement_1
+text_1 :: Text = statement
+
+statement :: Statement
+	= statement_1
+	/ p:prenex s:statement	-> { let (t, z, f) = p in Prenex t z f s }
 
 statement_1 :: Statement
 	= s:statement_2 i:i_joik_jek_statement_2*
@@ -1867,6 +1871,7 @@ data Sentence
 	| TUhE (Maybe Tag) Clause [Free] Text (Maybe Clause) [Free]
 	| IBO Statement Clause (Maybe JoikJek) (Maybe Tag) Clause [Free] Statement
 	| IJoikJek Statement [(Clause, JoikJek, [Free], Maybe Statement)]
+	| Prenex [Term] Clause [Free] Statement
 	deriving Show
 
 data Sumti
