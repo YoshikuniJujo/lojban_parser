@@ -16,7 +16,14 @@ test :: Text = t:text_1 EOF	-> { t }
 -----------------------------------------------------------------
 -- #01 text paragraph statement
 
-text_1 :: Text = paragraph
+text_1 :: Text = paragraphs
+
+paragraphs :: Paragraphs
+	= p:paragraph n:niho_paragraphs?
+	-> { maybe p (uncurry3 $ NIhO p) n }
+niho_paragraphs :: { ([Clause], [Free], Paragraphs) }
+	= n:NIhO_clause+ f:free* su_clause* p:paragraphs
+	-> { (n, f, p) }
 
 paragraph :: Paragraph
 	= s:(statement / fragment) i:i_statement*
@@ -396,6 +403,8 @@ known_cmavo_SA :: { ([String], String) }
 -----------------------------------------------------------------
 -- #0d Handling of spaces and things like spaces
 
+su_clause :: { () } = (erasable_clause / su_word)* SU_clause	-> { () }
+
 si_clause :: { () } = si_clause_single+				-> { () }
 si_clause_single :: { () } = er_si_sa si_clause? SI_clause	-> { () }
 er_si_sa :: { () } = erasable_clause / si_word / SA_clause
@@ -406,6 +415,8 @@ erasable_clause :: { () }
 
 sa_word :: { () } = pre_zei_bu		-> { () }
 si_word :: { () } = pre_zei_bu		-> { () }
+su_word :: { () } = !NIhO_clause !LU_clause !TUhE_clause !TO_clause !SU_clause
+	!FAhO_clause any_word_SA_handling	-> { () }
 
 -----------------------------------------------------------------
 -- #0e SELMAHO
@@ -537,6 +548,9 @@ KOhA_pre :: Pre = p:pre_clause k:KOhA spaces?		-> { (p, k) }
 KU_clause :: Clause = p:KU_pre q:post_clause		-> { (fst p, snd p, q) }
 KU_pre :: Pre = p:pre_clause k:KU spaces?		-> { (p, k) }
 
+LU_clause :: Clause = p:LU_pre q:post_clause		-> { (fst p, snd p, q) }
+LU_pre :: Pre = p:pre_clause l:LU spaces?		-> { (p, l) }
+
 ME_clause :: Clause = p:ME_pre q:post_clause		-> { (fst p, snd p, q) }
 ME_pre :: Pre = p:pre_clause m:ME spaces?		-> { (p, m) }
 
@@ -571,6 +585,9 @@ SI_clause :: { () } = spaces? SI spaces?	-> { () }
 SU_clause :: { () } = SU_pre SU_post		-> { () }
 SU_pre :: { () } = pre_clause SU spaces?	-> { () }
 SU_post :: Indicators = post_clause		-> { () }
+
+TO_clause :: Clause = p:TO_pre q:post_clause		-> { (fst p, snd p, q) }
+TO_pre :: Pre = p:pre_clause t:TO spaces?		-> { (p, t) }
 
 TUhE_clause :: Clause = p:TUhE_pre q:post_clause	-> { (fst p, snd p, q) }
 TUhE_pre :: Pre = p:pre_clause t:TUhE spaces?		-> { (p, t) }
@@ -1874,6 +1891,7 @@ type TailTerms = ([Term], Maybe Clause, [Free])
 type Term = Sumti
 
 type Text = Sentence
+type Paragraphs = Sentence
 type Paragraph = Sentence
 type Fragment = Sentence
 type Statement = Sentence
@@ -1893,6 +1911,7 @@ data Sentence
 	| Prenex [Term] Clause [Free] Statement
 	| FPrenex [Term] Clause [Free]
 	| StatementI Statement [(Clause, [Free], Maybe Statement)]
+	| NIhO Paragraph [Clause] [Free] Paragraphs
 	deriving Show
 
 data Sumti
