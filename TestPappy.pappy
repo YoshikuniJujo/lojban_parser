@@ -11,12 +11,22 @@ ml = maybeToList
 
 top test
 
-test :: Sentence = t:sentence EOF	-> { t }
+test :: Text = t:text_1 EOF	-> { t }
 
 -----------------------------------------------------------------
 -- #01 text paragraph statement
 
-text_1 :: Text = sentence
+text_1 :: Text = statement_3
+
+statement_3 :: Statement
+	= sentence
+	/ tag:tag? tuhe:TUhE_clause f:free* text:text_1 tuhu:TUhU_clause? g:free*
+		-> { TUhE tag tuhe f text tuhu g }
+
+-- fragment
+
+prenex :: { ([Term], Clause, [Free]) }
+	= t:terms z:ZOhU_clause f:free*		-> { (t, z, f) }
 
 -----------------------------------------------------------------
 -- #02 sentence bridi
@@ -526,6 +536,12 @@ SU_clause :: { () } = SU_pre SU_post		-> { () }
 SU_pre :: { () } = pre_clause SU spaces?	-> { () }
 SU_post :: Indicators = post_clause		-> { () }
 
+TUhE_clause :: Clause = p:TUhE_pre q:post_clause	-> { (fst p, snd p, q) }
+TUhE_pre :: Pre = p:pre_clause t:TUhE spaces?		-> { (p, t) }
+
+TUhU_clause :: Clause = p:TUhU_pre q:post_clause	-> { (fst p, snd p, q) }
+TUhU_pre :: Pre = p:pre_clause t:TUhU spaces?		-> { (p, t) }
+
 UI_clause :: { ([String], String) }
 	= pre:UI_pre post:UI_post		-> { pre }
 UI_clause_no_ind :: { ([String], String) }
@@ -544,6 +560,9 @@ VUhO_pre :: Pre = p:pre_clause v:VUhO spaces?		-> { (p, v) }
 ZEI_clause :: { () } = ZEI_pre
 -- ZEI_pre :: String = pre_clause z:ZEI spaces?
 ZEI_pre :: { () } = ZEI spaces?	-> { () }
+
+ZOhU_clause :: Clause = p:ZOhU_pre q:post_clause	-> { (fst p, snd p, q) }
+ZOhU_pre :: Pre = p:pre_clause z:ZOhU spaces?		-> { (p, z) }
 
 -----------------------------------------------------------------
 -- MORPHOLOGY                                                  --
@@ -1819,6 +1838,7 @@ type TailTerms = ([Term], Maybe Clause, [Free])
 type Term = Sumti
 
 type Text = Sentence
+type Statement = Sentence
 
 data Sentence
 	= SelbriTailTerms Selbri [Term] (Maybe Clause) [Free]
@@ -1829,6 +1849,7 @@ data Sentence
 	| GihekKE Sentence Gihek (Maybe Tag) Clause [Free] Sentence (Maybe Clause)
 		[Free] [Term] (Maybe Clause) [Free]
 	| TermsBridiTail [Term] (Maybe Clause) [Free] Sentence
+	| TUhE (Maybe Tag) Clause [Free] Text (Maybe Clause) [Free]
 	deriving Show
 
 data Sumti
