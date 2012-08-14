@@ -16,7 +16,15 @@ test :: Text = t:text_1 EOF	-> { t }
 -----------------------------------------------------------------
 -- #01 text paragraph statement
 
-text_1 :: Text = statement
+text_1 :: Text = paragraph
+
+paragraph :: Paragraph
+	= s:(statement / fragment) i:i_statement*
+	-> { StatementI s i }
+
+i_statement :: { (Clause, [Free], Maybe Statement) }
+	= i:I_clause !jek !joik !joik_jek f:free* s:(statement / fragment)?
+	-> { (i, f, s) }
 
 statement :: Statement
 	= statement_1
@@ -42,7 +50,16 @@ statement_3 :: Statement
 	/ tag:tag? tuhe:TUhE_clause f:free* text:text_1 tuhu:TUhU_clause? g:free*
 		-> { TUhE tag tuhe f text tuhu g }
 
--- fragment
+fragment :: Fragment
+	= p:prenex				-> { uncurry3 FPrenex p }
+--	/ t:terms v:VAU_clause? f:free*
+--	/ e:ek f:free*
+--	/ g:gihek f:free*
+--	/ q:quantifier
+--	/ n:NA_clause !JA_clause f:free*
+--	/ r:relative_clause
+--	/ l:links
+--	/ l:linkargs
 
 prenex :: { ([Term], Clause, [Free]) }
 	= t:terms z:ZOhU_clause f:free*		-> { (t, z, f) }
@@ -1857,6 +1874,8 @@ type TailTerms = ([Term], Maybe Clause, [Free])
 type Term = Sumti
 
 type Text = Sentence
+type Paragraph = Sentence
+type Fragment = Sentence
 type Statement = Sentence
 
 data Sentence
@@ -1872,6 +1891,8 @@ data Sentence
 	| IBO Statement Clause (Maybe JoikJek) (Maybe Tag) Clause [Free] Statement
 	| IJoikJek Statement [(Clause, JoikJek, [Free], Maybe Statement)]
 	| Prenex [Term] Clause [Free] Statement
+	| FPrenex [Term] Clause [Free]
+	| StatementI Statement [(Clause, [Free], Maybe Statement)]
 	deriving Show
 
 data Sumti
