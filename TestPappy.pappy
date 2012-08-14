@@ -16,10 +16,30 @@ test :: Sentence = t:sentence EOF	-> { t }
 -----------------------------------------------------------------
 -- #01 text paragraph statement
 
+text_1 :: Text = sentence
+
 -----------------------------------------------------------------
 -- #02 sentence bridi
 
-sentence :: Sentence = bridi_tail
+sentence :: Sentence = h:head_terms? bridi_tail_sa* bt:bridi_tail
+	-> { maybe bt (\(ts, c, f) -> TermsBridiTail ts c f bt) h }
+head_terms :: { ([Term], Maybe Clause, [Free]) }
+	= t:terms bridi_tail_sa* c:CU_clause? f:free*
+	-> { (t, c, f) }
+
+sentence_sa :: { () } = sentence_start sentence_sa_words* SA_clause &text_1
+	-> { () }
+sentence_sa_words :: { () } = !sentence_start
+	( sa_word
+	/ SA_clause !sentence_start -> { () } )		-> { () }
+
+sentence_start :: { () }
+	= I_pre		-> { () }
+	/ NIhO_pre	-> { () }
+
+-- subsentence :: Sentence
+--	= sentence
+--	/ p:prenex s:subsentence	-> { PrenexSentence p s }
 
 bridi_tail :: Sentence = b:bridi_tail_1 g:gihek_ke_bridi_tail?
 	-> { maybe b (\(g, t, ke, f, b, kehe, h, (u, v, i)) ->
@@ -31,7 +51,13 @@ gihek_ke_bridi_tail :: {
 	= g:gihek t:stag? ke:KE_clause f:free* b:bridi_tail kehe:KEhE_clause?
 		h:free* tts:tail_terms -> { (g, t, ke, f, b, kehe, h, tts) }
 
--- bridi_tail_sa
+bridi_tail_sa :: { () }
+	= bridi_tail_start bridi_tail_sa_words* SA_clause &bridi_tail	-> { () }
+bridi_tail_sa_words :: { () }
+	= term				-> { () }
+	/ !bridi_tail_start
+		( sa_word
+		/ SA_clause !bridi_tail_start -> { () } )	-> { () }
 
 bridi_tail_start :: { () }
 	= ME_clause			-> { () }
@@ -383,11 +409,11 @@ CEI_pre :: Pre = p:pre_clause c:CEI spaces?		-> { (p, c) }
 CO_clause :: Clause = p:CO_pre q:post_clause		-> { (fst p, snd p, q) }
 CO_pre :: Pre = p:pre_clause c:CO spaces?		-> { (p, c) }
 
-COI_clause :: { ([String], String, Indicators) }
-	= pre:COI_pre post:COI_post	-> { (fst pre, snd pre, post) }
-COI_pre :: { ([String], String) }
-	= p:pre_clause c:COI spaces?	-> { (p, c) }
-COI_post :: Indicators = post_clause
+COI_clause :: Clause = p:COI_pre q:post_clause		-> { (fst p, snd p, q) }
+COI_pre :: Pre = p:pre_clause c:COI spaces?		-> { (p, c) }
+
+CU_clause :: Clause = p:CU_pre q:post_clause		-> { (fst p, snd p, q) }
+CU_pre :: Pre = p:pre_clause c:CU spaces?		-> { (p, c) }
 
 DAhO_clause :: { ([String], String) }
 	= pre:DAhO_pre post:DAhO_post	-> { pre }
@@ -443,6 +469,10 @@ GIhA_pre :: Pre = p:pre_clause g:GIhA			-> { (p, g) }
 GUhA_clause :: Clause = p:GUhA_pre q:post_clause	-> { (fst p, snd p, q) }
 GUhA_pre :: Pre = p:pre_clause g:GUhA spaces?		-> { (p, g) }
 
+I_clause :: Clause
+	= sentence_sa* p:I_pre q:post_clause		-> { (fst p, snd p, q) }
+I_pre :: Pre = p:pre_clause i:I spaces?			-> { (p, i) }
+
 JA_clause :: Clause = p:JA_pre q:post_clause		-> { (fst p, snd p, q) }
 JA_pre :: Pre = p:pre_clause j:JA spaces?		-> { (p, j) }
 
@@ -473,6 +503,9 @@ NAI_pre :: Pre = p:pre_clause n:NAI spaces?		-> { (p, n) }
 
 NAhE_clause :: Clause = p:NAhE_pre q:post_clause	-> { (fst p, snd p, q) }
 NAhE_pre :: Pre = p:pre_clause n:NAhE spaces?		-> { (p, n) }
+
+NIhO_clause :: Clause = p:NIhO_pre q:post_clause	-> { (fst p, snd p, q) }
+NIhO_pre :: Pre = p:pre_clause n:NIhO spaces?		-> { (p, n) }
 
 NU_clause :: Clause = p:NU_pre q:post_clause		-> { (fst p, snd p, q) }
 NU_pre :: Pre = p:pre_clause n:NU spaces?		-> { (p, n) }
@@ -1785,6 +1818,8 @@ dummy :: {()} =
 type TailTerms = ([Term], Maybe Clause, [Free])
 type Term = Sumti
 
+type Text = Sentence
+
 data Sentence
 	= SelbriTailTerms Selbri [Term] (Maybe Clause) [Free]
 	| GihekBO Sentence Gihek (Maybe Tag) Clause [Free] Sentence [Term]
@@ -1793,6 +1828,7 @@ data Sentence
 		[(Gihek, [Free], Sentence, [Term], Maybe Clause, [Free])]
 	| GihekKE Sentence Gihek (Maybe Tag) Clause [Free] Sentence (Maybe Clause)
 		[Free] [Term] (Maybe Clause) [Free]
+	| TermsBridiTail [Term] (Maybe Clause) [Free] Sentence
 	deriving Show
 
 data Sumti
