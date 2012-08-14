@@ -16,7 +16,22 @@ test :: Text = t:text_1 EOF	-> { t }
 -----------------------------------------------------------------
 -- #01 text paragraph statement
 
-text_1 :: Text = statement_3
+text_1 :: Text = statement_1
+
+statement_1 :: Statement
+	= s:statement_2 i:i_joik_jek_statement_2*
+	-> { if null i then s else IJoikJek s i }
+i_joik_jek_statement_2 :: { (Clause, JoikJek, [Free], Maybe Statement) }
+	= i:I_clause j:joik_jek s:statement_2?		-> { (i, fst j, snd j, s) }
+
+statement_2 :: Statement
+	= s3:statement_3 ib:i_bo_statement_2?
+	-> { maybe s3 (\(i, j, t, b, f, s2) -> IBO s3 i j t b f s2) ib }
+--	/ statement_3 (I_clause (jek / joik)? stag? BO_clause free*)?
+i_bo_statement_2 ::
+	{ (Clause, Maybe JoikJek, Maybe Tag, Clause, [Free], Statement) }
+	= i:I_clause j:(jek / joik)? t:stag? b:BO_clause f:free* s:statement_2
+	-> { (i, j, t, b, f, s) }
 
 statement_3 :: Statement
 	= sentence
@@ -1850,6 +1865,8 @@ data Sentence
 		[Free] [Term] (Maybe Clause) [Free]
 	| TermsBridiTail [Term] (Maybe Clause) [Free] Sentence
 	| TUhE (Maybe Tag) Clause [Free] Text (Maybe Clause) [Free]
+	| IBO Statement Clause (Maybe JoikJek) (Maybe Tag) Clause [Free] Statement
+	| IJoikJek Statement [(Clause, JoikJek, [Free], Maybe Statement)]
 	deriving Show
 
 data Sumti
