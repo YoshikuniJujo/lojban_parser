@@ -19,7 +19,30 @@ test :: Sentence = t:sentence EOF	-> { t }
 -----------------------------------------------------------------
 -- #02 sentence bridi
 
-sentence :: Sentence = bridi_tail_1
+sentence :: Sentence = bridi_tail
+
+bridi_tail :: Sentence = b:bridi_tail_1 g:gihek_ke_bridi_tail?
+	-> { maybe b (\(g, t, ke, f, b, kehe, h, (u, v, i)) ->
+		GihekKE b g t ke f b kehe h u v i) g }
+
+gihek_ke_bridi_tail :: {
+	(Gihek, Maybe Tag, Clause, [Free], Sentence, Maybe Clause, [Free],
+		TailTerms) }
+	= g:gihek t:stag? ke:KE_clause f:free* b:bridi_tail kehe:KEhE_clause?
+		h:free* tts:tail_terms -> { (g, t, ke, f, b, kehe, h, tts) }
+
+-- bridi_tail_sa
+
+bridi_tail_start :: { () }
+	= ME_clause			-> { () }
+	/ NUhA_clause			-> { () }
+	/ NU_clause			-> { () }
+	/ NA_clause !KU_clause		-> { () }
+	/ NAhE_clause !BO_clause	-> { () }
+	/ selbri			-> { () }
+	/ tag bridi_tail_start		-> { () }
+	/ KE_clause bridi_tail_start	-> { () }
+	/ bridi_tail			-> { () }
 
 bridi_tail_1 :: Sentence
 	= b:bridi_tail_2 g:gihek_bridi_tail_2* -> { GihekSentence b g }
@@ -437,6 +460,9 @@ KOhA_pre :: Pre = p:pre_clause k:KOhA spaces?		-> { (p, k) }
 KU_clause :: Clause = p:KU_pre q:post_clause		-> { (fst p, snd p, q) }
 KU_pre :: Pre = p:pre_clause k:KU spaces?		-> { (p, k) }
 
+ME_clause :: Clause = p:ME_pre q:post_clause		-> { (fst p, snd p, q) }
+ME_pre :: Pre = p:pre_clause m:ME spaces?		-> { (p, m) }
+
 NA_clause :: Clause = p:NA_pre q:post_clause		-> { (fst p, snd p, q) }
 NA_pre :: Pre = p:pre_clause n:NA spaces?		-> { (p, n) }
 
@@ -444,10 +470,14 @@ NAI_clause :: Clause = p:NAI_pre q:post_clause		-> { (fst p, snd p, q) }
 NAI_clause_no_ind :: Pre = p:NAI_pre post_clause_no_ind	-> { p }
 NAI_pre :: Pre = p:pre_clause n:NAI spaces?		-> { (p, n) }
 
-NAhE_clause :: Clause
-	= pre:NAhE_pre post:post_clause	-> { (fst pre, snd pre, post) }
-NAhE_pre :: { ([String], String) } = p:pre_clause n:NAhE spaces?
-	-> { (p, n) }
+NAhE_clause :: Clause = p:NAhE_pre q:post_clause	-> { (fst p, snd p, q) }
+NAhE_pre :: Pre = p:pre_clause n:NAhE spaces?		-> { (p, n) }
+
+NU_clause :: Clause = p:NU_pre q:post_clause		-> { (fst p, snd p, q) }
+NU_pre :: Pre = p:pre_clause n:NU spaces?		-> { (p, n) }
+
+NUhA_clause :: Clause = p:NUhA_pre q:post_clause	-> { (fst p, snd p, q) }
+NUhA_pre :: Pre = p:pre_clause n:NUhA spaces?		-> { (p, n) }
 
 SA_clause :: { () } = SA_pre SA_post		-> { () }
 SA_pre :: { () } = pre_clause SA spaces?	-> { () }
@@ -1760,6 +1790,8 @@ data Sentence
 		(Maybe Clause) [Free]
 	| GihekSentence Sentence
 		[(Gihek, [Free], Sentence, [Term], Maybe Clause, [Free])]
+	| GihekKE Sentence Gihek (Maybe Tag) Clause [Free] Sentence (Maybe Clause)
+		[Free] [Term] (Maybe Clause) [Free]
 	deriving Show
 
 data Sumti
