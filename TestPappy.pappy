@@ -45,7 +45,8 @@ bridi_tail_start :: { () }
 	/ bridi_tail			-> { () }
 
 bridi_tail_1 :: Sentence
-	= b:bridi_tail_2 g:gihek_bridi_tail_2* -> { GihekSentence b g }
+	= b:bridi_tail_2 g:gihek_bridi_tail_2*
+	-> { if null g then b else GihekSentence b g }
 gihek_bridi_tail_2 :: { (Gihek, [Free], Sentence, [Term], Maybe Clause, [Free]) }
 	= g:gihek !(stag? BO_clause -> { () }) !(stag? KE_clause -> { () })
 		f:free* b:bridi_tail_2 tvi:tail_terms
