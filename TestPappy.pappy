@@ -16,7 +16,13 @@ test :: Text = t:text_1 EOF	-> { t }
 -----------------------------------------------------------------
 -- #01 text paragraph statement
 
-text_1 :: Text = paragraphs
+text_1 :: Text
+	= i:I_clause j:(jek / joik)? b:(s:stag? b:BO_clause -> { (s, b) })?
+		f:free* t:text_1?
+	-> { IText_1 i j b f t }
+	/ n:NIhO_clause+ f:free* su_clause* p:paragraphs?
+	-> { HeadNIhO n f p }
+	/ paragraphs
 
 paragraphs :: Paragraphs
 	= p:paragraph n:niho_paragraphs?
@@ -1912,6 +1918,9 @@ data Sentence
 	| FPrenex [Term] Clause [Free]
 	| StatementI Statement [(Clause, [Free], Maybe Statement)]
 	| NIhO Paragraph [Clause] [Free] Paragraphs
+	| IText_1 Clause (Maybe JoikJek) (Maybe (Maybe Tag, Clause)) [Free]
+		(Maybe Text)
+	| HeadNIhO [Clause] [Free] (Maybe Paragraphs)
 	deriving Show
 
 data Sumti
