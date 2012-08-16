@@ -11,10 +11,22 @@ ml = maybeToList
 
 top test
 
-test :: Text = t:text_1 EOF	-> { t }
+test :: Text = t:text EOF	-> { t }
 
 -----------------------------------------------------------------
 -- #01 text paragraph statement
+
+text :: Text
+	= intro_null n:NAI_clause* tp2:text_part_2 jj:(!text_1 j:joik_jek -> { j })?
+		t:text_1? f:faho_clause? EOF?
+	-> { if isSimpleText n tp2 jj t f then fromJust t else TopText n (fst tp2) (snd tp2) (fst jj) (snd jj) t f }
+
+intro_null :: { () } = spaces? su_clause* intro_si_clause	-> { () }
+text_part_2 :: { (Either [Clause] (Maybe [([String], String)]), [Free]) }
+	= e:(c:CMENE_clause+ -> { Left c } / i:indicators? -> { Right i })
+		f:free*					-> { (e, f) }
+intro_si_clause :: { () } = si_clause? SI_clause*	-> { () }
+faho_clause :: { () } = FAhO_clause dot_star		-> { () }
 
 text_1 :: Text
 	= i:I_clause j:(jek / joik)? b:(s:stag? b:BO_clause -> { (s, b) })?
@@ -387,6 +399,8 @@ pre_zei_bu :: { String } = !BAhE_clause
 	!BU_clause !ZEI_clause !SI_clause !SA_clause !SU_clause !FAhO_clause
 	w:any_word_SA_handling si_clause?	-> { snd w }
 
+dot_star :: { () } = anyChar*		-> { () }
+
 -----------------------------------------------------------------
 -- #0c General Morphology Issues
 --	1. Space (including '.y') and UI are eaten *after* a word.
@@ -435,8 +449,9 @@ BRIVLA_pre :: { ([String], String) }
 	= p:pre_clause b:BRIVLA spaces?		-> { (p, b) }
 BRIVLA_post :: Indicators = post_clause
 
-CMENE_pre :: { [String], String) }
-	= p:pre_clause c:CMENE spaces?		-> { (p, c) }
+CMENE_clause :: Clause = p:CMENE_pre q:post_clause	-> { (fst p, snd p, q) }
+CMENE_pre :: Pre = p:pre_clause c:CMENE spaces?		-> { (p, c) }
+
 CMAVO_pre :: { [String], String) }
 	= p:pre_clause c:CMAVO spaces?		-> { (p, c) }
 
@@ -1921,6 +1936,8 @@ data Sentence
 	| IText_1 Clause (Maybe JoikJek) (Maybe (Maybe Tag, Clause)) [Free]
 		(Maybe Text)
 	| HeadNIhO [Clause] [Free] (Maybe Paragraphs)
+	| TopText [Clause] (Either [Clause] (Maybe Indicators)) [Free] JoikJek
+		[Free] (Maybe Text) (Maybe Clause)
 	deriving Show
 
 data Sumti
@@ -1999,4 +2016,12 @@ main = do
 uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
 uncurry3 f (x, y, z) = f x y z
 
+isSimpleText :: [Clause] -> (Either [Clause] (Maybe [([String], String)]), [Free]) -> 
+	Maybe (JoikJek, [Free]) -> Maybe Text -> Maybe Clause -> Bool
+isSimpleText n tp2 jj t f =
+	null n && isNothing (fromRight $ fst tp2) && null (snd tp2) &&
+	isNothing jj && isJust t && isNothing f
+
+fromRight :: Either a b -> b
+fromRight = either (const $ error "not Right") id
 }
