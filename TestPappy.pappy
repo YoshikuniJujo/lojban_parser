@@ -19,14 +19,14 @@ test :: Text = t:text EOF	-> { t }
 text :: Text
 	= intro_null n:NAI_clause* tp2:text_part_2 jj:(!text_1 j:joik_jek -> { j })?
 		t:text_1? f:faho_clause? EOF?
-	-> { if isSimpleText n tp2 jj t f then fromJust t else TopText n (fst tp2) (snd tp2) (fst jj) (snd jj) t f }
+	-> { if isSimpleText n tp2 jj t f then fromJust t else TopText n (fst tp2) (snd tp2) jj t f }
 
 intro_null :: { () } = spaces? su_clause* intro_si_clause	-> { () }
 text_part_2 :: { (Either [Clause] (Maybe [([String], String)]), [Free]) }
 	= e:(c:CMENE_clause+ -> { Left c } / i:indicators? -> { Right i })
 		f:free*					-> { (e, f) }
 intro_si_clause :: { () } = si_clause? SI_clause*	-> { () }
-faho_clause :: { () } = FAhO_clause dot_star		-> { () }
+faho_clause :: Pre = f:FAhO_clause dot_star		-> { f }
 
 text_1 :: Text
 	= i:I_clause j:(jek / joik)? b:(s:stag? b:BO_clause -> { (s, b) })?
@@ -1936,8 +1936,8 @@ data Sentence
 	| IText_1 Clause (Maybe JoikJek) (Maybe (Maybe Tag, Clause)) [Free]
 		(Maybe Text)
 	| HeadNIhO [Clause] [Free] (Maybe Paragraphs)
-	| TopText [Clause] (Either [Clause] (Maybe Indicators)) [Free] JoikJek
-		[Free] (Maybe Text) (Maybe Clause)
+	| TopText [Clause] (Either [Clause] (Maybe [([String], String)])) [Free]
+		(Maybe (JoikJek, [Free])) (Maybe Text) (Maybe Pre)
 	deriving Show
 
 data Sumti
@@ -2017,7 +2017,7 @@ uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
 uncurry3 f (x, y, z) = f x y z
 
 isSimpleText :: [Clause] -> (Either [Clause] (Maybe [([String], String)]), [Free]) -> 
-	Maybe (JoikJek, [Free]) -> Maybe Text -> Maybe Clause -> Bool
+	Maybe (JoikJek, [Free]) -> Maybe Text -> Maybe Pre -> Bool
 isSimpleText n tp2 jj t f =
 	null n && isNothing (fromRight $ fst tp2) && null (snd tp2) &&
 	isNothing jj && isJust t && isNothing f
