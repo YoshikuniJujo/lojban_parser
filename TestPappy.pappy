@@ -208,7 +208,9 @@ sumti_5 :: Sumti
 	-> { SQuantifierSelbri q s k f r }
 
 sumti_6 :: Sumti
-	= lnbf:LAhE_NAhE r:relative_clauses? s:sumti l:LUhU_clause? g:free*
+	= lu:LU_clause t:text lihu:LIhU_clause? f:free*
+		-> { LU lu t lihu f }
+	/ lnbf:LAhE_NAhE r:relative_clauses? s:sumti l:LUhU_clause? g:free*
 		-> { let (ln, b, f) = lnbf in LAhE_NAhE ln  b f r s l g }
 	/ k:KOhA_clause f:free*		-> { KOhA k f }
 	/ l:LA_clause f:free* r:relative_clauses? c:CMENE_clause+ g:free*
@@ -614,6 +616,9 @@ LE_pre :: Pre = p:pre_clause l:LE spaces?		-> { (p, l) }
 
 LI_clause :: Clause = p:LI_pre q:post_clause		-> { (fst p, snd p, q) }
 LI_pre :: Pre = p:pre_clause l:LI spaces?		-> { (p, l) }
+
+LIhU_clause :: Clause = p:LIhU_pre q:post_clause	-> { (fst p, snd p, q) }
+LIhU_pre :: Pre = p:pre_clause l:LIhU spaces?		-> { (p, l) }
 
 LOhO_clause :: Clause = p:LOhO_pre q:post_clause	-> { (fst p, snd p, q) }
 LOhO_pre :: Pre = p:pre_clause l:LOhO spaces?		-> { (p, l) }
@@ -1993,7 +1998,8 @@ data Sentence
 	deriving Show
 
 data Sumti
-	= LAhE_NAhE Clause (Maybe Clause) [Free] (Maybe RelativeClauses)
+	= LU Clause Text (Maybe Clause) [Free]
+	| LAhE_NAhE Clause (Maybe Clause) [Free] (Maybe RelativeClauses)
 		Sumti (Maybe Clause) [Free]
 	| KOhA Clause [Free]
 	| LALE Clause [Free] SumtiTail (Maybe Clause) [Free]
