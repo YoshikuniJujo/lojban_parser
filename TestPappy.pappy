@@ -205,10 +205,42 @@ sumti_5 :: Sumti
 	= q:quantifier? s:sumti_6 r:relative_clauses?
 	-> { if isNothing q && isNothing r then s else OuterQuantifier q s r }
 	/ q:quantifier s:selbri k:KU_clause? f:free* r:relative_clauses?
-	-> { QuantifierSelbri q s k f r }
+	-> { SQuantifierSelbri q s k f r }
 
 sumti_6 :: Sumti
-	= k:KOhA_clause f:free*		-> { KOhA k f }
+	= lnbf:LAhE_NAhE r:relative_clauses? s:sumti l:LUhU_clause? g:free*
+		-> { let (ln, b, f) = lnbf in LAhE_NAhE ln  b f r s l g }
+	/ k:KOhA_clause f:free*		-> { KOhA k f }
+	/ l:LA_clause f:free* r:relative_clauses? c:CMENE_clause+ g:free*
+		-> { LA l f r c g }
+	/ l:(LA_clause / LE_clause) f:free* s:sumti_tail k:KU_clause? g:free*
+		-> { LALE l f s k g }
+	/ l:li_clause	-> { let (li, f, m, loho, g) = l in LI li f m loho g }
+
+LAhE_NAhE :: { (Clause, Maybe Clause, [Free]) }
+	= l:LAhE_clause f:free*			-> { (l, Nothing, f) }
+	/ n:NAhE_clause b:BO_clause f:free*	-> { (n, Just b, f) }
+
+li_clause :: { (Clause, [Free], Mex, Maybe Clause, [Free]) }
+	= li:LI_clause f:free* m:mex loho:LOhO_clause? g:free*
+	-> { (li, f, m, loho, g) }
+
+sumti_tail :: SumtiTail
+	= s6:sumti_6_relative_clauses? st:sumti_tail_1
+		-> { maybe st (\(s, r) -> SumtiSumtiTail s r st) s6 }
+	/ r:relative_clauses s:sumti_tail_1
+		-> { RelativeClausesSumtiTail r s }
+
+sumti_6_relative_clauses :: { (Sumti, Maybe RelativeClauses) }
+	= s:sumti_6  r:relative_clauses?	-> { (s, r) }
+
+sumti_tail_1 :: SumtiTail
+	= s:selbri r:relative_clauses?
+		-> { SelbriRelativeClauses s r } 
+	/ q:quantifier s:selbri r:relative_clauses?
+		-> { STQuantifierSelbri q s r }
+	/ q:quantifier s:sumti
+		-> { QuantifierSumti q s }
 
 -----------------------------------------------------------------
 -- #04 relative clauses
@@ -277,6 +309,8 @@ linkargs :: Linkargs = "be mi "
 -- #07 mex
 
 quantifier :: Quantifier = "pa "
+
+mex :: Mex = "pa "
 
 -----------------------------------------------------------------
 -- #08 ek gihek jek joik gek guhek gik
@@ -569,8 +603,26 @@ KOhA_pre :: Pre = p:pre_clause k:KOhA spaces?		-> { (p, k) }
 KU_clause :: Clause = p:KU_pre q:post_clause		-> { (fst p, snd p, q) }
 KU_pre :: Pre = p:pre_clause k:KU spaces?		-> { (p, k) }
 
+LA_clause :: Clause = p:LA_pre q:post_clause		-> { (fst p, snd p, q) }
+LA_pre :: Pre = p:pre_clause l:LA spaces?		-> { (p, l) }
+
+LAhE_clause :: Clause = p:LAhE_pre q:post_clause	-> { (fst p, snd p, q) }
+LAhE_pre :: Pre = p:pre_clause l:LAhE spaces?		-> { (p, l) }
+
+LE_clause :: Clause = p:LE_pre q:post_clause		-> { (fst p, snd p, q) }
+LE_pre :: Pre = p:pre_clause l:LE spaces?		-> { (p, l) }
+
+LI_clause :: Clause = p:LI_pre q:post_clause		-> { (fst p, snd p, q) }
+LI_pre :: Pre = p:pre_clause l:LI spaces?		-> { (p, l) }
+
+LOhO_clause :: Clause = p:LOhO_pre q:post_clause	-> { (fst p, snd p, q) }
+LOhO_pre :: Pre = p:pre_clause l:LOhO spaces?		-> { (p, l) }
+
 LU_clause :: Clause = p:LU_pre q:post_clause		-> { (fst p, snd p, q) }
 LU_pre :: Pre = p:pre_clause l:LU spaces?		-> { (p, l) }
+
+LUhU_clause :: Clause = p:LUhU_pre q:post_clause	-> { (fst p, snd p, q) }
+LUhU_pre :: Pre = p:pre_clause l:LUhU spaces?		-> { (p, l) }
 
 ME_clause :: Clause = p:ME_pre q:post_clause		-> { (fst p, snd p, q) }
 ME_pre :: Pre = p:pre_clause m:ME spaces?		-> { (p, m) }
@@ -1941,9 +1993,14 @@ data Sentence
 	deriving Show
 
 data Sumti
-	= KOhA Clause [Free]
+	= LAhE_NAhE Clause (Maybe Clause) [Free] (Maybe RelativeClauses)
+		Sumti (Maybe Clause) [Free]
+	| KOhA Clause [Free]
+	| LALE Clause [Free] SumtiTail (Maybe Clause) [Free]
+	| LA Clause [Free] (Maybe RelativeClauses) [Clause] [Free]
+	| LI Clause [Free] Mex (Maybe Clause) [Free]
 	| OuterQuantifier (Maybe Quantifier) Sumti (Maybe RelativeClauses)
-	| QuantifierSelbri Quantifier Selbri (Maybe Clause) [Free]
+	| SQuantifierSelbri Quantifier Selbri (Maybe Clause) [Free]
 		(Maybe RelativeClauses)
 	| GekSumti Gek Sumti Gik Sumti
 	| JoikEkBOSumti Sumti JoikEk [Free] (Maybe Tag) Clause [Free] Sumti
@@ -1951,6 +2008,14 @@ data Sumti
 	| JoikEkKESumti Sumti JoikEk [Free] (Maybe Tag) Clause [Free] Sumti
 		(Maybe Clause) [Free]
 	| VUhO Sumti Clause [Free] RelativeClauses
+	deriving Show
+
+data SumtiTail
+	= SumtiSumtiTail Sumti (Maybe RelativeClauses) SumtiTail
+	| RelativeClausesSumtiTail RelativeClauses SumtiTail
+	| SelbriRelativeClauses Selbri (Maybe RelativeClauses)
+	| STQuantifierSelbri Quantifier Selbri (Maybe RelativeClauses)
+	| QuantifierSumti Quantifier Sumti
 	deriving Show
 
 data Selbri
@@ -1975,6 +2040,7 @@ type JoikJekSelbri5 = Either (JoikJek, [Free], Selbri)
 type Linkargs = String
 
 type Quantifier = String
+type Mex = String
 
 data Free
 	= VocativeSumti [Clause] (Maybe Sumti) (Maybe Clause)
