@@ -208,7 +208,9 @@ sumti_5 :: Sumti
 	-> { SQuantifierSelbri q s k f r }
 
 sumti_6 :: Sumti
-	= lu:LU_clause t:text lihu:LIhU_clause? f:free*
+	= l:lerfu_string !MOI_clause b:BOI_clause? f:free*
+		-> { LerfuString l b f }
+	/ lu:LU_clause t:text lihu:LIhU_clause? f:free*
 		-> { LU lu t lihu f }
 	/ lnbf:LAhE_NAhE r:relative_clauses? s:sumti l:LUhU_clause? g:free*
 		-> { let (ln, b, f) = lnbf in LAhE_NAhE ln  b f r s l g }
@@ -313,6 +315,8 @@ linkargs :: Linkargs = "be mi "
 quantifier :: Quantifier = "pa "
 
 mex :: Mex = "pa "
+
+lerfu_string :: LerfuString = "by. "
 
 -----------------------------------------------------------------
 -- #08 ek gihek jek joik gek guhek gik
@@ -494,10 +498,11 @@ CMAVO_pre :: { [String], String) }
 A_clause :: Clause = p:A_pre q:post_clause		-> { (fst p, snd p, q) }
 A_pre :: Pre = p:pre_clause a:A spaces?			-> { (p, a) }
 
-BO_clause :: Clause
-	= pre:BO_pre post:post_clause		-> { (fst pre, snd pre, post) }
-BO_pre :: { ([String], String) }
-	= p:pre_clause b:BO spaces?		-> { (p, b) }
+BO_clause :: Clause = p:BO_pre q:post_clause		-> { (fst p, snd p, q) }
+BO_pre :: Pre = p:pre_clause b:BO spaces?		-> { (p, b) }
+
+BOI_clause :: Clause = p:BOI_pre q:post_clause		-> { (fst p, snd p, q) }
+BOI_pre :: Pre = p:pre_clause b:BOI spaces?		-> { (p, b) }
 
 BU_clause :: { () } = BU_pre
 -- BU_pre :: String = pre_clause BU spaces?
@@ -631,6 +636,9 @@ LUhU_pre :: Pre = p:pre_clause l:LUhU spaces?		-> { (p, l) }
 
 ME_clause :: Clause = p:ME_pre q:post_clause		-> { (fst p, snd p, q) }
 ME_pre :: Pre = p:pre_clause m:ME spaces?		-> { (p, m) }
+
+MOI_clause :: Clause = p:MOI_pre q:post_clause		-> { (fst p, snd p, q) }
+MOI_pre :: Pre = p:pre_clause m:MOI spaces?		-> { (p, m) }
 
 NA_clause :: Clause = p:NA_pre q:post_clause		-> { (fst p, snd p, q) }
 NA_pre :: Pre = p:pre_clause n:NA spaces?		-> { (p, n) }
@@ -1998,7 +2006,8 @@ data Sentence
 	deriving Show
 
 data Sumti
-	= LU Clause Text (Maybe Clause) [Free]
+	= LerfuString LerfuString (Maybe Clause) [Free]
+	| LU Clause Text (Maybe Clause) [Free]
 	| LAhE_NAhE Clause (Maybe Clause) [Free] (Maybe RelativeClauses)
 		Sumti (Maybe Clause) [Free]
 	| KOhA Clause [Free]
@@ -2047,6 +2056,7 @@ type Linkargs = String
 
 type Quantifier = String
 type Mex = String
+type LerfuString = String
 
 data Free
 	= VocativeSumti [Clause] (Maybe Sumti) (Maybe Clause)
