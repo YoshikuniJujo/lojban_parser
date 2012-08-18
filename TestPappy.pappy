@@ -208,7 +208,9 @@ sumti_5 :: Sumti
 	-> { SQuantifierSelbri q s k f r }
 
 sumti_6 :: Sumti
-	= l:LOhU_clause f:free*
+	= z:ZOI_clause f:free*
+		-> { let (pre, zoi, ws, q) = z in ZOI pre zoi ws q f }
+	/ l:LOhU_clause f:free*
 		-> { let (p, lohu, ws, lehu, q) = l in LOhU p lohu ws lehu q f }
 	/ l:lerfu_string !MOI_clause b:BOI_clause? f:free*
 		-> { LerfuString l b f }
@@ -713,6 +715,13 @@ ZEI_clause :: { () } = ZEI_pre
 -- ZEI_pre :: String = pre_clause z:ZEI spaces?
 ZEI_pre :: { () } = ZEI spaces?	-> { () }
 
+ZOI_clause :: { ([String], String, [String], Indicators) }
+	= p:ZOI_pre q:post_clause
+	-> { let (pre, z, ws) = p in (pre, z, ws, q) }
+ZOI_pre :: { ([String], String, [String]) }
+	= p:pre_clause z:ZOI spaces? "\NUL" s:spaces? ws:zoi_word* "\NUL" spaces?
+	-> { (p, z, maybe ws (: ws) s) }
+
 ZOhU_clause :: Clause = p:ZOhU_pre q:post_clause	-> { (fst p, snd p, q) }
 ZOhU_pre :: Pre = p:pre_clause z:ZOhU spaces?		-> { (p, z) }
 
@@ -743,6 +752,8 @@ CMAVO :: String
 
 -----------------------------------------------------------------
 -- #10 words
+
+zoi_word :: String = w:word s:spaces?	-> { maybe w (w ++) s }
 
 words :: { [String] } = pause? ws:word_pause*	-> { ws }
 word_pause :: String = w:word pause?	-> { w }
@@ -998,16 +1009,16 @@ non_lojban_word :: String = !lojban_word ns:non_space+	-> { ns }
 
 non_space :: Char = !space_char c:anyChar	-> { c }
 
-space_char :: { () } = ('.' / '?' / '!' / ' ' / '\t' / '\r' / '\n') -> { () }
+space_char :: Char = '.' / '?' / '!' / ' ' / '\t' / '\r' / '\n'
 
 -----------------------------------------------------------------
 -- #1a Spaces, LUJUVO
 
-spaces :: { () } = !Y i:initial_spaces	-> { i }
-initial_spaces :: { () }
-	= (comma_space_char / !ybu Y -> { () })+ EOF?			-> { () }
-	/ EOF								-> { () }
-comma_space_char :: { () } = comma* space_char				-> { () }
+spaces :: String = !Y i:initial_spaces	-> { i }
+initial_spaces :: String
+	= csy:(comma_space_char / !ybu y:Y -> { y })+ EOF?	-> { concat csy }
+	/ EOF						-> { "" }
+comma_space_char :: { String } = c:comma* s:space_char	-> { c ++ [s] }
 ybu :: String = y:Y space_char* b:BU	-> { y ++ b }
 
 lujvo :: String = !gismu !fuhivla b:brivla	-> { b }
@@ -2019,7 +2030,8 @@ data Sentence
 	deriving Show
 
 data Sumti
-	= LOhU [String] String [String] Pre Indicators [Free]
+	= ZOI [String] String [String] Indicators [Free]
+	| LOhU [String] String [String] Pre Indicators [Free]
 	| LerfuString LerfuString (Maybe Clause) [Free]
 	| LU Clause Text (Maybe Clause) [Free]
 	| LAhE_NAhE Clause (Maybe Clause) [Free] (Maybe RelativeClauses)
