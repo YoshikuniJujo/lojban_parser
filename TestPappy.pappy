@@ -209,7 +209,7 @@ sumti_5 :: Sumti
 
 sumti_6 :: Sumti
 	= l:LOhU_clause f:free*
-		-> { let (p, lohu, ws, lehu, q) = l LOhU p lohu ws lehu q f }
+		-> { let (p, lohu, ws, lehu, q) = l in LOhU p lohu ws lehu q f }
 	/ l:lerfu_string !MOI_clause b:BOI_clause? f:free*
 		-> { LerfuString l b f }
 	/ lu:LU_clause t:text lihu:LIhU_clause? f:free*
@@ -621,7 +621,7 @@ LAhE_pre :: Pre = p:pre_clause l:LAhE spaces?		-> { (p, l) }
 LE_clause :: Clause = p:LE_pre q:post_clause		-> { (fst p, snd p, q) }
 LE_pre :: Pre = p:pre_clause l:LE spaces?		-> { (p, l) }
 
-LEhU_clause :: Pre = p
+LEhU_clause :: Pre = LEhU_pre
 LEhU_pre :: Pre = p:pre_clause l:LEhU spaces? 		-> { (p, l) }
 
 LI_clause :: Clause = p:LI_pre q:post_clause		-> { (fst p, snd p, q) }
@@ -633,10 +633,10 @@ LIhU_pre :: Pre = p:pre_clause l:LIhU spaces?		-> { (p, l) }
 LOhO_clause :: Clause = p:LOhO_pre q:post_clause	-> { (fst p, snd p, q) }
 LOhO_pre :: Pre = p:pre_clause l:LOhO spaces?		-> { (p, l) }
 
-LOhU_clause :: { ([String], Clause, [String], Maybe Pre, Indicators) }
+LOhU_clause :: { ([String], String, [String], Pre, Indicators) }
 	= lp:LOhU_pre q:post_clause
 	-> { let (p, lohu, ws, lehu) = lp in (p, lohu, ws, lehu, q) }
-LOhU_pre ::  { ([String], Clause, [String], Maybe Pre) }
+LOhU_pre ::  { ([String], String, [String], Pre) }
 	= p:pre_clause lohu:LOhU spaces? ws:notLEhU* lehu:LEhU_clause spaces?
 	-> { (p, lohu, ws, lehu) }
 notLEhU :: String = !LEhU w:any_word -> { w }
@@ -2019,7 +2019,7 @@ data Sentence
 	deriving Show
 
 data Sumti
-	= LOhU [String] Clause [String] (Maybe Pre) Indicators [Free]
+	= LOhU [String] String [String] Pre Indicators [Free]
 	| LerfuString LerfuString (Maybe Clause) [Free]
 	| LU Clause Text (Maybe Clause) [Free]
 	| LAhE_NAhE Clause (Maybe Clause) [Free] (Maybe RelativeClauses)
