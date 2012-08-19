@@ -4,6 +4,7 @@ parser TestPappy:
 
 import System.Environment
 import Data.Maybe
+import Preprocess
 
 ml = maybeToList
 
@@ -719,7 +720,8 @@ ZOI_clause :: { ([String], String, [String], Indicators) }
 	= p:ZOI_pre q:post_clause
 	-> { let (pre, z, ws) = p in (pre, z, ws, q) }
 ZOI_pre :: { ([String], String, [String]) }
-	= p:pre_clause z:ZOI spaces? "\NUL" s:spaces? ws:zoi_word* "\NUL" spaces?
+	= p:pre_clause z:ZOI spaces? w:Char &{ w == '\NUL' } s:spaces?
+		ws:zoi_word* v:Char &{ v == '\NUL' } spaces?
 	-> { (p, z, maybe ws (: ws) s) }
 
 ZOhU_clause :: Clause = p:ZOhU_pre q:post_clause	-> { (fst p, snd p, q) }
@@ -1007,12 +1009,12 @@ comma :: Char = ','
 
 non_lojban_word :: String = !lojban_word ns:non_space+	-> { ns }
 
-non_space :: Char = !space_char c:anyChar	-> { c }
+non_space :: Char = !space_char c:anyChar &{ c /= '\NUL' }	-> { c }
 
 space_char :: Char = '.' / '?' / '!' / ' ' / '\t' / '\r' / '\n'
 
 -----------------------------------------------------------------
--- #1a Spaces, LUJUVO
+-- #1a Spaces, LUJVO
 
 spaces :: String = !Y i:initial_spaces	-> { i }
 initial_spaces :: String
@@ -2117,7 +2119,8 @@ type Tag = String
 
 main = do
 	[str] <- getArgs
-	case testPappytest $ testPappyParse "test" str of
+	let p = fromMaybe (error "can't lex") $ preprocess str
+	case testPappytest $ testPappyParse "test" p of
 		Parsed v _ _ -> print v
 		NoParse e -> error (show e)
 
