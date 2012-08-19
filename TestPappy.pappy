@@ -172,7 +172,26 @@ tail_terms :: { ([Term], Maybe Clause, [Free]) }
 
 terms :: { [Term] } = term+
 
-term :: Term = sumti
+term :: Term = term_1
+
+term_1 :: Term
+	= sumti
+--	/ (!gek (tag / FA_clause free*) (sumti / KU_clause? free*))
+	/ termset
+--	/ NA_clause KU_clause free*
+
+termset :: Term
+	= gek_termset
+--	/ NUhI_clause free* gek terms NUhU_clause? free* gik terms NUhU_clause? free*
+--	/ NUhI_clause free* terms NUhU_clause? free*
+
+gek_termset :: Term
+	= g:gek tgt:terms_gik_terms
+	-> { Gek g tgt }
+
+terms_gik_terms :: TermsGikTerms
+	= t1:term tgt:(g:gik -> { Gik g } / terms_gik_terms) t2:term
+	-> { TGT t1 tgt t2 }
 
 sumti :: Sumti = s:sumti_1 vr:vuho_relative_clauses?
 	-> { maybe s (\(v, f, r) -> VUhO s v f r) vr }
@@ -209,7 +228,9 @@ sumti_5 :: Sumti
 	-> { SQuantifierSelbri q s k f r }
 
 sumti_6 :: Sumti
-	= z:ZOI_clause f:free*
+	= zo:ZO_clause f:free*
+		-> { let (pre, z, w, q) = zo in ZO pre z w q f }
+	/ z:ZOI_clause f:free*
 		-> { let (pre, zoi, ws, q) = z in ZOI pre zoi ws q f }
 	/ l:LOhU_clause f:free*
 		-> { let (p, lohu, ws, lehu, q) = l in LOhU p lohu ws lehu q f }
@@ -715,6 +736,12 @@ VUhO_pre :: Pre = p:pre_clause v:VUhO spaces?		-> { (p, v) }
 ZEI_clause :: { () } = ZEI_pre
 -- ZEI_pre :: String = pre_clause z:ZEI spaces?
 ZEI_pre :: { () } = ZEI spaces?	-> { () }
+
+ZO_clause :: { ([String], String, String, Indicators) }
+	= p:ZO_pre q:post_clause
+	-> { let (pre, z, w) = p in (pre, z, w, q) }
+ZO_pre :: { ([String], String, String) }
+	= p:pre_clause z:ZO spaces? w:any_word spaces?	-> { (p, z, w) }
 
 ZOI_clause :: { ([String], String, [String], Indicators) }
 	= p:ZOI_pre q:post_clause
@@ -1979,7 +2006,7 @@ ZIhE :: String = &cmavo zihe:
 	-> { zihe }
 
 ZO :: String = &cmavo zo:
-	( z:z o:o	-> { [z, o] } )
+	( z:z o:o !i	-> { [z, o] } )
 	-> { zo }
 
 ZOI :: String = &cmavo zoi:
@@ -2032,7 +2059,9 @@ data Sentence
 	deriving Show
 
 data Sumti
-	= ZOI [String] String [String] Indicators [Free]
+	= Gek Gek TermsGikTerms
+	| ZO [String] String String Indicators [Free]
+	| ZOI [String] String [String] Indicators [Free]
 	| LOhU [String] String [String] Pre Indicators [Free]
 	| LerfuString LerfuString (Maybe Clause) [Free]
 	| LU Clause Text (Maybe Clause) [Free]
@@ -2051,6 +2080,11 @@ data Sumti
 	| JoikEkKESumti Sumti JoikEk [Free] (Maybe Tag) Clause [Free] Sumti
 		(Maybe Clause) [Free]
 	| VUhO Sumti Clause [Free] RelativeClauses
+	deriving Show
+
+data TermsGikTerms
+	= TGT Term TermsGikTerms Term
+	| Gik Gik
 	deriving Show
 
 data SumtiTail
