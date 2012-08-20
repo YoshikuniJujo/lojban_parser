@@ -172,7 +172,7 @@ tail_terms :: { ([Term], Maybe Clause, [Free]) }
 
 terms :: { [Term] } = term+
 
-term :: Term = term_1
+term :: Term = term_sa* t:term_1	-> { t }
 
 term_1 :: Term
 	= sumti
@@ -182,6 +182,24 @@ term_1 :: Term
 	/ termset
 	/ n:NA_clause k:KU_clause f:free*
 		-> { NAKU n k f }
+
+term_sa :: { () }
+	= term_start term_sa_word* SA_clause &term_1	-> { () }
+term_sa_word :: { () }
+	= !term_start (sa_word -> { () } / SA_clause !term_start -> { () })
+		-> { () }
+
+term_start :: { () }
+	= term_1			-> { () }
+	/ LA_clause			-> { () }
+	/ LE_clause			-> { () }
+	/ LI_clause			-> { () }
+	/ LU_clause			-> { () }
+	/ LAhE_clause			-> { () }
+	/ quantifier term_start		-> { () }
+	/ gek sumti gik			-> { () }
+	/ FA_clause			-> { () }
+	/ tag term_start		-> { () }
 
 termset :: Term
 	= gek_termset
