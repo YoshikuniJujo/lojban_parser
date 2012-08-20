@@ -176,14 +176,20 @@ term :: Term = term_1
 
 term_1 :: Term
 	= sumti
---	/ (!gek (tag / FA_clause free*) (sumti / KU_clause? free*))
+	/ !gek t:(tag / fa:FA_clause f:free* -> { fa2tag fa f })
+		s:(sumti / k:KU_clause? f:free* -> { KU k f })
+		-> { TagSumti t s }
 	/ termset
---	/ NA_clause KU_clause free*
+	/ n:NA_clause k:KU_clause f:free*
+		-> { NAKU n k f }
 
 termset :: Term
 	= gek_termset
---	/ NUhI_clause free* gek terms NUhU_clause? free* gik terms NUhU_clause? free*
---	/ NUhI_clause free* terms NUhU_clause? free*
+	/ nuhi:NUhI_clause f:free* gek:gek t:terms
+		nuhu:NUhU_clause? g:free* gik:gik u:terms nuhu2:NUhU_clause? h:free*
+		-> { NUhIGek nuhi f gek t nuhu g gik u nuhu2 h }
+	/ nuhi:NUhI_clause f:free* t:terms nuhu:NUhU_clause? g:free*
+		-> { NUhI nuhi f t nuhu g }
 
 gek_termset :: Term
 	= g:gek tgt:terms_gik_terms
@@ -407,7 +413,8 @@ gik :: Gik
 
 tag :: Tag = stag
 
-stag :: Tag = "pu "
+stag :: Tag
+	= b:BAI_clause f:free*	-> { (b, f) }
 
 -----------------------------------------------------------------
 -- #0a free
@@ -524,6 +531,9 @@ CMAVO_pre :: { [String], String) }
 A_clause :: Clause = p:A_pre q:post_clause		-> { (fst p, snd p, q) }
 A_pre :: Pre = p:pre_clause a:A spaces?			-> { (p, a) }
 
+BAI_clause :: Clause = p:BAI_pre q:post_clause		-> { (fst p, snd p, q) }
+BAI_pre :: Pre = p:pre_clause b:BAI spaces?		-> { (p, b) }
+
 BO_clause :: Clause = p:BO_pre q:post_clause		-> { (fst p, snd p, q) }
 BO_pre :: Pre = p:pre_clause b:BO spaces?		-> { (p, b) }
 
@@ -580,6 +590,9 @@ DOhU_clause :: { ([String], String, Indicators) }
 DOhU_pre :: { ([String], String) }
 	= p:pre_clause d:DOhU spaces?	-> { (p, d) }
 DOhU_post :: Indicators = post_clause
+
+FA_clause :: Clause = p:FA_pre q:post_clause		-> { (fst p, snd p, q) }
+FA_pre :: Pre = p:pre_clause f:FA spaces?		-> { (p, f) }
 
 FAhO_clause :: { ([String], String) }
 	= p:pre_clause f:FAhO spaces?	-> { (p, f) }
@@ -695,6 +708,12 @@ NU_pre :: Pre = p:pre_clause n:NU spaces?		-> { (p, n) }
 
 NUhA_clause :: Clause = p:NUhA_pre q:post_clause	-> { (fst p, snd p, q) }
 NUhA_pre :: Pre = p:pre_clause n:NUhA spaces?		-> { (p, n) }
+
+NUhI_clause :: Clause = p:NUhI_pre q:post_clause	-> { (fst p, snd p, q) }
+NUhI_pre :: Pre = p:pre_clause n:NUhI spaces?		-> { (p, n) }
+
+NUhU_clause :: Clause = p:NUhU_pre q:post_clause	-> { (fst p, snd p, q) }
+NUhU_pre :: Pre = p:pre_clause n:NUhU spaces?		-> { (p, n) }
 
 SA_clause :: { () } = SA_pre SA_post		-> { () }
 SA_pre :: { () } = pre_clause SA spaces?	-> { () }
@@ -2059,7 +2078,13 @@ data Sentence
 	deriving Show
 
 data Sumti
-	= Gek Gek TermsGikTerms
+	= TagSumti Tag Sumti
+	| KU (Maybe Clause) [Free]
+	| NAKU Clause Clause [Free]
+	| NUhIGek Clause [Free] Gek [Term] (Maybe Clause) [Free] Gik [Term]
+		(Maybe Clause) [Free]
+	| NUhI Clause [Free] [Term] (Maybe Clause) [Free]
+	| Gek Gek TermsGikTerms
 	| ZO [String] String String Indicators [Free]
 	| ZOI [String] String [String] Indicators [Free]
 	| LOhU [String] String [String] Pre Indicators [Free]
@@ -2149,7 +2174,7 @@ data Gek
 type Guhek = (Maybe Clause, Clause, Maybe Clause, [Free])
 type Gik = (Clause, Maybe Clause, [Free])
 
-type Tag = String
+type Tag = (Clause, [Free])
 
 main = do
 	[str] <- getArgs
@@ -2169,4 +2194,6 @@ isSimpleText n tp2 jj t f =
 
 fromRight :: Either a b -> b
 fromRight = either (const $ error "not Right") id
+
+fa2tag = (,)
 }
