@@ -64,12 +64,10 @@ i_joik_jek_statement_2 :: { (Clause, JoikJek, [Free], Maybe Statement) }
 
 statement_2 :: Statement
 	= s3:statement_3 ib:i_bo_statement_2?
-	-> { maybe s3 (\(i, j, t, b, f, s2) -> IBO s3 i j t b f s2) ib }
---	/ statement_3 (I_clause (jek / joik)? stag? BO_clause free*)?
-i_bo_statement_2 ::
-	{ (Clause, Maybe JoikJek, Maybe Tag, Clause, [Free], Statement) }
-	= i:I_clause j:(jek / joik)? t:stag? b:BO_clause f:free* s:statement_2
-	-> { (i, j, t, b, f, s) }
+	-> { maybe s3 ($ s3) ib }
+i_bo_statement_2 :: { Statement -> Statement }
+	= i:I_clause j:(jek / joik)? t:stag? b:BO_clause f:free* s:statement_2?
+	-> { \s3 -> maybe (IBO s3 i j t b f) (IBOStatement s3 i j t b f) s }
 
 statement_3 :: Statement
 	= sentence
@@ -2082,7 +2080,9 @@ data Sentence
 		[Free] [Term] (Maybe Clause) [Free]
 	| TermsBridiTail [Term] (Maybe Clause) [Free] Sentence
 	| TUhE (Maybe Tag) Clause [Free] Text (Maybe Clause) [Free]
-	| IBO Statement Clause (Maybe JoikJek) (Maybe Tag) Clause [Free] Statement
+	| IBOStatement Statement Clause (Maybe JoikJek) (Maybe Tag) Clause [Free]
+		Statement
+	| IBO Statement Clause (Maybe JoikJek) (Maybe Tag) Clause [Free]
 	| IJoikJek Statement [(Clause, JoikJek, [Free], Maybe Statement)]
 	| Prenex [Term] Clause [Free] Statement
 	| FPrenex [Term] Clause [Free]
