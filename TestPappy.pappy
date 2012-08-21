@@ -107,9 +107,9 @@ sentence_start :: { () }
 	= I_pre		-> { () }
 	/ NIhO_pre	-> { () }
 
--- subsentence :: Sentence
---	= sentence
---	/ p:prenex s:subsentence	-> { PrenexSentence p s }
+subsentence :: Sentence
+	= sentence
+	/ p:prenex s:subsentence	-> { uncurry3 PrenexSentence p s }
 
 bridi_tail :: Sentence = b:bridi_tail_1 g:gihek_ke_bridi_tail?
 	-> { maybe b (\(g, t, ke, f, b, kehe, h, (u, v, i)) ->
@@ -362,8 +362,12 @@ tanru_unit_2 :: Selbri
 --	/ SE_clause free* tanru_unit_2
 --	/ JAI_clause free* tag? tanru_unit_2
 --	/ NAhE_clause free* tanru_unit_2
---	/ NU_clause NAI_clause? free* (joik_jek NU_clause NAI_clause? free*)*
---		subsentence KEI_clause? free*
+	/ nu:NU_clause nai:NAI_clause? f:free* j:joik_jek_nu* s:subsentence
+		k:KEI_clause? g:free*
+		-> { NU nu nai f j s k g }
+joik_jek_nu :: { (JoikJek, [Free], Clause, Maybe Clause, [Free]) }
+	= j:joik_jek nu:NU_clause nai:NAI_clause? f:free*
+	-> { (fst j, snd j, nu, nai, f) }
 
 -----------------------------------------------------------------
 -- #06 linkargs
@@ -673,6 +677,9 @@ KE_pre :: Pre = p:pre_clause k:KE spaces?		-> { (p, k) }
 
 KEhE_clause :: Clause = p:KEhE_pre q:post_clause	-> { (fst p, snd p, q) }
 KEhE_pre :: Pre = p:pre_clause k:KEhE spaces?		-> { (p, k) }
+
+KEI_clause :: Clause = p:KEI_pre q:post_clause		-> { (fst p, snd p, q) }
+KEI_pre :: Pre = p:pre_clause k:KEI spaces?		-> { (p, k) }
 
 KOhA_clause :: Clause = p:KOhA_pre q:post_clause	-> { (fst p, snd p, q) }
 KOhA_pre :: Pre = p:pre_clause k:KOhA spaces?		-> { (p, k) }
@@ -2094,6 +2101,7 @@ data Sentence
 	| GihekKE Sentence Gihek (Maybe Tag) Clause [Free] Sentence (Maybe Clause)
 		[Free] [Term] (Maybe Clause) [Free]
 	| TermsBridiTail [Term] (Maybe Clause) [Free] Sentence
+	| PrenexSentence [Term] Clause [Free] Sentence
 	| TUhE (Maybe Tag) Clause [Free] Text (Maybe Clause) [Free]
 	| IBOStatement Statement Clause (Maybe JoikJek) (Maybe Tag) Clause [Free]
 		Statement
@@ -2173,6 +2181,9 @@ data Selbri
 	| CO Selbri Clause [Free] Selbri
 	| NA Clause [Free] Selbri
 	| Tag Tag Selbri
+	| NU Clause (Maybe Clause) [Free]
+		[(JoikJek, [Free], Clause, Maybe Clause, [Free])]
+		Sentence (Maybe Clause) [Free]
 	deriving Show
 
 type RelativeClauses = String
