@@ -82,8 +82,8 @@ fragment :: Fragment
 	/ q:quantifier				-> { FQuantifier q }
 	/ n:NA_clause !JA_clause f:free*	-> { FNA n f }
 	/ r:relative_clause			-> { FRelativeClause r }
---	/ l:links
---	/ l:linkargs
+	/ l:links				-> { FLinks l }
+	/ l:linkargs				-> { FLinkargs l }
 
 prenex :: { ([Term], Clause, [Free]) }
 	= t:terms z:ZOhU_clause f:free*		-> { (t, z, f) }
@@ -353,11 +353,24 @@ tanru_unit_1 :: Selbri
 
 tanru_unit_2 :: Selbri
 	= b:BRIVLA_clause f:free*	-> { Brivla b f }
+--	/ GOhA_clause RAhO_clause? free*
+--	/ KE_clause free* selbri_3 KEhE_clause? free*
+--	/ ME_clause free* (sumti / lerfu_string) MEhU_clause? free* MOI_clause?
+--		free*
+--	/ (number / lerfu_string) MOI_clause free*
+--	/ NUhA_clause free* mex_operator
+--	/ SE_clause free* tanru_unit_2
+--	/ JAI_clause free* tag? tanru_unit_2
+--	/ NAhE_clause free* tanru_unit_2
+--	/ NU_clause NAI_clause? free* (joik_jek NU_clause NAI_clause? free*)*
+--		subsentence KEI_clause? free*
 
 -----------------------------------------------------------------
 -- #06 linkargs
 
 linkargs :: Linkargs = "be mi "
+
+links :: Links = "bei mi "
 
 -----------------------------------------------------------------
 -- #07 mex
@@ -2094,6 +2107,8 @@ data Sentence
 	| FQuantifier Quantifier
 	| FNA Clause [Free]
 	| FRelativeClause RelativeClause
+	| FLinks Links
+	| FLinkargs Linkargs
 	| StatementI Statement [(Clause, [Free], Maybe Statement)]
 	| NIhO Paragraph [Clause] [Free] Paragraphs
 	| IText_1 Clause (Maybe JoikJek) (Maybe (Maybe Tag, Clause)) [Free]
@@ -2167,6 +2182,7 @@ type JoikJekSelbri5 = Either (JoikJek, [Free], Selbri)
 	(Joik, (Maybe Tag), Clause, [Free], Selbri, Maybe Clause, [Free])
 
 type Linkargs = String
+type Links = String
 
 type Quantifier = String
 type Mex = String
