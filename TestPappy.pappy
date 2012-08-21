@@ -76,12 +76,12 @@ statement_3 :: Statement
 
 fragment :: Fragment
 	= p:prenex				-> { uncurry3 FPrenex p }
---	/ t:terms v:VAU_clause? f:free*
---	/ e:ek f:free*
---	/ g:gihek f:free*
---	/ q:quantifier
---	/ n:NA_clause !JA_clause f:free*
---	/ r:relative_clause
+	/ t:terms v:VAU_clause? f:free*		-> { FTermsVAU t v f }
+	/ e:ek f:free*				-> { FEk e f }
+	/ g:gihek f:free*			-> { FGihek g f }
+	/ q:quantifier				-> { FQuantifier q }
+	/ n:NA_clause !JA_clause f:free*	-> { FNA n f }
+	/ r:relative_clause			-> { FRelativeClause r }
 --	/ l:links
 --	/ l:linkargs
 
@@ -297,7 +297,9 @@ sumti_tail_1 :: SumtiTail
 -----------------------------------------------------------------
 -- #04 relative clauses
 
-relative_clauses :: RelativeClauses = "pe mi "
+relative_clauses :: RelativeClauses = relative_clause
+
+relative_clause :: RelativeClause = "pe mi "
 
 -----------------------------------------------------------------
 -- #05 selbri
@@ -2086,6 +2088,12 @@ data Sentence
 	| IJoikJek Statement [(Clause, JoikJek, [Free], Maybe Statement)]
 	| Prenex [Term] Clause [Free] Statement
 	| FPrenex [Term] Clause [Free]
+	| FTermsVAU [Term] (Maybe Clause) [Free]
+	| FEk Ek [Free]
+	| FGihek Gihek [Free]
+	| FQuantifier Quantifier
+	| FNA Clause [Free]
+	| FRelativeClause RelativeClause
 	| StatementI Statement [(Clause, [Free], Maybe Statement)]
 	| NIhO Paragraph [Clause] [Free] Paragraphs
 	| IText_1 Clause (Maybe JoikJek) (Maybe (Maybe Tag, Clause)) [Free]
@@ -2153,6 +2161,7 @@ data Selbri
 	deriving Show
 
 type RelativeClauses = String
+type RelativeClause = String
 
 type JoikJekSelbri5 = Either (JoikJek, [Free], Selbri)
 	(Joik, (Maybe Tag), Clause, [Free], Selbri, Maybe Clause, [Free])
