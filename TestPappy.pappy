@@ -158,9 +158,13 @@ gihek_bo_bridi_tail_2 :: { (Gihek, Maybe Tag, Clause, [Free], Sentence, TailTerm
 bridi_tail_3 :: Sentence
 	= s:selbri tvf:tail_terms
 	-> { case tvf of ([], Nothing, []) -> Selbri s; (t, v, f) -> SelbriTailTerms s t v f }
---	/ gek_sentence
+	/ gek_sentence
 
--- gek_sentence :: Sentence
+gek_sentence :: Sentence
+	= gek:gek s:subsentence gik:gik t:subsentence tts:tail_terms
+		-> { uncurry3 (GekSentence gek s gik t) tts }
+--	/ tag? KE_clause free* gek_sentence KEhE_clause? free*
+--	/ NA_clause free* gek_sentence
 
 -----------------------------------------------------------------
 -- #03 term sumti
@@ -2095,6 +2099,7 @@ type Statement = Sentence
 data Sentence
 	= Selbri Selbri
 	| SelbriTailTerms Selbri [Term] (Maybe Clause) [Free]
+	| GekSentence Gek Sentence Gik Sentence [Term] (Maybe Clause) [Free]
 	| GihekBO Sentence Gihek (Maybe Tag) Clause [Free] Sentence [Term]
 		(Maybe Clause) [Free]
 	| GihekSentence Sentence
