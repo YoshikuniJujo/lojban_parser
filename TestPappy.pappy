@@ -163,7 +163,8 @@ bridi_tail_3 :: Sentence
 gek_sentence :: Sentence
 	= gek:gek s:subsentence gik:gik t:subsentence tts:tail_terms
 		-> { uncurry3 (GekSentence gek s gik t) tts }
---	/ tag? KE_clause free* gek_sentence KEhE_clause? free*
+	/ t:tag? ke:KE_clause f:free* gs:gek_sentence kehe:KEhE_clause? g:free*
+		-> { KEGekSentence t ke f gs kehe g }
 --	/ NA_clause free* gek_sentence
 
 -----------------------------------------------------------------
@@ -2100,6 +2101,7 @@ data Sentence
 	= Selbri Selbri
 	| SelbriTailTerms Selbri [Term] (Maybe Clause) [Free]
 	| GekSentence Gek Sentence Gik Sentence [Term] (Maybe Clause) [Free]
+	| KEGekSentence (Maybe Tag) Clause [Free] Sentence (Maybe Clause) [Free]
 	| GihekBO Sentence Gihek (Maybe Tag) Clause [Free] Sentence [Term]
 		(Maybe Clause) [Free]
 	| GihekSentence Sentence
