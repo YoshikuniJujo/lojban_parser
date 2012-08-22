@@ -165,7 +165,8 @@ gek_sentence :: Sentence
 		-> { uncurry3 (GekSentence gek s gik t) tts }
 	/ t:tag? ke:KE_clause f:free* gs:gek_sentence kehe:KEhE_clause? g:free*
 		-> { KEGekSentence t ke f gs kehe g }
---	/ NA_clause free* gek_sentence
+	/ n:NA_clause f:free* gs:gek_sentence
+		-> { NAGekSentence n f gs }
 
 -----------------------------------------------------------------
 -- #03 term sumti
@@ -173,7 +174,15 @@ gek_sentence :: Sentence
 tail_terms :: { ([Term], Maybe Clause, [Free]) }
 	= t:terms? v:VAU_clause? f:free*	-> { (fromMaybe [] t, v, f) }
 
-terms :: { [Term] } = term+
+terms :: { [Term] } = terms_1+
+
+terms_1 :: Term = terms_2 -- (pehe_sa* PEhE_clause free* joik_jek terms_2)*
+
+terms_2 :: Term = term -- (cehe_sa* CEhE_clause free* term)*
+
+-- pehe_sa ::
+
+-- cehe_sa ::
 
 term :: Term = term_sa* t:term_1	-> { t }
 
@@ -2102,6 +2111,7 @@ data Sentence
 	| SelbriTailTerms Selbri [Term] (Maybe Clause) [Free]
 	| GekSentence Gek Sentence Gik Sentence [Term] (Maybe Clause) [Free]
 	| KEGekSentence (Maybe Tag) Clause [Free] Sentence (Maybe Clause) [Free]
+	| NAGekSentence Clause [Free] Sentence
 	| GihekBO Sentence Gihek (Maybe Tag) Clause [Free] Sentence [Term]
 		(Maybe Clause) [Free]
 	| GihekSentence Sentence
