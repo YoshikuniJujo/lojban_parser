@@ -328,7 +328,17 @@ sumti_tail_1 :: SumtiTail
 
 relative_clauses :: RelativeClauses = relative_clause
 
-relative_clause :: RelativeClause = "pe mi "
+relative_clause :: RelativeClause = relative_clause_1
+
+-- relative_clause_sa
+
+relative_clause_1 :: RelativeClause
+	= goi:GOI_clause f:free* t:term gehu:GEhU_clause? g:free*
+		-> { GOI goi f t gehu g }
+	/ noi:NOI_clause f:free* s:subsentence kuho:KUhO_clause? g:free*
+		-> { NOI noi f s kuho g }
+
+-- relative_clause_start
 
 -----------------------------------------------------------------
 -- #05 selbri
@@ -685,11 +695,17 @@ FUhO_post_no_ind :: { () } = post_clause_no_ind
 GA_clause :: Clause = p:GA_pre q:post_clause		-> { (fst p, snd p, q) }
 GA_pre :: Pre = p:pre_clause g:GA spaces?		-> { (p, g) }
 
+GEhU_clause :: Clause = p:GEhU_pre q:post_clause	-> { (fst p, snd p, q) }
+GEhU_pre :: Pre = p:pre_clause g:GEhU spaces?		-> { (p, g) }
+
 GI_clause :: Clause = p:GI_pre q:post_clause		-> { (fst p, snd p, q) }
 GI_pre :: Pre = p:pre_clause g:GI spaces?		-> { (p, g) }
 
 GIhA_clause :: Clause = p:GIhA_pre q:post_clause	-> { (fst p, snd p, q) }
 GIhA_pre :: Pre = p:pre_clause g:GIhA			-> { (p, g) }
+
+GOI_clause :: Clause = p:GOI_pre q:post_clause		-> { (fst p, snd p, q) }
+GOI_pre :: Pre = p:pre_clause g:GOI			-> { (p, g) }
 
 GUhA_clause :: Clause = p:GUhA_pre q:post_clause	-> { (fst p, snd p, q) }
 GUhA_pre :: Pre = p:pre_clause g:GUhA spaces?		-> { (p, g) }
@@ -718,6 +734,9 @@ KOhA_pre :: Pre = p:pre_clause k:KOhA spaces?		-> { (p, k) }
 
 KU_clause :: Clause = p:KU_pre q:post_clause		-> { (fst p, snd p, q) }
 KU_pre :: Pre = p:pre_clause k:KU spaces?		-> { (p, k) }
+
+KUhO_clause :: Clause = p:KUhO_pre q:post_clause	-> { (fst p, snd p, q) }
+KUhO_pre :: Pre = p:pre_clause k:KUhO spaces?		-> { (p, k) }
 
 LA_clause :: Clause = p:LA_pre q:post_clause		-> { (fst p, snd p, q) }
 LA_pre :: Pre = p:pre_clause l:LA spaces?		-> { (p, l) }
@@ -772,6 +791,9 @@ NAhE_pre :: Pre = p:pre_clause n:NAhE spaces?		-> { (p, n) }
 
 NIhO_clause :: Clause = p:NIhO_pre q:post_clause	-> { (fst p, snd p, q) }
 NIhO_pre :: Pre = p:pre_clause n:NIhO spaces?		-> { (p, n) }
+
+NOI_clause :: Clause = p:NOI_pre q:post_clause		-> { (fst p, snd p, q) }
+NOI_pre :: Pre = p:pre_clause n:NOI spaces?		-> { (p, n) }
 
 NU_clause :: Clause = p:NU_pre q:post_clause		-> { (fst p, snd p, q) }
 NU_pre :: Pre = p:pre_clause n:NU spaces?		-> { (p, n) }
@@ -2227,8 +2249,12 @@ data Selbri
 		Sentence (Maybe Clause) [Free]
 	deriving Show
 
-type RelativeClauses = String
-type RelativeClause = String
+type RelativeClauses = RelativeClause
+
+data RelativeClause
+	= GOI Clause [Free] Term (Maybe Clause) [Free]
+	| NOI Clause [Free] Sentence (Maybe Clause) [Free]
+	deriving Show
 
 type JoikJekSelbri5 = Either (JoikJek, [Free], Selbri)
 	(Joik, (Maybe Tag), Clause, [Free], Selbri, Maybe Clause, [Free])
