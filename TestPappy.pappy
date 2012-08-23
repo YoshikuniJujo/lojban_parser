@@ -326,7 +326,11 @@ sumti_tail_1 :: SumtiTail
 -----------------------------------------------------------------
 -- #04 relative clauses
 
-relative_clauses :: RelativeClauses = relative_clause
+relative_clauses :: RelativeClauses = rc:relative_clause z:zihe_relative_clause*
+	-> { if null z then rc else RelativeClauseZIhE rc z }
+zihe_relative_clause :: { (Clause, [Free], RelativeClause) }
+	= z:ZIhE_clause f:free* rc:relative_clause
+	-> { (z, f, rc) }
 
 relative_clause :: RelativeClause
 	= relative_clause_sa* rc:relative_clause_1		-> { rc }
@@ -856,6 +860,9 @@ VUhO_pre :: Pre = p:pre_clause v:VUhO spaces?		-> { (p, v) }
 ZEI_clause :: { () } = ZEI_pre
 -- ZEI_pre :: String = pre_clause z:ZEI spaces?
 ZEI_pre :: { () } = ZEI spaces?	-> { () }
+
+ZIhE_clause :: Clause = p:ZIhE_pre q:post_clause	-> { (fst p, snd p, q) }
+ZIhE_pre :: Pre = p:pre_clause z:ZIhE spaces?		-> { (p, z) }
 
 ZO_clause :: { ([String], String, String, Indicators) }
 	= p:ZO_pre q:post_clause
@@ -2260,6 +2267,7 @@ type RelativeClauses = RelativeClause
 data RelativeClause
 	= GOI Clause [Free] Term (Maybe Clause) [Free]
 	| NOI Clause [Free] Sentence (Maybe Clause) [Free]
+	| RelativeClauseZIhE RelativeClause [(Clause, [Free], RelativeClause)]
 	deriving Show
 
 type JoikJekSelbri5 = Either (JoikJek, [Free], Selbri)
