@@ -328,9 +328,15 @@ sumti_tail_1 :: SumtiTail
 
 relative_clauses :: RelativeClauses = relative_clause
 
-relative_clause :: RelativeClause = relative_clause_1
+relative_clause :: RelativeClause
+	= relative_clause_sa* rc:relative_clause_1		-> { rc }
 
--- relative_clause_sa
+relative_clause_sa :: { () } = relative_clause_start relative_clause_sa_word*
+	SA_clause &relative_clause_1	-> { () }
+
+relative_clause_sa_word :: { () } = !relative_clause_start
+	(sa_word -> { () } / SA_clause !relative_clause_start -> { () })
+		-> { () }
 
 relative_clause_1 :: RelativeClause
 	= goi:GOI_clause f:free* t:term gehu:GEhU_clause? g:free*
@@ -338,7 +344,7 @@ relative_clause_1 :: RelativeClause
 	/ noi:NOI_clause f:free* s:subsentence kuho:KUhO_clause? g:free*
 		-> { NOI noi f s kuho g }
 
--- relative_clause_start
+relative_clause_start :: Clause = GOI_clause / NOI_clause
 
 -----------------------------------------------------------------
 -- #05 selbri
