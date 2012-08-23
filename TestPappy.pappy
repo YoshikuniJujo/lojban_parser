@@ -176,13 +176,28 @@ tail_terms :: { ([Term], Maybe Clause, [Free]) }
 
 terms :: { [Term] } = terms_1+
 
-terms_1 :: Term = terms_2 -- (pehe_sa* PEhE_clause free* joik_jek terms_2)*
+terms_1 :: Term = t:terms_2 pfjt:pehe_terms_2*
+	-> { if null pfjt then t else TermsPEhETerms t pfjt }
+pehe_terms_2 :: { (Clause, [Free], JoikJek, [Free], Term) }
+	= pehe_sa* p:PEhE_clause f:free* j:joik_jek t:terms_2
+		-> { (p, f, fst j, snd j, t) }
 
-terms_2 :: Term = term -- (cehe_sa* CEhE_clause free* term)*
+terms_2 :: Term = t:term cft:cehe_term*
+	-> { if null cft then t else TermCEhETerm t cft }
+cehe_term :: { (Clause, [Free], Term) }
+	= cehe_sa* c:CEhE_clause f:free* t:term		-> { (c, f, t) }
 
--- pehe_sa ::
+pehe_sa :: { () }
+	= PEhE_clause pehe_sa_word* SA_clause	-> { () }
+pehe_sa_word :: { () }
+	= !PEhE_clause (sa_word -> { () } / SA_clause !PEhE_clause -> { () })
+		-> { () }
 
--- cehe_sa ::
+cehe_sa :: { () }
+	= CEhE_clause cehe_sa_word* SA_clause	-> { () }
+cehe_sa_word :: { () }
+	= !CEhE_clause (sa_word -> { () } / SA_clause !CEhE_clause -> { () })
+		-> { () }
 
 term :: Term = term_sa* t:term_1	-> { t }
 
@@ -610,6 +625,9 @@ CAI_post_no_ind :: { () } = post_clause_no_ind
 CEI_clause :: Clause = p:CEI_pre q:post_clause		-> { (fst p, snd p, q) }
 CEI_pre :: Pre = p:pre_clause c:CEI spaces?		-> { (p, c) }
 
+CEhE_clause :: Clause = p:CEhE_pre q:post_clause	-> { (fst p, snd p, q) }
+CEhE_pre :: Pre = p:pre_clause c:CEhE spaces?		-> { (p, c) }
+
 CO_clause :: Clause = p:CO_pre q:post_clause		-> { (fst p, snd p, q) }
 CO_pre :: Pre = p:pre_clause c:CO spaces?		-> { (p, c) }
 
@@ -766,6 +784,9 @@ NUhI_pre :: Pre = p:pre_clause n:NUhI spaces?		-> { (p, n) }
 
 NUhU_clause :: Clause = p:NUhU_pre q:post_clause	-> { (fst p, snd p, q) }
 NUhU_pre :: Pre = p:pre_clause n:NUhU spaces?		-> { (p, n) }
+
+PEhE_clause :: Clause = p:PEhE_pre q:post_clause	-> { (fst p, snd p, q) }
+PEhE_pre :: Pre = p:pre_clause q:PEhE spaces?		-> { (p, q) }
 
 SA_clause :: { () } = SA_pre SA_post		-> { () }
 SA_pre :: { () } = pre_clause SA spaces?	-> { () }
@@ -2145,7 +2166,9 @@ data Sentence
 	deriving Show
 
 data Sumti
-	= TagSumti Tag Sumti
+	= TermsPEhETerms Term [(Clause, [Free], JoikJek, [Free], Term)]
+	| TermCEhETerm Term [(Clause, [Free], Term)]
+	| TagSumti Tag Sumti
 	| KU (Maybe Clause) [Free]
 	| NAKU Clause Clause [Free]
 	| NUhIGek Clause [Free] Gek [Term] (Maybe Clause) [Free] Gik [Term]
