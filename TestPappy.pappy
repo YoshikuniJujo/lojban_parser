@@ -405,9 +405,11 @@ tanru_unit_2 :: Selbri
 	/ g:GOhA_clause r:RAhO_clause? f:free*	-> { GOhA g r f }
 	/ ke:KE_clause f:free* s:selbri_3 kehe:KEhE_clause? g:free*
 						-> { KE ke f s kehe g }
---	/ ME_clause free* (sumti / lerfu_string) MEhU_clause? free* MOI_clause?
---		free*
---	/ (number / lerfu_string) MOI_clause free*
+	/ me:ME_clause f:free*
+		s:(sumti / l:lerfu_string -> { LerfuString l Nothing [] })
+		mehu:MEhU_clause? g:free* m:MOI_clause? h:free*
+		-> { ME me f s mehu g m h }
+	/ n:(number / lerfu_string) m:MOI_clause f:free*	-> { MOI n m f }
 --	/ NUhA_clause free* mex_operator
 --	/ SE_clause free* tanru_unit_2
 --	/ JAI_clause free* tag? tanru_unit_2
@@ -432,6 +434,8 @@ links :: Links = "bei mi "
 quantifier :: Quantifier = "pa "
 
 mex :: Mex = "pa "
+
+number :: Number = "pa "
 
 lerfu_string :: LerfuString = "by. "
 
@@ -789,6 +793,9 @@ LUhU_pre :: Pre = p:pre_clause l:LUhU spaces?		-> { (p, l) }
 
 ME_clause :: Clause = p:ME_pre q:post_clause		-> { (fst p, snd p, q) }
 ME_pre :: Pre = p:pre_clause m:ME spaces?		-> { (p, m) }
+
+MEhU_clause :: Clause = p:MEhU_pre q:post_clause	-> { (fst p, snd p, q) }
+MEhU_pre :: Pre = p:pre_clause m:MEhU spaces?		-> { (p, m) }
 
 MOI_clause :: Clause = p:MOI_pre q:post_clause		-> { (fst p, snd p, q) }
 MOI_pre :: Pre = p:pre_clause m:MOI spaces?		-> { (p, m) }
@@ -2256,6 +2263,8 @@ data Selbri
 	= Brivla Clause [Free]
 	| GOhA Clause (Maybe Clause) [Free]
 	| KE Clause [Free] Selbri (Maybe Clause) [Free]
+	| ME Clause [Free] Sumti (Maybe Clause) [Free] (Maybe Clause) [Free]
+	| MOI NumberLerfuString Clause [Free]
 	| Linkargs Selbri Linkargs
 	| CEI Selbri [(Clause, [Free], Selbri)]
 	| BO Selbri Clause [Free] Selbri
@@ -2287,6 +2296,8 @@ type Links = String
 
 type Quantifier = String
 type Mex = String
+type NumberLerfuString = String
+type Number = String
 type LerfuString = String
 
 data Free
