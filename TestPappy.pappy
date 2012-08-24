@@ -424,9 +424,31 @@ joik_jek_nu :: { (JoikJek, [Free], Clause, Maybe Clause, [Free]) }
 -----------------------------------------------------------------
 -- #06 linkargs
 
-linkargs :: Linkargs = "be mi "
+linkargs :: Linkargs = linkargs_sa* l:linkargs_1	-> { l }
 
-links :: Links = "bei mi "
+linkargs_1 :: Linkargs
+	= be:BE_clause f:free* t:term l:links? beho:BEhO_clause? g:free*
+		-> { BE be f t l beho g }
+
+linkargs_sa :: { () }
+	= linkargs_start linkargs_sa_word* SA_clause &linkargs_1	-> { () }
+linkargs_sa_word :: { () }
+	= !linkargs_start (sa_word -> { () } / SA_clause !linkargs_start -> { () })
+	-> { () }
+
+linkargs_start :: { () } = BE_clause	-> { () }
+
+links :: Links = links_sa* l:links_1	-> { l }
+
+links_1 :: Links = b:BEI_clause f:free* t:term l:links?
+	-> { BEI b f t l }
+
+links_sa :: { () } = links_start links_sa_word* SA_clause &links_1	-> { () }
+links_sa_word :: { () }
+	= !links_start (sa_word -> { () } / SA_clause !links_start -> { () })
+		-> { () }
+
+links_start :: { () } = BEI_clause	-> { () }
 
 -----------------------------------------------------------------
 -- #07 mex
@@ -624,6 +646,15 @@ A_pre :: Pre = p:pre_clause a:A spaces?			-> { (p, a) }
 
 BAI_clause :: Clause = p:BAI_pre q:post_clause		-> { (fst p, snd p, q) }
 BAI_pre :: Pre = p:pre_clause b:BAI spaces?		-> { (p, b) }
+
+BE_clause :: Clause = p:BE_pre q:post_clause		-> { (fst p, snd p, q) }
+BE_pre :: Pre = p:pre_clause b:BE spaces?		-> { (p, b) }
+
+BEI_clause :: Clause = p:BEI_pre q:post_clause		-> { (fst p, snd p, q) }
+BEI_pre :: Pre = p:pre_clause b:BEI spaces?		-> { (p, b) }
+
+BEhO_clause :: Clause = p:BEhO_pre q:post_clause	-> { (fst p, snd p, q) }
+BEhO_pre :: Pre = p:pre_clause b:BEhO spaces?		-> { (p, b) }
 
 BO_clause :: Clause = p:BO_pre q:post_clause		-> { (fst p, snd p, q) }
 BO_pre :: Pre = p:pre_clause b:BO spaces?		-> { (p, b) }
@@ -2300,8 +2331,12 @@ data RelativeClause
 type JoikJekSelbri5 = Either (JoikJek, [Free], Selbri)
 	(Joik, (Maybe Tag), Clause, [Free], Selbri, Maybe Clause, [Free])
 
-type Linkargs = String
-type Links = String
+data Linkargs
+	= BE Clause [Free] Term (Maybe Links) (Maybe Clause) [Free]
+	deriving Show
+data Links
+	= BEI Clause [Free] Term (Maybe Links)
+	deriving Show
 
 type Quantifier = String
 type Mex = String
