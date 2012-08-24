@@ -401,9 +401,10 @@ tanru_unit_1 :: Selbri
 	= t:tanru_unit_2 l:linkargs?	-> { maybe t (Linkargs t) l }
 
 tanru_unit_2 :: Selbri
-	= b:BRIVLA_clause f:free*	-> { Brivla b f }
---	/ GOhA_clause RAhO_clause? free*
---	/ KE_clause free* selbri_3 KEhE_clause? free*
+	= b:BRIVLA_clause f:free*		-> { Brivla b f }
+	/ g:GOhA_clause r:RAhO_clause? f:free*	-> { GOhA g r f }
+	/ ke:KE_clause f:free* s:selbri_3 kehe:KEhE_clause? g:free*
+						-> { KE ke f s kehe g }
 --	/ ME_clause free* (sumti / lerfu_string) MEhU_clause? free* MOI_clause?
 --		free*
 --	/ (number / lerfu_string) MOI_clause free*
@@ -712,10 +713,13 @@ GI_clause :: Clause = p:GI_pre q:post_clause		-> { (fst p, snd p, q) }
 GI_pre :: Pre = p:pre_clause g:GI spaces?		-> { (p, g) }
 
 GIhA_clause :: Clause = p:GIhA_pre q:post_clause	-> { (fst p, snd p, q) }
-GIhA_pre :: Pre = p:pre_clause g:GIhA			-> { (p, g) }
+GIhA_pre :: Pre = p:pre_clause g:GIhA spaces?		-> { (p, g) }
 
 GOI_clause :: Clause = p:GOI_pre q:post_clause		-> { (fst p, snd p, q) }
-GOI_pre :: Pre = p:pre_clause g:GOI			-> { (p, g) }
+GOI_pre :: Pre = p:pre_clause g:GOI spaces?		-> { (p, g) }
+
+GOhA_clause :: Clause = p:GOhA_pre q:post_clause	-> { (fst p, snd p, q) }
+GOhA_pre :: Pre = p:pre_clause g:GOhA spaces?		-> { (p, g) }
 
 GUhA_clause :: Clause = p:GUhA_pre q:post_clause	-> { (fst p, snd p, q) }
 GUhA_pre :: Pre = p:pre_clause g:GUhA spaces?		-> { (p, g) }
@@ -819,6 +823,9 @@ NUhU_pre :: Pre = p:pre_clause n:NUhU spaces?		-> { (p, n) }
 
 PEhE_clause :: Clause = p:PEhE_pre q:post_clause	-> { (fst p, snd p, q) }
 PEhE_pre :: Pre = p:pre_clause q:PEhE spaces?		-> { (p, q) }
+
+RAhO_clause :: Clause = p:RAhO_pre q:post_clause	-> { (fst p, snd p, q) }
+RAhO_pre :: Pre = p:pre_clause r:RAhO spaces?		-> { (p, r) }
 
 SA_clause :: { () } = SA_pre SA_post		-> { () }
 SA_pre :: { () } = pre_clause SA spaces?	-> { () }
@@ -2247,6 +2254,8 @@ data SumtiTail
 
 data Selbri
 	= Brivla Clause [Free]
+	| GOhA Clause (Maybe Clause) [Free]
+	| KE Clause [Free] Selbri (Maybe Clause) [Free]
 	| Linkargs Selbri Linkargs
 	| CEI Selbri [(Clause, [Free], Selbri)]
 	| BO Selbri Clause [Free] Selbri
