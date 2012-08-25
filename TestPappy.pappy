@@ -453,15 +453,25 @@ links_start :: { () } = BEI_clause	-> { () }
 -----------------------------------------------------------------
 -- #07 mex
 
-quantifier :: Quantifier = "pa "
+quantifier :: Quantifier = mex
 
-mex :: Mex = "pa "
+mex :: Mex = number
 
 mex_operator :: MexOperator = "su'i "
 
-number :: Number = "pa "
+number :: Number
+	= p:PA_clause	-> { [p] }
 
-lerfu_string :: LerfuString = "by. "
+lerfu_string :: LerfuString
+	= l:lerfu_word pls:(pa_clause / lerfu_word)*
+	-> { l ++ concat pls }
+pa_clause :: { [Clause] }
+	= p:PA_clause		-> { [p] }
+
+lerfu_word :: { [Clause] }
+	= b:BY_clause					-> { [b] }
+	/ lau:LAU_clause l:lerfu_word			-> { lau : l }
+	/ tei:TEI_clause l:lerfu_string f:FOI_clause	-> { tei : l ++ [f] }
 
 -----------------------------------------------------------------
 -- #08 ek gihek jek joik gek guhek gik
@@ -666,6 +676,10 @@ BU_clause :: { () } = BU_pre
 -- BU_pre :: String = pre_clause BU spaces?
 BU_pre :: { () } = BU spaces?		-> { () }
 
+BY_clause :: Clause = p:BY_pre q:post_clause		-> { (fst p, snd p, q) }
+	/ bu_clause
+BY_pre :: Pre = p:pre_clause b:BY spaces?		-> { (p, b) }
+
 BAhE_clause :: { [String] } = bs:BAhE_clause_single+	-> { bs }
 BAhE_clause_single :: String = b:BAhE_pre BAhE_post	-> { b }
 BAhE_pre :: String = b:BAhE spaces?			-> { b }
@@ -721,6 +735,9 @@ FA_pre :: Pre = p:pre_clause f:FA spaces?		-> { (p, f) }
 
 FAhO_clause :: { ([String], String) }
 	= p:pre_clause f:FAhO spaces?	-> { (p, f) }
+
+FOI_clause :: Clause = p:FOI_pre q:post_clause		-> { (fst p, snd p, q) }
+FOI_pre :: Pre = p:pre_clause f:FOI spaces?		-> { (p, f) }
 
 FUhE_clause :: { ([String], String) }
 	= pre:FUhE_pre post:FUhE_post	-> { pre }
@@ -798,6 +815,9 @@ LA_pre :: Pre = p:pre_clause l:LA spaces?		-> { (p, l) }
 LAhE_clause :: Clause = p:LAhE_pre q:post_clause	-> { (fst p, snd p, q) }
 LAhE_pre :: Pre = p:pre_clause l:LAhE spaces?		-> { (p, l) }
 
+LAU_clause :: Clause = p:LAU_pre q:post_clause		-> { (fst p, snd p, q) }
+LAU_pre :: Pre = p:pre_clause l:LAU spaces?		-> { (p, l) }
+
 LE_clause :: Clause = p:LE_pre q:post_clause		-> { (fst p, snd p, q) }
 LE_pre :: Pre = p:pre_clause l:LE spaces?		-> { (p, l) }
 
@@ -864,6 +884,9 @@ NUhI_pre :: Pre = p:pre_clause n:NUhI spaces?		-> { (p, n) }
 NUhU_clause :: Clause = p:NUhU_pre q:post_clause	-> { (fst p, snd p, q) }
 NUhU_pre :: Pre = p:pre_clause n:NUhU spaces?		-> { (p, n) }
 
+PA_clause :: Clause = p:PA_pre q:post_clause		-> { (fst p, snd p, q) }
+PA_pre :: Pre = p:pre_clause q:PA spaces?		-> { (p, q) }
+
 PEhE_clause :: Clause = p:PEhE_pre q:post_clause	-> { (fst p, snd p, q) }
 PEhE_pre :: Pre = p:pre_clause q:PEhE spaces?		-> { (p, q) }
 
@@ -882,6 +905,9 @@ SI_clause :: { () } = spaces? SI spaces?	-> { () }
 SU_clause :: { () } = SU_pre SU_post		-> { () }
 SU_pre :: { () } = pre_clause SU spaces?	-> { () }
 SU_post :: Indicators = post_clause		-> { () }
+
+TEI_clause :: Clause = p:TEI_pre q:post_clause		-> { (fst p, snd p, q) }
+TEI_pre :: Pre = p:pre_clause t:TEI spaces?		-> { (p, t) }
 
 TO_clause :: Clause = p:TO_pre q:post_clause		-> { (fst p, snd p, q) }
 TO_pre :: Pre = p:pre_clause t:TO spaces?		-> { (p, t) }
@@ -2338,12 +2364,12 @@ data Links
 	= BEI Clause [Free] Term (Maybe Links)
 	deriving Show
 
-type Quantifier = String
-type Mex = String
+type Quantifier = [Clause]
+type Mex = [Clause]
 type MexOperator = String
-type NumberLerfuString = String
-type Number = String
-type LerfuString = String
+type NumberLerfuString = [Clause]
+type Number = [Clause]
+type LerfuString = [Clause]
 
 data Free
 	= VocativeSumti [Clause] (Maybe Sumti) (Maybe Clause)
