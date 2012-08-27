@@ -455,16 +455,71 @@ links_start :: { () } = BEI_clause	-> { () }
 
 quantifier :: Quantifier = mex
 
-mex :: Mex = number
+mex :: Mex = mex_2
+
+-- mex_0
+
+-- mex_sa
+
+-- mex_start
+
+-- rp_clause
+
+-- mex_1
+
+mex_2 :: Mex
+	= operand_2
+
+-- mex_forethought
+
+-- fore_operand
+
+-- operator
+
+-- operator_0
+
+-- operator_sa
+
+-- operator_start
+
+-- operator_1
+
+-- operator_2
 
 mex_operator :: MexOperator = "su'i "
 
+-- operand
+
+-- operand_0
+
+-- operand_sa
+
+-- operand_start
+
+-- operand_1
+
+operand_2 :: Operand
+	= o3:operand_3 jtbfo:joik_ek_bo_operand_2?
+		-> { maybe o3 (\(j, f, t, b, g, o2) -> OperandJoikEkBO o3 j f t b g o2) jtbfo }
+joik_ek_bo_operand_2 :: { (JoikEk, [Free], Maybe Tag, Clause, [Free], Operand) }
+	= j:joik_ek t:stag? b:BO_clause f:free* o:operand_2
+		-> { (fst j, snd j, t, b, f, o) }
+
+operand_3 :: Operand
+--	= quantifier
+	= l:lerfu_string !MOI_clause b:BOI_clause? f:free*
+		-> { OLerfuString l b f }
+--	/ NIhE_clause free* selbri TEhU_clause? free*
+--	/ MOhE_clause free* sumti TEhU_clause? free*
+--	/ JOhI_clause free* mex_2+ TEhU_clause? free*
+--	/ gek operand gik operand_3
+--	/ (LAhE_clause free* / NAhE_clause BO_clause free*) operand LUhU_clause? free*
+
 number :: Number
-	= p:PA_clause	-> { [p] }
+	= p:PA_clause pls:(pa_clause / lerfu_word)*	-> { p : concat pls }
 
 lerfu_string :: LerfuString
-	= l:lerfu_word pls:(pa_clause / lerfu_word)*
-	-> { l ++ concat pls }
+	= l:lerfu_word pls:(pa_clause / lerfu_word)*	-> { l ++ concat pls }
 pa_clause :: { [Clause] }
 	= p:PA_clause		-> { [p] }
 
@@ -2364,9 +2419,15 @@ data Links
 	= BEI Clause [Free] Term (Maybe Links)
 	deriving Show
 
-type Quantifier = [Clause]
-type Mex = [Clause]
+type Quantifier = Mex
+type Mex = Operand
 type MexOperator = String
+
+data Operand
+	= OLerfuString LerfuString (Maybe Clause) [Free]
+	| OperandJoikEkBO Operand JoikEk [Free] (Maybe Tag) Clause [Free] Operand
+	deriving Show
+
 type NumberLerfuString = [Clause]
 type Number = [Clause]
 type LerfuString = [Clause]
