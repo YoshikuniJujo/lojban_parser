@@ -453,7 +453,10 @@ links_start :: { () } = BEI_clause	-> { () }
 -----------------------------------------------------------------
 -- #07 mex
 
-quantifier :: Quantifier = mex
+quantifier :: Quantifier
+--	= number !MOI_clause BOI_clause? free*
+--	/ VEI_clause free* mex VEhO_clause? free*
+	= VEI_clause free* m:mex VEhO_clause? free*	-> { m }
 
 mex :: Mex = mex_2
 
@@ -489,8 +492,7 @@ mex_2 :: Mex
 mex_operator :: MexOperator = "su'i "
 
 operand :: Operand
---	= operand_sa* operand_0
-	= operand_0
+	= operand_sa* o0:operand_0	-> { o0 }
 
 operand_0 :: Operand
 	= o1:operand_1 jftkefokeheg:joik_ek_ke_operand?
@@ -500,9 +502,21 @@ joik_ek_ke_operand ::
 	= jf:joik_ek t:stag? ke:KE_clause f:free* o:operand kehe:KEhE_clause? g:free*
 		-> { (fst jf, snd jf, t, ke, f, o, kehe, g) }
 
--- operand_sa
+operand_sa :: { () }
+	= operand_start operand_sa_word* SA_clause &operand_0		-> { () }
 
--- operand_start
+operand_sa_word :: { () } = !operand_start
+	(sa_word -> { () } / SA_clause !operand_start -> { () })	-> { () }
+
+operand_start :: { () }
+	= quantifier	-> { () }
+	/ lerfu_word	-> { () }
+	/ NIhE_clause	-> { () }
+	/ MOhE_clause	-> { () }
+	/ JOhI_clause	-> { () }
+	/ gek		-> { () }
+	/ LAhE_clause	-> { () }
+	/ NAhE_clause	-> { () }
 
 operand_1 :: Operand
 	= o2:operand_2 jeo2:joik_ek_operand_2*
@@ -855,6 +869,9 @@ JA_pre :: Pre = p:pre_clause j:JA spaces?		-> { (p, j) }
 JAI_clause :: Clause = p:JAI_pre q:post_clause		-> { (fst p, snd p, q) }
 JAI_pre :: Pre = p:pre_clause j:JAI spaces?		-> { (p, j) }
 
+JOhI_clause :: Clause = p:JOhI_pre q:post_clause	-> { (fst p, snd p, q) }
+JOhI_pre :: Pre = p:pre_clause j:JOhI spaces?		-> { (p, j) }
+
 JOI_clause :: Clause = p:JOI_pre q:post_clause		-> { (fst p, snd p, q) }
 JOI_pre :: Pre = p:pre_clause j:JOI spaces?		-> { (p, j) }
 
@@ -920,6 +937,9 @@ ME_pre :: Pre = p:pre_clause m:ME spaces?		-> { (p, m) }
 MEhU_clause :: Clause = p:MEhU_pre q:post_clause	-> { (fst p, snd p, q) }
 MEhU_pre :: Pre = p:pre_clause m:MEhU spaces?		-> { (p, m) }
 
+MOhE_clause :: Clause = p:MOhE_pre q:post_clause	-> { (fst p, snd p, q) }
+MOhE_pre :: Pre = p:pre_clause m:MOhE spaces?		-> { (p, m) }
+
 MOI_clause :: Clause = p:MOI_pre q:post_clause		-> { (fst p, snd p, q) }
 MOI_pre :: Pre = p:pre_clause m:MOI spaces?		-> { (p, m) }
 
@@ -932,6 +952,9 @@ NAI_pre :: Pre = p:pre_clause n:NAI spaces?		-> { (p, n) }
 
 NAhE_clause :: Clause = p:NAhE_pre q:post_clause	-> { (fst p, snd p, q) }
 NAhE_pre :: Pre = p:pre_clause n:NAhE spaces?		-> { (p, n) }
+
+NIhE_clause :: Clause = p:NIhE_pre q:post_clause	-> { (fst p, snd p, q) }
+NIhE_pre :: Pre = p:pre_clause n:NIhE spaces?		-> { (p, n) }
 
 NIhO_clause :: Clause = p:NIhO_pre q:post_clause	-> { (fst p, snd p, q) }
 NIhO_pre :: Pre = p:pre_clause n:NIhO spaces?		-> { (p, n) }
@@ -996,6 +1019,12 @@ UI_post_no_ind :: { () } = post_clause_no_ind
 
 VAU_clause :: Clause = p:VAU_pre q:post_clause		-> { (fst p, snd p, q) }
 VAU_pre :: Pre = p:pre_clause v:VAU spaces?		-> { (p, v) }
+
+VEI_clause :: Clause = p:VEI_pre q:post_clause		-> { (fst p, snd p, q) }
+VEI_pre :: Pre = p:pre_clause v:VEI spaces?		-> { (p, v) }
+
+VEhO_clause :: Clause = p:VEhO_pre q:post_clause	-> { (fst p, snd p, q) }
+VEhO_pre :: Pre = p:pre_clause v:VEhO spaces?		-> { (p, v) }
 
 VUhO_clause :: Clause = p:VUhO_pre q:post_clause	-> { (fst p, snd p, q) }
 VUhO_pre :: Pre = p:pre_clause v:VUhO spaces?		-> { (p, v) }
