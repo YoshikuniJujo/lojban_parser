@@ -468,7 +468,7 @@ mex :: Mex = mex_2
 -- mex_1
 
 mex_2 :: Mex
-	= operand_2
+	= operand
 
 -- mex_forethought
 
@@ -488,15 +488,27 @@ mex_2 :: Mex
 
 mex_operator :: MexOperator = "su'i "
 
--- operand
+operand :: Operand
+--	= operand_sa* operand_0
+	= operand_0
 
--- operand_0
+operand_0 :: Operand
+	= o1:operand_1 jftkefokeheg:joik_ek_ke_operand?
+	-> { maybe o1 (\(j, f, t, ke, g, o, kehe, h) -> OperandJoikEkKE o1 j f t ke g o kehe h) jftkefokeheg }
+joik_ek_ke_operand ::
+	{ (JoikEk, [Free], Maybe Tag, Clause, [Free], Operand, Maybe Clause, [Free]) }
+	= jf:joik_ek t:stag? ke:KE_clause f:free* o:operand kehe:KEhE_clause? g:free*
+		-> { (fst jf, snd jf, t, ke, f, o, kehe, g) }
 
 -- operand_sa
 
 -- operand_start
 
--- operand_1
+operand_1 :: Operand
+	= o2:operand_2 jeo2:joik_ek_operand_2*
+		-> { if null jeo2 then o2 else OperandJoikEk o2 jeo2 }
+joik_ek_operand_2 :: { (JoikEk, [Free], Operand) }
+	= j:joik_ek o:operand_2		-> { (fst j, snd j, o) }
 
 operand_2 :: Operand
 	= o3:operand_3 jtbfo:joik_ek_bo_operand_2?
@@ -2426,6 +2438,9 @@ type MexOperator = String
 data Operand
 	= OLerfuString LerfuString (Maybe Clause) [Free]
 	| OperandJoikEkBO Operand JoikEk [Free] (Maybe Tag) Clause [Free] Operand
+	| OperandJoikEk Operand [(JoikEk, [Free], Operand)]
+	| OperandJoikEkKE Operand JoikEk [Free] (Maybe Tag) Clause [Free] Operand
+		(Maybe Clause) [Free]
 	deriving Show
 
 type NumberLerfuString = [Clause]
