@@ -482,7 +482,7 @@ mex_2 :: Mex
 
 operator :: MexOperator
 --	= operator_sa* operator_0
-	= mex_operator
+	= operator_2
 
 -- operator_0
 
@@ -492,7 +492,10 @@ operator :: MexOperator
 
 -- operator_1
 
--- operator_2
+operator_2 :: MexOperator
+	= mex_operator
+	/ ke:KE_clause f:free* o:operator kehe:KEhE_clause? g:free*
+		-> { KEOperator ke f o kehe g }
 
 mex_operator :: MexOperator
 	= s:SE_clause f:free* m:mex_operator
@@ -2494,6 +2497,7 @@ data MexOperator
 	| MAhO Clause [Free] Mex (Maybe Clause) [Free]
 	| NAhEOperator Clause [Free] MexOperator
 	| SEOperator Clause [Free] MexOperator
+	| KEOperator Clause [Free] MexOperator (Maybe Clause) [Free]
 	deriving Show
 
 data Operand
