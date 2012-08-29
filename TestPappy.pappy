@@ -494,7 +494,13 @@ operator :: MexOperator
 
 -- operator_2
 
-mex_operator :: MexOperator = "su'i "
+mex_operator :: MexOperator
+--	= SE_clause free* mex_operator
+--	/ NAhE_clause free* mex_operator
+--	/ MAhO_clause free* mex TEhU_clause? free*
+	= n:NAhU_clause f:free* s:selbri t:TEhU_clause? g:free*
+					-> { NAhU n f s t g }
+	/ v:VUhU_clause f:free*		-> { VUhU v f }
 
 operand :: Operand
 	= operand_sa* o0:operand_0	-> { o0 }
@@ -958,6 +964,9 @@ NAI_pre :: Pre = p:pre_clause n:NAI spaces?		-> { (p, n) }
 NAhE_clause :: Clause = p:NAhE_pre q:post_clause	-> { (fst p, snd p, q) }
 NAhE_pre :: Pre = p:pre_clause n:NAhE spaces?		-> { (p, n) }
 
+NAhU_clause :: Clause = p:NAhU_pre q:post_clause	-> { (fst p, snd p, q) }
+NAhU_pre :: Pre = p:pre_clause n:NAhU spaces?		-> { (p, n) }
+
 NIhE_clause :: Clause = p:NIhE_pre q:post_clause	-> { (fst p, snd p, q) }
 NIhE_pre :: Pre = p:pre_clause n:NIhE spaces?		-> { (p, n) }
 
@@ -1001,6 +1010,9 @@ SU_clause :: { () } = SU_pre SU_post		-> { () }
 SU_pre :: { () } = pre_clause SU spaces?	-> { () }
 SU_post :: Indicators = post_clause		-> { () }
 
+TEhU_clause :: Clause = p:TEhU_pre q:post_clause	-> { (fst p, snd p, q) }
+TEhU_pre :: Pre = p:pre_clause t:TEhU spaces?		-> { (p, t) }
+
 TEI_clause :: Clause = p:TEI_pre q:post_clause		-> { (fst p, snd p, q) }
 TEI_pre :: Pre = p:pre_clause t:TEI spaces?		-> { (p, t) }
 
@@ -1033,6 +1045,9 @@ VEhO_pre :: Pre = p:pre_clause v:VEhO spaces?		-> { (p, v) }
 
 VUhO_clause :: Clause = p:VUhO_pre q:post_clause	-> { (fst p, snd p, q) }
 VUhO_pre :: Pre = p:pre_clause v:VUhO spaces?		-> { (p, v) }
+
+VUhU_clause :: Clause = p:VUhU_pre q:post_clause	-> { (fst p, snd p, q) }
+VUhU_pre :: Pre = p:pre_clause v:VUhU spaces?		-> { (p, v) }
 
 ZEI_clause :: { () } = ZEI_pre
 -- ZEI_pre :: String = pre_clause z:ZEI spaces?
@@ -2467,7 +2482,10 @@ data Links
 
 type Quantifier = Mex
 type Mex = Operand
-type MexOperator = String
+data MexOperator
+	= VUhU Clause [Free]
+	| NAhU Clause [Free] Selbri (Maybe Clause) [Free]
+	deriving Show
 
 data Operand
 	= OLerfuString LerfuString (Maybe Clause) [Free]
