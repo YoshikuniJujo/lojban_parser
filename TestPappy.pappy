@@ -495,10 +495,13 @@ operator :: MexOperator
 -- operator_2
 
 mex_operator :: MexOperator
---	= SE_clause free* mex_operator
---	/ NAhE_clause free* mex_operator
---	/ MAhO_clause free* mex TEhU_clause? free*
-	= n:NAhU_clause f:free* s:selbri t:TEhU_clause? g:free*
+	= s:SE_clause f:free* m:mex_operator
+					-> { SEOperator s f m }
+	/ n:NAhE_clause f:free* m:mex_operator
+					-> { NAhEOperator n f m }
+	/ maho:MAhO_clause f:free* m:mex t:TEhU_clause? g:free*
+					-> { MAhO maho f m t g }
+	/ n:NAhU_clause f:free* s:selbri t:TEhU_clause? g:free*
 					-> { NAhU n f s t g }
 	/ v:VUhU_clause f:free*		-> { VUhU v f }
 
@@ -941,6 +944,9 @@ LU_pre :: Pre = p:pre_clause l:LU spaces?		-> { (p, l) }
 
 LUhU_clause :: Clause = p:LUhU_pre q:post_clause	-> { (fst p, snd p, q) }
 LUhU_pre :: Pre = p:pre_clause l:LUhU spaces?		-> { (p, l) }
+
+MAhO_clause :: Clause = p:MAhO_pre q:post_clause	-> { (fst p, snd p, q) }
+MAhO_pre :: Pre = p:pre_clause m:MAhO spaces?		-> { (p, m) }
 
 ME_clause :: Clause = p:ME_pre q:post_clause		-> { (fst p, snd p, q) }
 ME_pre :: Pre = p:pre_clause m:ME spaces?		-> { (p, m) }
@@ -2485,6 +2491,9 @@ type Mex = Operand
 data MexOperator
 	= VUhU Clause [Free]
 	| NAhU Clause [Free] Selbri (Maybe Clause) [Free]
+	| MAhO Clause [Free] Mex (Maybe Clause) [Free]
+	| NAhEOperator Clause [Free] MexOperator
+	| SEOperator Clause [Free] MexOperator
 	deriving Show
 
 data Operand
