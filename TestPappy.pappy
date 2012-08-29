@@ -458,7 +458,10 @@ quantifier :: Quantifier
 --	/ VEI_clause free* mex VEhO_clause? free*
 	= VEI_clause free* m:mex VEhO_clause? free*	-> { m }
 
-mex :: Mex = mex_2
+mex :: Mex = m1:mex_2 om2:dummy_op_mex2? -> { maybe m1 (\(o, m2) -> MexDummy m1 o m2) om2 }
+--	= mex_1 (operator mex_1)* / rp_clause
+dummy_op_mex2 :: { (MexOperator, Mex) }
+	= o:operator m2:mex_2	-> { (o, m2) }
 
 -- mex_0
 
@@ -477,7 +480,9 @@ mex_2 :: Mex
 
 -- fore_operand
 
--- operator
+operator :: MexOperator
+--	= operator_sa* operator_0
+	= mex_operator
 
 -- operator_0
 
@@ -2064,7 +2069,7 @@ SOI :: String = &cmavo soi:
 	-> { soi }
 
 SU :: String = &cmavo su:
-	( s:s u:u	-> { [s, u] } )
+	( s:s u:u !h	-> { [s, u] } )
 	-> { su }
 
 TAhE :: String = &cmavo tahe:
@@ -2470,6 +2475,7 @@ data Operand
 	| OperandJoikEk Operand [(JoikEk, [Free], Operand)]
 	| OperandJoikEkKE Operand JoikEk [Free] (Maybe Tag) Clause [Free] Operand
 		(Maybe Clause) [Free]
+	| MexDummy Operand MexOperator Operand
 	deriving Show
 
 type NumberLerfuString = [Clause]
