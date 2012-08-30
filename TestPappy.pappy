@@ -481,14 +481,28 @@ mex_2 :: Mex
 -- fore_operand
 
 operator :: MexOperator
---	= operator_sa* operator_0
-	= operator_1
+	= operator_sa* o0:operator_0	-> { o0 }
 
--- operator_0
+operator_0 :: MexOperator
+	= o1:operator_1 j:joik_jek_joik_ke_operator*
+		-> { JoikJekJoikKEOperator o1 j }
+joik_jek_joik_ke_operator ::
+	{ Either (JoikJek, [Free], MexOperator) (Joik, Maybe Tag, Clause, [Free], MexOperator, Maybe Clause, [Free]) }
+	= jf:joik_jek o1:operator_1	-> { Left (fst jf, snd jf, o1) }
+	/ j:joik t:stag? ke:KE_clause f:free* o:operator kehe:KEhE_clause? g:free*
+		-> { Right (j, t, ke, f, o, kehe, g) }
 
--- operator_sa
+operator_sa :: { () }
+	= operator_start operator_sa_word* SA_clause &operator_0	-> { () }
+operator_sa_word :: { () } = !operator_start
+	(sa_word -> { () } / SA_clause !operator_start -> { () })	-> { () }
 
--- operator_start
+operator_start :: { () }
+	= guhek				-> { () }
+	/ KE_clause			-> { () }
+	/ SE_clause? NAhE_clause	-> { () }
+	/ SE_clause? MAhO_clause	-> { () }
+	/ SE_clause? VUhU_clause	-> { () }
 
 operator_1 :: MexOperator
 	= o2:operator_2 jtbfo1:jek_joik_bo_operator_1?
@@ -2507,6 +2521,10 @@ data MexOperator
 	| KEOperator Clause [Free] MexOperator (Maybe Clause) [Free]
 	| GuhekOperator Guhek MexOperator Gik MexOperator
 	| JekJoikBOOperator MexOperator JoikJek (Maybe Tag) Clause [Free] MexOperator
+	| JoikJekJoikKEOperator MexOperator
+		[Either (JoikJek, [Free], MexOperator)
+			(Joik, Maybe Tag, Clause, [Free], MexOperator,
+				Maybe Clause, [Free])]
 	deriving Show
 
 data Operand
