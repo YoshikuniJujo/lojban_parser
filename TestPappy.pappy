@@ -458,12 +458,14 @@ quantifier :: Quantifier
 --	/ VEI_clause free* mex VEhO_clause? free*
 	= VEI_clause free* m:mex VEhO_clause? free*	-> { m }
 
-mex :: Mex = m1:mex_2 om2:dummy_op_mex2? -> { maybe m1 (\(o, m2) -> MexDummy m1 o m2) om2 }
+mex :: Mex
+	= mex_0
 --	= mex_1 (operator mex_1)* / rp_clause
-dummy_op_mex2 :: { (MexOperator, Mex) }
-	= o:operator m2:mex_2	-> { (o, m2) }
 
--- mex_0
+mex_0 :: Mex = m:mex_1 oms:(operator_mex_1)*
+	-> { MexOperatorMex m oms }
+operator_mex_1 :: { (MexOperator, Mex) }
+	= o:operator m:mex_1	-> { (o, m) }
 
 -- mex_sa
 
@@ -471,14 +473,19 @@ dummy_op_mex2 :: { (MexOperator, Mex) }
 
 -- rp_clause
 
--- mex_1
+mex_1 :: Mex
+--	= mex_2 (BIhE_clause free* operator mex_1)?
+	= mex_2
+
 
 mex_2 :: Mex
 	= operand
 
 -- mex_forethought
-
 -- fore_operand
+
+-- rp_expression
+-- rp_expression_tail
 
 operator :: MexOperator
 	= operator_sa* o0:operator_0	-> { o0 }
@@ -2534,6 +2541,7 @@ data Operand
 	| OperandJoikEkKE Operand JoikEk [Free] (Maybe Tag) Clause [Free] Operand
 		(Maybe Clause) [Free]
 	| MexDummy Operand MexOperator Operand
+	| MexOperatorMex Mex [(MexOperator, Mex)]
 	deriving Show
 
 type NumberLerfuString = [Clause]
