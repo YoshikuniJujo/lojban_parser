@@ -463,7 +463,8 @@ mex :: Mex
 --	= mex_1 (operator mex_1)* / rp_clause
 
 mex_0 :: Mex
-	= m:mex_1 oms:(operator_mex_1)*		-> { MexOperatorMex m oms }
+	= m:mex_1 oms:(operator_mex_1)*
+		-> { if null oms then m else MexOperatorMex m oms }
 	/ rp_clause
 operator_mex_1 :: { (MexOperator, Mex) }
 	= o:operator m:mex_1	-> { (o, m) }
@@ -476,8 +477,10 @@ rp_clause :: Mex
 	= fuha:FUhA_clause f:free* r:rp_expression	-> { FUhA fuha f r }
 
 mex_1 :: Mex
---	= mex_2 (BIhE_clause free* operator mex_1)?
-	= mex_2
+	= m2:mex_2 bfom:bihe_mex_1?
+		-> { maybe m2 (\(b, f, o, m1) -> BIhE m2 b f o m1) bfom }
+bihe_mex_1 :: { (Clause, [Free], MexOperator, Mex) }
+	= b:BIhE_clause f:free* o:operator m:mex_1	-> { (b, f, o, m) }
 
 
 mex_2 :: Mex = operand / mex_forethought
@@ -798,6 +801,9 @@ BEI_pre :: Pre = p:pre_clause b:BEI spaces?		-> { (p, b) }
 
 BEhO_clause :: Clause = p:BEhO_pre q:post_clause	-> { (fst p, snd p, q) }
 BEhO_pre :: Pre = p:pre_clause b:BEhO spaces?		-> { (p, b) }
+
+BIhE_clause :: Clause = p:BIhE_pre q:post_clause	-> { (fst p, snd p, q) }
+BIhE_pre :: Pre = p:pre_clause b:BIhE spaces?		-> { (p, b) }
 
 BO_clause :: Clause = p:BO_pre q:post_clause		-> { (fst p, snd p, q) }
 BO_pre :: Pre = p:pre_clause b:BO spaces?		-> { (p, b) }
@@ -2080,7 +2086,7 @@ PA :: String = &cmavo pa:
 	/ m:m u:u	-> { [m, u] }
 	/ x:x a:a	-> { [x, a] }
 	/ z:z e:e	-> { [z, e] }
-	/ b:b i:i	-> { [b, i] }
+	/ b:b i:i !h	-> { [b, i] }
 	/ s:s o:o	-> { [s, o] }
 	/ d:digit	-> { [d] } )
 	-> { pa }
@@ -2560,6 +2566,7 @@ data Operand
 	| MexOperatorMex Mex [(MexOperator, Mex)]
 	| FUhA Clause [Free] RPExpression
 	| PEhO (Maybe Clause) [Free] MexOperator [Mex] (Maybe Clause) [Free]
+	| BIhE Mex Clause [Free] MexOperator Mex
 	deriving Show
 
 data RPExpression
