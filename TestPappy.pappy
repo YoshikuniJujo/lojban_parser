@@ -462,8 +462,9 @@ mex :: Mex
 	= mex_0
 --	= mex_1 (operator mex_1)* / rp_clause
 
-mex_0 :: Mex = m:mex_1 oms:(operator_mex_1)*
-	-> { MexOperatorMex m oms }
+mex_0 :: Mex
+	= m:mex_1 oms:(operator_mex_1)*		-> { MexOperatorMex m oms }
+	/ rp_clause
 operator_mex_1 :: { (MexOperator, Mex) }
 	= o:operator m:mex_1	-> { (o, m) }
 
@@ -471,7 +472,8 @@ operator_mex_1 :: { (MexOperator, Mex) }
 
 -- mex_start
 
--- rp_clause
+rp_clause :: Mex
+	= fuha:FUhA_clause f:free* r:rp_expression	-> { FUhA fuha f r }
 
 mex_1 :: Mex
 --	= mex_2 (BIhE_clause free* operator mex_1)?
@@ -484,8 +486,12 @@ mex_2 :: Mex
 -- mex_forethought
 -- fore_operand
 
--- rp_expression
--- rp_expression_tail
+rp_expression :: RPExpression
+	= o:operand rt:rp_expression_tail	-> { RPExpression o rt }
+rp_expression_tail :: { Maybe RPExpressionTail}
+	= r:rp_expression o:operator rt:rp_expression_tail
+		-> { Just (RPExpressionTail r o rt) }
+	/ ""							-> { Nothing }
 
 operator :: MexOperator
 	= operator_sa* o0:operator_0	-> { o0 }
@@ -864,6 +870,9 @@ FAhO_clause :: { ([String], String) }
 
 FOI_clause :: Clause = p:FOI_pre q:post_clause		-> { (fst p, snd p, q) }
 FOI_pre :: Pre = p:pre_clause f:FOI spaces?		-> { (p, f) }
+
+FUhA_clause :: Clause = p:FUhA_pre q:post_clause	-> { (fst p, snd p, q) }
+FUhA_pre :: Pre = p:pre_clause f:FUhA spaces?		-> { (p, f) }
 
 FUhE_clause :: { ([String], String) }
 	= pre:FUhE_pre post:FUhE_post	-> { pre }
@@ -2542,6 +2551,14 @@ data Operand
 		(Maybe Clause) [Free]
 	| MexDummy Operand MexOperator Operand
 	| MexOperatorMex Mex [(MexOperator, Mex)]
+	| FUhA Clause [Free] RPExpression
+	deriving Show
+
+data RPExpression
+	= RPExpression Operand (Maybe RPExpressionTail)
+	deriving Show
+data RPExpressionTail
+	= RPExpressionTail RPExpression MexOperator (Maybe RPExpressionTail)
 	deriving Show
 
 type NumberLerfuString = [Clause]
