@@ -480,11 +480,12 @@ mex_1 :: Mex
 	= mex_2
 
 
-mex_2 :: Mex
-	= operand
+mex_2 :: Mex = operand / mex_forethought
 
--- mex_forethought
--- fore_operand
+mex_forethought :: Mex
+	= p:PEhO_clause? f:free* o:operator fo:fore_operands k:KUhE_clause? g:free*
+		-> { PEhO p f o fo k g }
+fore_operands :: { [Mex] } = mex_2+
 
 rp_expression :: RPExpression
 	= o:operand rt:rp_expression_tail	-> { RPExpression o rt }
@@ -944,6 +945,9 @@ KOhA_pre :: Pre = p:pre_clause k:KOhA spaces?		-> { (p, k) }
 KU_clause :: Clause = p:KU_pre q:post_clause		-> { (fst p, snd p, q) }
 KU_pre :: Pre = p:pre_clause k:KU spaces?		-> { (p, k) }
 
+KUhE_clause :: Clause = p:KUhE_pre q:post_clause	-> { (fst p, snd p, q) }
+KUhE_pre :: Pre = p:pre_clause k:KUhE spaces?		-> { (p, k) }
+
 KUhO_clause :: Clause = p:KUhO_pre q:post_clause	-> { (fst p, snd p, q) }
 KUhO_pre :: Pre = p:pre_clause k:KUhO spaces?		-> { (p, k) }
 
@@ -1039,6 +1043,9 @@ PA_pre :: Pre = p:pre_clause q:PA spaces?		-> { (p, q) }
 
 PEhE_clause :: Clause = p:PEhE_pre q:post_clause	-> { (fst p, snd p, q) }
 PEhE_pre :: Pre = p:pre_clause q:PEhE spaces?		-> { (p, q) }
+
+PEhO_clause :: Clause = p:PEhO_pre q:post_clause	-> { (fst p, snd p, q) }
+PEhO_pre :: Pre = p:pre_clause q:PEhO spaces?		-> { (p, q) }
 
 RAhO_clause :: Clause = p:RAhO_pre q:post_clause	-> { (fst p, snd p, q) }
 RAhO_pre :: Pre = p:pre_clause r:RAhO spaces?		-> { (p, r) }
@@ -2552,6 +2559,7 @@ data Operand
 	| MexDummy Operand MexOperator Operand
 	| MexOperatorMex Mex [(MexOperator, Mex)]
 	| FUhA Clause [Free] RPExpression
+	| PEhO (Maybe Clause) [Free] MexOperator [Mex] (Maybe Clause) [Free]
 	deriving Show
 
 data RPExpression
