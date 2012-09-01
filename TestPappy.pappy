@@ -601,7 +601,8 @@ operand_3 :: Operand
 		-> { NIhE n f s t g }
 	/ m:MOhE_clause f:free* s:sumti t:TEhU_clause? g:free*
 		-> { MOhE m f s t g }
---	/ JOhI_clause free* mex_2+ TEhU_clause? free*
+	/ j:JOhI_clause f:free* m:mex_2+ t:TEhU_clause? g:free*
+		-> { JOhI j f m t g }
 --	/ gek operand gik operand_3
 --	/ (LAhE_clause free* / NAhE_clause BO_clause free*) operand LUhU_clause? free*
 
@@ -2580,6 +2581,7 @@ data Operand
 	| Number Number (Maybe Clause) [Free]
 	| NIhE Clause [Free] Selbri (Maybe Clause) [Free]
 	| MOhE Clause [Free] Sumti (Maybe Clause) [Free]
+	| JOhI Clause [Free] [Mex] (Maybe Clause) [Free]
 	deriving Show
 
 data RPExpression
