@@ -456,7 +456,8 @@ links_start :: { () } = BEI_clause	-> { () }
 quantifier :: Quantifier
 --	= number !MOI_clause BOI_clause? free*
 --	/ VEI_clause free* mex VEhO_clause? free*
-	= VEI_clause free* m:mex VEhO_clause? free*	-> { m }
+	= vei:VEI_clause f:free* m:mex veho:VEhO_clause? g:free*
+		-> { VEI  vei f m veho g }
 
 mex :: Mex
 	= mex_sa* m0:mex_0	-> { m0 }
@@ -2545,7 +2546,10 @@ data Links
 	= BEI Clause [Free] Term (Maybe Links)
 	deriving Show
 
-type Quantifier = Mex
+data Quantifier
+	= VEI Clause [Free] Mex (Maybe Clause) [Free]
+	deriving Show
+
 type Mex = Operand
 data MexOperator
 	= VUhU Clause [Free]
