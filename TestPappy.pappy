@@ -594,8 +594,8 @@ joik_ek_bo_operand_2 :: { (JoikEk, [Free], Maybe Tag, Clause, [Free], Operand) }
 		-> { (fst j, snd j, t, b, f, o) }
 
 operand_3 :: Operand
---	= quantifier
-	= l:lerfu_string !MOI_clause b:BOI_clause? f:free*
+	= quantifier
+	/ l:lerfu_string !MOI_clause b:BOI_clause? f:free*
 		-> { OLerfuString l b f }
 --	/ NIhE_clause free* selbri TEhU_clause? free*
 --	/ MOhE_clause free* sumti TEhU_clause? free*
@@ -2546,11 +2546,7 @@ data Links
 	= BEI Clause [Free] Term (Maybe Links)
 	deriving Show
 
-data Quantifier
-	= VEI Clause [Free] Mex (Maybe Clause) [Free]
-	| Number Number (Maybe Clause) [Free]
-	deriving Show
-
+type Quantifier = Operand
 type Mex = Operand
 data MexOperator
 	= VUhU Clause [Free]
@@ -2578,6 +2574,8 @@ data Operand
 	| FUhA Clause [Free] RPExpression
 	| PEhO (Maybe Clause) [Free] MexOperator [Mex] (Maybe Clause) [Free]
 	| BIhE Mex Clause [Free] MexOperator Mex
+	| VEI Clause [Free] Mex (Maybe Clause) [Free]
+	| Number Number (Maybe Clause) [Free]
 	deriving Show
 
 data RPExpression
