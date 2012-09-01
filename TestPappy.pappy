@@ -603,8 +603,10 @@ operand_3 :: Operand
 		-> { MOhE m f s t g }
 	/ j:JOhI_clause f:free* m:mex_2+ t:TEhU_clause? g:free*
 		-> { JOhI j f m t g }
---	/ gek operand gik operand_3
---	/ (LAhE_clause free* / NAhE_clause BO_clause free*) operand LUhU_clause? free*
+	/ gek:gek o:operand gik:gik o3:operand_3
+		-> { GekOperand gek o gik o3 }
+	/ lnbf:LAhE_NAhE o:operand l:LUhU_clause? g:free*
+		-> { let (ln, b, f) = lnbf in LAhE_NAhEOperand ln b f o l g }
 
 number :: Number
 	= p:PA_clause pls:(pa_clause / lerfu_word)*	-> { p : concat pls }
@@ -2582,6 +2584,8 @@ data Operand
 	| NIhE Clause [Free] Selbri (Maybe Clause) [Free]
 	| MOhE Clause [Free] Sumti (Maybe Clause) [Free]
 	| JOhI Clause [Free] [Mex] (Maybe Clause) [Free]
+	| GekOperand Gek Operand Gik Operand
+	| LAhE_NAhEOperand Clause (Maybe Clause) [Free] Operand (Maybe Clause) [Free]
 	deriving Show
 
 data RPExpression
