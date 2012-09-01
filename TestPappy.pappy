@@ -597,8 +597,10 @@ operand_3 :: Operand
 	= quantifier
 	/ l:lerfu_string !MOI_clause b:BOI_clause? f:free*
 		-> { OLerfuString l b f }
---	/ NIhE_clause free* selbri TEhU_clause? free*
---	/ MOhE_clause free* sumti TEhU_clause? free*
+	/ n:NIhE_clause f:free* s:selbri t:TEhU_clause? g:free*
+		-> { NIhE n f s t g }
+	/ m:MOhE_clause f:free* s:sumti t:TEhU_clause? g:free*
+		-> { MOhE m f s t g }
 --	/ JOhI_clause free* mex_2+ TEhU_clause? free*
 --	/ gek operand gik operand_3
 --	/ (LAhE_clause free* / NAhE_clause BO_clause free*) operand LUhU_clause? free*
@@ -2576,6 +2578,8 @@ data Operand
 	| BIhE Mex Clause [Free] MexOperator Mex
 	| VEI Clause [Free] Mex (Maybe Clause) [Free]
 	| Number Number (Maybe Clause) [Free]
+	| NIhE Clause [Free] Selbri (Maybe Clause) [Free]
+	| MOhE Clause [Free] Sumti (Maybe Clause) [Free]
 	deriving Show
 
 data RPExpression
