@@ -459,8 +459,7 @@ quantifier :: Quantifier
 	= VEI_clause free* m:mex VEhO_clause? free*	-> { m }
 
 mex :: Mex
-	= mex_0
---	= mex_1 (operator mex_1)* / rp_clause
+	= mex_sa* m0:mex_0	-> { m0 }
 
 mex_0 :: Mex
 	= m:mex_1 oms:(operator_mex_1)*
@@ -469,9 +468,16 @@ mex_0 :: Mex
 operator_mex_1 :: { (MexOperator, Mex) }
 	= o:operator m:mex_1	-> { (o, m) }
 
--- mex_sa
+mex_sa :: { () }
+	= mex_start mex_sa_word* SA_clause &mex_0		-> { () }
 
--- mex_start
+mex_sa_word :: { () } = !mex_start
+	(sa_word -> { () } / SA_clause !mex_start -> { () })	-> { () }
+
+mex_start :: { () }
+	= FUhA_clause		-> { () }
+	/ PEhO_clause		-> { () }
+	/ operand_start		-> { () }
 
 rp_clause :: Mex
 	= fuha:FUhA_clause f:free* r:rp_expression	-> { FUhA fuha f r }
