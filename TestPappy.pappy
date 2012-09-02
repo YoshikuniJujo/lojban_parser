@@ -697,14 +697,41 @@ simple_tense_modal :: Tag
 --		/ (time space? / space time?)
 --		/ CAhA_clause )
 --			KI_clause?
---	/ KI_clause
---	/ CUhE_clause
+	/ time			-- dummy
+	/ space			-- dummy
+	/ k:KI_clause		-> { KI k }
+	/ c:CUhE_clause		-> { CUhE c }
 
--- time
+time :: Tense
+	= zi:ZI_clause  t:time_offset* zeha:zeha_pu? i:interval_property*
+		-> { Time (Just zi) t zeha i }
+--	/ ZI_clause? time_offset+ zeha_pu? interval_property*
+--	/ ZI_clause? time_offset* zeha_pu  interval_property*
+--	/ ZI_clause? time_offset* zeha_pu? interval_property+
 
--- time_offset
+--	= ZI_clause time_offset*
+--		(ZEhA_clause (PU_clause NAI_clause?)?)? interval_property*
+--	/ ZI_clause? time_offset+
+--		(ZEhA_clause (PU_clause NAI_clause?)?)? interval_property*
+--	/ ZI_clause? time_offset*
+--		ZEhA_clause (PU_clause NAI_clause?)? interval_property*
+--	/ ZI_clause? time_offset*
+--		(ZEhA_clause (PU_clause NAI_clause?)?)? interval_property+
 
--- space
+zeha_pu :: { (Clause, Maybe (Clause, Maybe Clause)) }
+	= z:ZEhA_clause pn:(p:PU_clause n:NAI_clause? -> { (p, n) })?
+		-> { (z, pn) }
+
+time_offset :: { (Clause, Maybe Clause, Maybe Clause) }
+	= p:PU_clause n:NAI_clause? z:ZI_clause?
+		-> { (p, n, z) }
+
+space :: Tense
+--	= VA_clause space_offset* space_interval? (MOhI_clause space_offset)?
+--	/ VA_clause? space_offset+ space_interval? (MOhI_clause space_offset)?
+--	/ VA_clause? space_offset* space_interval (MOhI_clause space_offset)?
+--	/ VA_clause? space_offset* space_interval? MOhI_clause space_offset
+	= v:VA_clause		-> { DummyVA v }
 
 -- space_offset
 
@@ -712,7 +739,7 @@ simple_tense_modal :: Tag
 
 -- space_int_props
 
--- interval_property
+interval_property :: IntervalProperty = "za'o "
 
 -----------------------------------------------------------------
 -- #0a free
@@ -886,6 +913,9 @@ COI_pre :: Pre = p:pre_clause c:COI spaces?		-> { (p, c) }
 
 CU_clause :: Clause = p:CU_pre q:post_clause		-> { (fst p, snd p, q) }
 CU_pre :: Pre = p:pre_clause c:CU spaces?		-> { (p, c) }
+
+CUhE_clause :: Clause = p:CUhE_pre q:post_clause	-> { (fst p, snd p, q) }
+CUhE_pre :: Pre = p:pre_clause c:CUhE spaces?		-> { (p, c) }
 
 DAhO_clause :: { ([String], String) }
 	= pre:DAhO_pre post:DAhO_post	-> { pre }
@@ -1089,6 +1119,9 @@ NUhU_pre :: Pre = p:pre_clause n:NUhU spaces?		-> { (p, n) }
 PA_clause :: Clause = p:PA_pre q:post_clause		-> { (fst p, snd p, q) }
 PA_pre :: Pre = p:pre_clause q:PA spaces?		-> { (p, q) }
 
+PU_clause :: Clause = p:PU_pre q:post_clause		-> { (fst p, snd p, q) }
+PU_pre :: Pre = p:pre_clause q:PU spaces?		-> { (p, q) }
+
 PEhE_clause :: Clause = p:PEhE_pre q:post_clause	-> { (fst p, snd p, q) }
 PEhE_pre :: Pre = p:pre_clause q:PEhE spaces?		-> { (p, q) }
 
@@ -1135,6 +1168,9 @@ UI_pre :: { ([String], String) }
 UI_post :: Indicators = post_clause
 UI_post_no_ind :: { () } = post_clause_no_ind
 
+VA_clause :: Clause = p:VA_pre q:post_clause		-> { (fst p, snd p, q) }
+VA_pre :: Pre = p:pre_clause v:VA spaces?		-> { (p, v) }
+
 VAU_clause :: Clause = p:VAU_pre q:post_clause		-> { (fst p, snd p, q) }
 VAU_pre :: Pre = p:pre_clause v:VAU spaces?		-> { (p, v) }
 
@@ -1150,9 +1186,15 @@ VUhO_pre :: Pre = p:pre_clause v:VUhO spaces?		-> { (p, v) }
 VUhU_clause :: Clause = p:VUhU_pre q:post_clause	-> { (fst p, snd p, q) }
 VUhU_pre :: Pre = p:pre_clause v:VUhU spaces?		-> { (p, v) }
 
+ZEhA_clause :: Clause = p:ZEhA_pre q:post_clause	-> { (fst p, snd p, q) }
+ZEhA_pre :: Pre = p:pre_clause z:ZEhA spaces?		-> { (p, z) }
+
 ZEI_clause :: { () } = ZEI_pre
 -- ZEI_pre :: String = pre_clause z:ZEI spaces?
 ZEI_pre :: { () } = ZEI spaces?	-> { () }
+
+ZI_clause :: Clause = p:ZI_pre q:post_clause		-> { (fst p, snd p, q) }
+ZI_pre :: Pre = p:pre_clause z:ZI spaces?		-> { (p, z) }
 
 ZIhE_clause :: Clause = p:ZIhE_pre q:post_clause	-> { (fst p, snd p, q) }
 ZIhE_pre :: Pre = p:pre_clause z:ZIhE spaces?		-> { (p, z) }
@@ -2658,11 +2700,18 @@ data Gek
 type Guhek = (Maybe Clause, Clause, Maybe Clause, [Free])
 type Gik = (Clause, Maybe Clause, [Free])
 
--- type Tag = (Clause, [Free])
+type Tense = Tag
+type IntervalProperty = String
 
 data Tag
 	= BAI (Maybe Clause) (Maybe Clause) Clause (Maybe Clause) (Maybe Clause)
 	| FA Clause [Free]
+	| KI Clause
+	| CUhE Clause
+	| Time (Maybe Clause) [(Clause, Maybe Clause, Maybe Clause)]
+		(Maybe (Clause, Maybe (Clause, Maybe Clause))) [IntervalProperty]
+	| DummyPU Clause
+	| DummyVA Clause
 	deriving Show
 
 main = do
