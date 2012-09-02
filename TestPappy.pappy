@@ -203,7 +203,7 @@ term :: Term = term_sa* t:term_1	-> { t }
 
 term_1 :: Term
 	= sumti
-	/ !gek t:(tag / fa:FA_clause f:free* -> { fa2tag fa f })
+	/ !gek t:(tag / fa:FA_clause f:free* -> { FA fa f })
 		s:(sumti / k:KU_clause? f:free* -> { KU k f })
 		-> { TagSumti t s }
 	/ termset
@@ -685,7 +685,34 @@ gik :: Gik
 tag :: Tag = stag
 
 stag :: Tag
-	= b:BAI_clause f:free*	-> { (b, f) }
+	= simple_tense_modal
+
+-- tense_modal
+
+simple_tense_modal :: Tag
+	= nahe:NAhE_clause? s:SE_clause? b:BAI_clause nai:NAI_clause? ki:KI_clause?
+		-> { BAI nahe s b nai ki }
+--	/ NAhE_clause?
+--		( ((time space? / space time?) CAhA_clause)
+--		/ (time space? / space time?)
+--		/ CAhA_clause )
+--			KI_clause?
+--	/ KI_clause
+--	/ CUhE_clause
+
+-- time
+
+-- time_offset
+
+-- space
+
+-- space_offset
+
+-- space_interval
+
+-- space_int_props
+
+-- interval_property
 
 -----------------------------------------------------------------
 -- #0a free
@@ -950,6 +977,9 @@ JOI_pre :: Pre = p:pre_clause j:JOI spaces?		-> { (p, j) }
 
 KE_clause :: Clause = p:KE_pre q:post_clause		-> { (fst p, snd p, q) }
 KE_pre :: Pre = p:pre_clause k:KE spaces?		-> { (p, k) }
+
+KI_clause :: Clause = p:KI_pre q:post_clause		-> { (fst p, snd p, q) }
+KI_pre :: Pre = p:pre_clause k:KI spaces?		-> { (p, k) }
 
 KEhE_clause :: Clause = p:KEhE_pre q:post_clause	-> { (fst p, snd p, q) }
 KEhE_pre :: Pre = p:pre_clause k:KEhE spaces?		-> { (p, k) }
@@ -2628,7 +2658,12 @@ data Gek
 type Guhek = (Maybe Clause, Clause, Maybe Clause, [Free])
 type Gik = (Clause, Maybe Clause, [Free])
 
-type Tag = (Clause, [Free])
+-- type Tag = (Clause, [Free])
+
+data Tag
+	= BAI (Maybe Clause) (Maybe Clause) Clause (Maybe Clause) (Maybe Clause)
+	| FA Clause [Free]
+	deriving Show
 
 main = do
 	[str] <- getArgs
@@ -2649,5 +2684,4 @@ isSimpleText n tp2 jj t f =
 fromRight :: Either a b -> b
 fromRight = either (const $ error "not Right") id
 
-fa2tag = (,)
 }
