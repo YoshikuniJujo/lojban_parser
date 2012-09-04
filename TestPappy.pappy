@@ -725,9 +725,11 @@ space :: Tense
 --	/ VA_clause? space_offset+ space_interval? (MOhI_clause space_offset)?
 --	/ VA_clause? space_offset* space_interval (MOhI_clause space_offset)?
 --	/ VA_clause? space_offset* space_interval? MOhI_clause space_offset
-	= v:VA_clause		-> { DummyVA v }
+--	= v:VA_clause		-> { DummyVA v }
+	= v:VA_clause s:space_offset*	-> { DummyVASpaceOffset v s }
 
--- space_offset
+space_offset :: SpaceOffset
+	= f:FAhA_clause n:NAI_clause? v:VA_clause?	-> { FAhA f n v }
 
 -- space_interval
 
@@ -937,6 +939,9 @@ DOhU_post :: Indicators = post_clause
 
 FA_clause :: Clause = p:FA_pre q:post_clause		-> { (fst p, snd p, q) }
 FA_pre :: Pre = p:pre_clause f:FA spaces?		-> { (p, f) }
+
+FAhA_clause :: Clause = p:FAhA_pre q:post_clause	-> { (fst p, snd p, q) }
+FAhA_pre :: Pre = p:pre_clause f:FAhA spaces?		-> { (p, f) }
 
 FAhO_clause :: { ([String], String) }
 	= p:pre_clause f:FAhO spaces?	-> { (p, f) }
@@ -2722,6 +2727,11 @@ data Tag
 		(Maybe (Clause, Maybe (Clause, Maybe Clause))) [IntervalProperty]
 	| DummyPU Clause
 	| DummyVA Clause
+	| DummyVASpaceOffset Clause [SpaceOffset]
+	deriving Show
+
+data SpaceOffset
+	= FAhA Clause (Maybe Clause) (Maybe Clause)
 	deriving Show
 
 main = do
