@@ -734,9 +734,9 @@ space :: Tense
 -- space_int_props
 
 interval_property :: IntervalProperty
---	= number ROI_clause NAI_clause?
---	/ TAhE_clause NAI_clause?
-	= z:ZAhO_clause n:NAI_clause?		-> { ZAhO z n }
+	= n:number r:ROI_clause nai:NAI_clause?	-> { ROI n r nai }
+	/ t:TAhE_clause n:NAI_clause?		-> { TAhE t n }
+	/ z:ZAhO_clause n:NAI_clause?		-> { ZAhO z n }
 
 -----------------------------------------------------------------
 -- #0a free
@@ -1128,6 +1128,9 @@ PEhO_pre :: Pre = p:pre_clause q:PEhO spaces?		-> { (p, q) }
 RAhO_clause :: Clause = p:RAhO_pre q:post_clause	-> { (fst p, snd p, q) }
 RAhO_pre :: Pre = p:pre_clause r:RAhO spaces?		-> { (p, r) }
 
+ROI_clause :: Clause = p:ROI_pre q:post_clause		-> { (fst p, snd p, q) }
+ROI_pre :: Pre = p:pre_clause r:ROI spaces?		-> { (p, r) }
+
 SA_clause :: { () } = SA_pre SA_post		-> { () }
 SA_pre :: { () } = pre_clause SA spaces?	-> { () }
 SA_post :: { () } = spaces?			-> { () }
@@ -1140,6 +1143,9 @@ SI_clause :: { () } = spaces? SI spaces?	-> { () }
 SU_clause :: { () } = SU_pre SU_post		-> { () }
 SU_pre :: { () } = pre_clause SU spaces?	-> { () }
 SU_post :: Indicators = post_clause		-> { () }
+
+TAhE_clause :: { () } = p:TAhE_pre q:post_clause	-> { (fst p, snd p, q) }
+TAhE_pre :: Pre = p:pre_clause t:TAhE spaces?		-> { (p, t) }
 
 TEhU_clause :: Clause = p:TEhU_pre q:post_clause	-> { (fst p, snd p, q) }
 TEhU_pre :: Pre = p:pre_clause t:TEhU spaces?		-> { (p, t) }
@@ -1935,10 +1941,10 @@ KOhA :: String = &cmavo koha:
 	/ v:v o:o h:h i:i	-> { [v, o, h, i] }
 	/ v:v o:o h:h o:o	-> { [v, o, h, o] }
 	/ v:v o:o h:h u:u	-> { [v, o, h, u] }
-	/ r:r u:u	-> { [r, u] }
+	/ r:r u:u !h	-> { [r, u] }
 	/ r:r i:i	-> { [r, i] }
 	/ r:r a:a	-> { [r, a] }
-	/ t:t a:a	-> { [t, a] }
+	/ t:t a:a !h	-> { [t, a] }
 	/ t:t u:u	-> { [t, u] }
 	/ t:t i:i	-> { [t, i] }
 	/ z:z i:i h:h o:o	-> { [z, i, h, o] }
@@ -1949,7 +1955,7 @@ KOhA :: String = &cmavo koha:
 	/ c:c e:e h:h u:u	-> { [c, e, h, u] }
 	/ d:d a:a	-> { [d, a] }
 	/ d:d e:e	-> { [d, e] }
-	/ d:d i:i	-> { [d, i] }
+	/ d:d i:i !h	-> { [d, i] }
 	/ k:k o:o	-> { [k, o] }
 	/ m:m i:i	-> { [m, i] }
 	/ d:d o:o	-> { [d, o] } )
@@ -2147,7 +2153,7 @@ PA :: String = &cmavo pa:
 	/ j:j i:i h:h i:i	-> { [j, i, h, i] }
 	/ s:s u:u h:h o:o	-> { [s, u, h, o] }
 	/ s:s u:u h:h e:e	-> { [s, u, h, e] }
-	/ r:r o:o	-> { [r, o] }
+	/ r:r o:o !vowel	-> { [r, o] }
 	/ r:r a:a u:u	-> { [r, a, u] }
 	/ s:s o:o h:h u:u	-> { [s, o, h, u] }
 	/ s:s o:o h:h i:i	-> { [s, o, h, i] }
@@ -2164,7 +2170,7 @@ PA :: String = &cmavo pa:
 	/ n:n o:o h:h o:o	-> { [n, o, h, o] }
 	/ n:n o:o	-> { [n, o] }
 	/ p:p a:a	-> { [p, a] }
-	/ r:r e:e	-> { [r, e] }
+	/ r:r e:e !h	-> { [r, e] }
 	/ c:c i:i	-> { [c, i] }
 	/ v:v o:o	-> { [v, o] }
 	/ m:m u:u	-> { [m, u] }
@@ -2702,7 +2708,9 @@ type Gik = (Clause, Maybe Clause, [Free])
 
 type Tense = Tag
 data IntervalProperty
-	= ZAhO Clause (Maybe Clause)
+	= ROI Number Clause (Maybe Clause)
+	| TAhE Clause (Maybe Clause)
+	| ZAhO Clause (Maybe Clause)
 	deriving Show
 
 data Tag
