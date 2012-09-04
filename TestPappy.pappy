@@ -705,18 +705,12 @@ simple_tense_modal :: Tag
 time :: Tense
 	= zi:ZI_clause  t:time_offset* zeha:zeha_pu? i:interval_property*
 		-> { Time (Just zi) t zeha i }
---	/ ZI_clause? time_offset+ zeha_pu? interval_property*
---	/ ZI_clause? time_offset* zeha_pu  interval_property*
---	/ ZI_clause? time_offset* zeha_pu? interval_property+
-
---	= ZI_clause time_offset*
---		(ZEhA_clause (PU_clause NAI_clause?)?)? interval_property*
---	/ ZI_clause? time_offset+
---		(ZEhA_clause (PU_clause NAI_clause?)?)? interval_property*
---	/ ZI_clause? time_offset*
---		ZEhA_clause (PU_clause NAI_clause?)? interval_property*
---	/ ZI_clause? time_offset*
---		(ZEhA_clause (PU_clause NAI_clause?)?)? interval_property+
+	/ zi:ZI_clause? t:time_offset+ zeha:zeha_pu? i:interval_property*
+		-> { Time zi t zeha i }
+	/ zi:ZI_clause? t:time_offset* zeha:zeha_pu  i:interval_property*
+		-> { Time zi t (Just zeha) i }
+	/ zi:ZI_clause? t:time_offset* zeha:zeha_pu? i:interval_property+
+		-> { Time zi t zeha i }
 
 zeha_pu :: { (Clause, Maybe (Clause, Maybe Clause)) }
 	= z:ZEhA_clause pn:(p:PU_clause n:NAI_clause? -> { (p, n) })?
@@ -739,7 +733,10 @@ space :: Tense
 
 -- space_int_props
 
-interval_property :: IntervalProperty = "za'o "
+interval_property :: IntervalProperty
+--	= number ROI_clause NAI_clause?
+--	/ TAhE_clause NAI_clause?
+	= z:ZAhO_clause n:NAI_clause?		-> { ZAhO z n }
 
 -----------------------------------------------------------------
 -- #0a free
@@ -1212,6 +1209,9 @@ ZOI_pre :: { ([String], String, [String]) }
 	= p:pre_clause z:ZOI spaces? w:Char &{ w == '\NUL' } s:spaces?
 		ws:zoi_word* v:Char &{ v == '\NUL' } spaces?
 	-> { (p, z, maybe ws (: ws) s) }
+
+ZAhO_clause :: Clause = p:ZAhO_pre q:post_clause	-> { (fst p, snd p, q) }
+ZAhO_pre :: Pre = p:pre_clause z:ZAhO spaces?		-> { (p, z) }
 
 ZOhU_clause :: Clause = p:ZOhU_pre q:post_clause	-> { (fst p, snd p, q) }
 ZOhU_pre :: Pre = p:pre_clause z:ZOhU spaces?		-> { (p, z) }
@@ -2184,9 +2184,9 @@ PEhO :: String = &cmavo peho:
 	-> { peho }
 
 PU :: String = &cmavo pu:
-	( b:b a:a	-> { [b, a] }
-	/ p:p u:u	-> { [p, u] }
-	/ c:c a:a	-> { [c, a] } )
+	( b:b a:a !h	-> { [b, a] }
+	/ p:p u:u !h	-> { [p, u] }
+	/ c:c a:a !h	-> { [c, a] } )
 	-> { pu }
 
 RAhO :: String = &cmavo raho:
@@ -2458,9 +2458,9 @@ ZEI :: String = &cmavo zei:
 	-> { zei }
 
 ZI :: String = &cmavo zi:
-	( z:z u:u	-> { [z, u] }
-	/ z:z a:a	-> { [z, a] }
-	/ z:z i:i	-> { [z, i] } )
+	( z:z u:u !h	-> { [z, u] }
+	/ z:z a:a !h	-> { [z, a] }
+	/ z:z i:i !h	-> { [z, i] } )
 	-> { zi }
 
 ZIhE :: String = &cmavo zihe:
@@ -2701,7 +2701,9 @@ type Guhek = (Maybe Clause, Clause, Maybe Clause, [Free])
 type Gik = (Clause, Maybe Clause, [Free])
 
 type Tense = Tag
-type IntervalProperty = String
+data IntervalProperty
+	= ZAhO Clause (Maybe Clause)
+	deriving Show
 
 data Tag
 	= BAI (Maybe Clause) (Maybe Clause) Clause (Maybe Clause) (Maybe Clause)
