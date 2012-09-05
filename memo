@@ -31,3 +31,9 @@ token 列とは Brivla "hogru"、Cmene "iocikun"や、Cmavo に含まれる NAI 
 
 si は parse 段階で扱う必要があるかもしれない。
 何故ならば parse 段階でなければ何が一語となるかを決められない場合があるから。
+
+2012.09.04 Tue.
+
+li pai noi na'e frinu namcu が parse できるようにする。
+no の直後に !vowel をつければ良いだろう。
+本当は cmavo にはことごとく !h !vowel をつけるべきなのだと思うが。

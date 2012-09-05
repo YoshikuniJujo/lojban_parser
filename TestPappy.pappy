@@ -726,14 +726,24 @@ space :: Tense
 --	/ VA_clause? space_offset* space_interval (MOhI_clause space_offset)?
 --	/ VA_clause? space_offset* space_interval? MOhI_clause space_offset
 --	= v:VA_clause		-> { DummyVA v }
-	= v:VA_clause s:space_offset*	-> { DummyVASpaceOffset v s }
+	= v:VA_clause so:space_offset* si:space_interval?
+		-> { DummyVASpaceOffset v so si }
 
 space_offset :: SpaceOffset
 	= f:FAhA_clause n:NAI_clause? v:VA_clause?	-> { FAhA f n v }
 
--- space_interval
+space_interval :: SpaceInterval
+--	= (VEhA_clause / VIhA_clause / VEhA_clause VIhA_clause)
+--		(FAhA_clause NAI_clause?)? space_int_props
+--	/ (VEhA_clause / VIhA_clause / VEhA_clause VIhA_clause)
+--		(FAhA_clause NAI_clause?)?
+	= space_int_props
 
--- space_int_props
+space_int_props :: SpaceInterval
+	= s:space_int_prop+				-> { FEhE s }
+
+space_int_prop :: { (Clause, IntervalProperty) }
+	= f:FEhE_clause ip:interval_property		-> { (f, ip) }
 
 interval_property :: IntervalProperty
 	= n:number r:ROI_clause nai:NAI_clause?	-> { ROI n r nai }
@@ -945,6 +955,9 @@ FAhA_pre :: Pre = p:pre_clause f:FAhA spaces?		-> { (p, f) }
 
 FAhO_clause :: { ([String], String) }
 	= p:pre_clause f:FAhO spaces?	-> { (p, f) }
+
+FEhE_clause :: Clause = p:FEhE_pre q:post_clause	-> { (fst p, snd p, q) }
+FEhE_pre :: Pre = p:pre_clause f:FEhE spaces?		-> { (p, f) }
 
 FOI_clause :: Clause = p:FOI_pre q:post_clause		-> { (fst p, snd p, q) }
 FOI_pre :: Pre = p:pre_clause f:FOI spaces?		-> { (p, f) }
@@ -2173,7 +2186,7 @@ PA :: String = &cmavo pa:
 	/ x:x o:o	-> { [x, o] }
 	/ p:p a:a i:i	-> { [p, a, i] }
 	/ n:n o:o h:h o:o	-> { [n, o, h, o] }
-	/ n:n o:o	-> { [n, o] }
+	/ n:n o:o !h !vowel	-> { [n, o] }
 	/ p:p a:a	-> { [p, a] }
 	/ r:r e:e !h	-> { [r, e] }
 	/ c:c i:i	-> { [c, i] }
@@ -2727,7 +2740,11 @@ data Tag
 		(Maybe (Clause, Maybe (Clause, Maybe Clause))) [IntervalProperty]
 	| DummyPU Clause
 	| DummyVA Clause
-	| DummyVASpaceOffset Clause [SpaceOffset]
+	| DummyVASpaceOffset Clause [SpaceOffset] (Maybe SpaceInterval)
+	deriving Show
+
+data SpaceInterval
+	= FEhE [(Clause, IntervalProperty)]
 	deriving Show
 
 data SpaceOffset
