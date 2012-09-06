@@ -735,9 +735,17 @@ space_offset :: SpaceOffset
 space_interval :: SpaceInterval
 --	= (VEhA_clause / VIhA_clause / VEhA_clause VIhA_clause)
 --		(FAhA_clause NAI_clause?)? space_int_props
---	/ (VEhA_clause / VIhA_clause / VEhA_clause VIhA_clause)
---		(FAhA_clause NAI_clause?)?
-	= space_int_props
+	= vv:VEhA_VIhA fn:FAhA_NAI?
+		-> { maybe (uncurry VEhAVIhA vv) (\(f, n) -> uncurry VEhAVIhAFAhA vv f n) fn }
+	/ space_int_props
+
+VEhA_VIhA :: { (Maybe Clause, Maybe Clause) }
+	= veha:VEhA_clause !VIhA_clause		-> { (Just veha, Nothing) }
+	/ viha:VIhA_clause			-> { (Nothing, Just viha) }
+	/ veha:VEhA_clause viha:VIhA_clause	-> { (Just veha, Just viha) }
+
+FAhA_NAI :: { (Clause, Maybe Clause) }
+	= f:FAhA_clause n:NAI_clause?		-> { (f, n) }
 
 space_int_props :: SpaceInterval
 	= s:space_int_prop+				-> { FEhE s }
@@ -1206,6 +1214,12 @@ VUhO_pre :: Pre = p:pre_clause v:VUhO spaces?		-> { (p, v) }
 
 VUhU_clause :: Clause = p:VUhU_pre q:post_clause	-> { (fst p, snd p, q) }
 VUhU_pre :: Pre = p:pre_clause v:VUhU spaces?		-> { (p, v) }
+
+VEhA_clause :: Clause = p:VEhA_pre q:post_clause	-> { (fst p, snd p, q) }
+VEhA_pre :: Pre = p:pre_clause v:VEhA spaces?		-> { (p, v) }
+
+VIhA_clause :: Clause = p:VIhA_pre q:post_clause	-> { (fst p, snd p, q) }
+VIhA_pre :: Pre = p:pre_clause v:VIhA spaces?		-> { (p, v) }
 
 ZEhA_clause :: Clause = p:ZEhA_pre q:post_clause	-> { (fst p, snd p, q) }
 ZEhA_pre :: Pre = p:pre_clause z:ZEhA spaces?		-> { (p, z) }
@@ -2391,9 +2405,9 @@ UI :: String = &cmavo ui:
 	-> { ui }
 
 VA :: String = &cmavo va:
-	( v:v i:i	-> { [v, i] }
-	/ v:v a:a	-> { [v, a] }
-	/ v:v u:u	-> { [v, u] } )
+	( v:v i:i !h	-> { [v, i] }
+	/ v:v a:a !h	-> { [v, a] }
+	/ v:v u:u !h	-> { [v, u] } )
 	-> { va }
 
 VAU :: String = &cmavo vau:
@@ -2745,6 +2759,8 @@ data Tag
 
 data SpaceInterval
 	= FEhE [(Clause, IntervalProperty)]
+	| VEhAVIhA (Maybe Clause) (Maybe Clause)
+	| VEhAVIhAFAhA (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
 	deriving Show
 
 data SpaceOffset
