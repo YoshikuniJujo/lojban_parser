@@ -725,7 +725,6 @@ space :: Tense
 --	/ VA_clause? space_offset+ space_interval? (MOhI_clause space_offset)?
 --	/ VA_clause? space_offset* space_interval (MOhI_clause space_offset)?
 --	/ VA_clause? space_offset* space_interval? MOhI_clause space_offset
---	= v:VA_clause		-> { DummyVA v }
 	= v:VA_clause so:space_offset* si:space_interval?
 		-> { DummyVASpaceOffset v so si }
 
@@ -733,9 +732,9 @@ space_offset :: SpaceOffset
 	= f:FAhA_clause n:NAI_clause? v:VA_clause?	-> { FAhA f n v }
 
 space_interval :: SpaceInterval
---	= (VEhA_clause / VIhA_clause / VEhA_clause VIhA_clause)
---		(FAhA_clause NAI_clause?)? space_int_props
-	= vv:VEhA_VIhA fn:FAhA_NAI?
+	= vv:VEhA_VIhA fn:FAhA_NAI? s:space_int_props
+		-> { maybe (uncurry VEhAVIhAFEhE vv s) (\(f, n) -> uncurry VEhAVIhAFAhAFEhE vv f n s) fn }
+	/ vv:VEhA_VIhA fn:FAhA_NAI?
 		-> { maybe (uncurry VEhAVIhA vv) (\(f, n) -> uncurry VEhAVIhAFAhA vv f n) fn }
 	/ space_int_props
 
@@ -2761,6 +2760,8 @@ data SpaceInterval
 	= FEhE [(Clause, IntervalProperty)]
 	| VEhAVIhA (Maybe Clause) (Maybe Clause)
 	| VEhAVIhAFAhA (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
+	| VEhAVIhAFEhE (Maybe Clause) (Maybe Clause) SpaceInterval
+	| VEhAVIhAFAhAFEhE (Maybe Clause) (Maybe Clause) Clause (Maybe Clause) SpaceInterval
 	deriving Show
 
 data SpaceOffset
