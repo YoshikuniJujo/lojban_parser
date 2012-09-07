@@ -721,12 +721,14 @@ time_offset :: { (Clause, Maybe Clause, Maybe Clause) }
 		-> { (p, n, z) }
 
 space :: Tense
---	= VA_clause space_offset* space_interval? (MOhI_clause space_offset)?
---	/ VA_clause? space_offset+ space_interval? (MOhI_clause space_offset)?
---	/ VA_clause? space_offset* space_interval (MOhI_clause space_offset)?
---	/ VA_clause? space_offset* space_interval? MOhI_clause space_offset
-	= v:VA_clause so:space_offset* si:space_interval? m:mohi_space_offset
-		-> { DummyVASpaceOffset v so si (fst m) (snd m) }
+	= v:VA_clause so:space_offset* si:space_interval? m:mohi_space_offset?
+		-> { Space (Just v) so si m }
+	/ v:VA_clause? so:space_offset+ si:space_interval? m:mohi_space_offset?
+		-> { Space v so si m }
+	/ v:VA_clause? so:space_offset* si:space_interval m:mohi_space_offset?
+		-> { Space v so (Just si) m }
+	/ v:VA_clause? so:space_offset* si:space_interval? m:mohi_space_offset
+		-> { Space v so si (Just m) }
 
 mohi_space_offset :: { (Clause, SpaceOffset) }
 	= m:MOhI_clause s:space_offset		-> { (m, s) }
@@ -2760,6 +2762,7 @@ data Tag
 	| DummyPU Clause
 	| DummyVA Clause
 	| DummyVASpaceOffset Clause [SpaceOffset] (Maybe SpaceInterval) Clause SpaceOffset
+	| Space (Maybe Clause) [SpaceOffset] (Maybe SpaceInterval) (Maybe (Clause, SpaceOffset))
 	deriving Show
 
 data SpaceInterval
