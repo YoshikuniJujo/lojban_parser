@@ -692,15 +692,26 @@ stag :: Tag
 simple_tense_modal :: Tag
 	= nahe:NAhE_clause? s:SE_clause? b:BAI_clause nai:NAI_clause? ki:KI_clause?
 		-> { BAI nahe s b nai ki }
+	/ n:NAhE_clause? tsc:time_space_caha k:KI_clause?
+		-> { if isNothing n && isNothing k then tsc else NAhETenseKI n tsc k }
 --	/ NAhE_clause?
 --		( ((time space? / space time?) CAhA_clause)
 --		/ (time space? / space time?)
 --		/ CAhA_clause )
 --			KI_clause?
-	/ time			-- dummy
-	/ space			-- dummy
+--	/ time			-- dummy
+--	/ space			-- dummy
 	/ k:KI_clause		-> { KI k }
 	/ c:CUhE_clause		-> { CUhE c }
+
+time_space_caha :: Tense
+	= t:time_space c:CAhA_clause	-> { TenseCAhA t c }
+	/ time_space
+	/ c:CAhA_clause			-> { CAhA c }
+
+time_space :: Tense
+	= t:time s:space?	-> { maybe t (TimeSpace t) s }
+	/ s:space t:time?	-> { maybe s (SpaceTime s) t }
 
 time :: Tense
 	= zi:ZI_clause  t:time_offset* zeha:zeha_pu? i:interval_property*
@@ -910,6 +921,9 @@ BAhE_clause :: { [String] } = bs:BAhE_clause_single+	-> { bs }
 BAhE_clause_single :: String = b:BAhE_pre BAhE_post	-> { b }
 BAhE_pre :: String = b:BAhE spaces?			-> { b }
 BAhE_post :: { () } = si_clause? !ZEI_clause !BU_clause	-> { () }
+
+CAhA_clause :: Clause = p:CAhA_pre q:post_clause	-> { (fst p, snd p, q) }
+CAhA_pre :: Pre = p:pre_clause c:CAhA spaces?		-> { (p, c) }
 
 CAI_clause :: { ([String], String) }
 	= pre:CAI_pre post:CAI_post	-> { pre }
@@ -2691,7 +2705,7 @@ data Operand
 	| OperandJoikEk Operand [(JoikEk, [Free], Operand)]
 	| OperandJoikEkKE Operand JoikEk [Free] (Maybe Tag) Clause [Free] Operand
 		(Maybe Clause) [Free]
-	| MexDummy Operand MexOperator Operand
+--	| MexDummy Operand MexOperator Operand
 	| MexOperatorMex Mex [(MexOperator, Mex)]
 	| FUhA Clause [Free] RPExpression
 	| PEhO (Maybe Clause) [Free] MexOperator [Mex] (Maybe Clause) [Free]
@@ -2759,10 +2773,15 @@ data Tag
 	| CUhE Clause
 	| Time (Maybe Clause) [(Clause, Maybe Clause, Maybe Clause)]
 		(Maybe (Clause, Maybe (Clause, Maybe Clause))) [IntervalProperty]
-	| DummyPU Clause
-	| DummyVA Clause
-	| DummyVASpaceOffset Clause [SpaceOffset] (Maybe SpaceInterval) Clause SpaceOffset
+--	| DummyPU Clause
+--	| DummyVA Clause
+--	| DummyVASpaceOffset Clause [SpaceOffset] (Maybe SpaceInterval) Clause SpaceOffset
 	| Space (Maybe Clause) [SpaceOffset] (Maybe SpaceInterval) (Maybe (Clause, SpaceOffset))
+	| SpaceTime Tense Tense
+	| TimeSpace Tense Tense
+	| TenseCAhA Tense Clause
+	| CAhA Clause
+	| NAhETenseKI (Maybe Clause) Tense (Maybe Clause)
 	deriving Show
 
 data SpaceInterval
