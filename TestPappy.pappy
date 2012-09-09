@@ -682,25 +682,26 @@ gik :: Gik
 -----------------------------------------------------------------
 -- #09 tense and modal tag
 
-tag :: Tag = stag
+tag :: Tag
+--	= tense_modal (joik_jek tense_modal)*
+	= tense_modal
 
 stag :: Tag
+--	= simple_tense_modal ((jek / joik) simple_tense_modal)*
+--	/ tense_modal (joik_jek tense_modal)*
 	= simple_tense_modal
 
--- tense_modal
+tense_modal :: Tag
+	= s:simple_tense_modal f:free*
+		-> { if null f then s else SimpleTenseModalFree s f }
+	/ fiho:FIhO_clause f:free* s:selbri fehu:FEhU_clause? g:free*
+		-> { FIhO fiho f s fehu g }
 
 simple_tense_modal :: Tag
 	= nahe:NAhE_clause? s:SE_clause? b:BAI_clause nai:NAI_clause? ki:KI_clause?
 		-> { BAI nahe s b nai ki }
 	/ n:NAhE_clause? tsc:time_space_caha k:KI_clause?
 		-> { if isNothing n && isNothing k then tsc else NAhETenseKI n tsc k }
---	/ NAhE_clause?
---		( ((time space? / space time?) CAhA_clause)
---		/ (time space? / space time?)
---		/ CAhA_clause )
---			KI_clause?
---	/ time			-- dummy
---	/ space			-- dummy
 	/ k:KI_clause		-> { KI k }
 	/ c:CUhE_clause		-> { CUhE c }
 
@@ -984,6 +985,12 @@ FAhO_clause :: { ([String], String) }
 
 FEhE_clause :: Clause = p:FEhE_pre q:post_clause	-> { (fst p, snd p, q) }
 FEhE_pre :: Pre = p:pre_clause f:FEhE spaces?		-> { (p, f) }
+
+FEhU_clause :: Clause = p:FEhU_pre q:post_clause	-> { (fst p, snd p, q) }
+FEhU_pre :: Pre = p:pre_clause f:FEhU spaces?		-> { (p, f) }
+
+FIhO_clause :: Clause = p:FIhO_pre q:post_clause	-> { (fst p, snd p, q) }
+FIhO_pre :: Pre = p:pre_clause f:FIhO spaces?		-> { (p, f) }
 
 FOI_clause :: Clause = p:FOI_pre q:post_clause		-> { (fst p, snd p, q) }
 FOI_pre :: Pre = p:pre_clause f:FOI spaces?		-> { (p, f) }
@@ -2705,7 +2712,6 @@ data Operand
 	| OperandJoikEk Operand [(JoikEk, [Free], Operand)]
 	| OperandJoikEkKE Operand JoikEk [Free] (Maybe Tag) Clause [Free] Operand
 		(Maybe Clause) [Free]
---	| MexDummy Operand MexOperator Operand
 	| MexOperatorMex Mex [(MexOperator, Mex)]
 	| FUhA Clause [Free] RPExpression
 	| PEhO (Maybe Clause) [Free] MexOperator [Mex] (Maybe Clause) [Free]
@@ -2773,15 +2779,14 @@ data Tag
 	| CUhE Clause
 	| Time (Maybe Clause) [(Clause, Maybe Clause, Maybe Clause)]
 		(Maybe (Clause, Maybe (Clause, Maybe Clause))) [IntervalProperty]
---	| DummyPU Clause
---	| DummyVA Clause
---	| DummyVASpaceOffset Clause [SpaceOffset] (Maybe SpaceInterval) Clause SpaceOffset
 	| Space (Maybe Clause) [SpaceOffset] (Maybe SpaceInterval) (Maybe (Clause, SpaceOffset))
 	| SpaceTime Tense Tense
 	| TimeSpace Tense Tense
 	| TenseCAhA Tense Clause
 	| CAhA Clause
 	| NAhETenseKI (Maybe Clause) Tense (Maybe Clause)
+	| SimpleTenseModalFree Tag [Free]
+	| FIhO Clause [Free] Selbri (Maybe Clause) [Free]
 	deriving Show
 
 data SpaceInterval
