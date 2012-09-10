@@ -785,9 +785,21 @@ interval_property :: IntervalProperty
 -- #0a free
 
 free :: Free
+--	= SEI_clause free* (terms CU_clause? free*)? selbri SEhU_clause?
+--	/ SOI_clause free* sumti sumti? SEhU_clause?
+--	/ vocative relative_clauses? selbri relative_clauses? DOhU_clause?
+--	/ vocative relative_clauses? CMENE_clause+ free* relative_clauses?
+--		DOhU_clause?
 	= v:vocative s:sumti? d:DOhU_clause?	-> { VocativeSumti v s d }
+--	/ (number / lerfu_string) MAI_clause
+--	/ TO_clause text TOI_clause?
+	/ xi_clause
 
--- xi_clause ::
+xi_clause :: Free
+	= x:XI_clause f:free* n:(number / lerfu_string) b:BOI_clause?
+		-> { XINumber x f n b }
+	/ x:XI_clause f:free* vei:VEI_clause g:free* m:mex veho:VEhO_clause?
+		-> { XIMex x f vei g m veho }
 
 vocative :: { [([String], String, Indicators)] }
 	= cns:coi_nai+ d:DOI_clause	-> { concat cns ++ [d] }
@@ -1255,6 +1267,9 @@ VEhA_pre :: Pre = p:pre_clause v:VEhA spaces?		-> { (p, v) }
 
 VIhA_clause :: Clause = p:VIhA_pre q:post_clause	-> { (fst p, snd p, q) }
 VIhA_pre :: Pre = p:pre_clause v:VIhA spaces?		-> { (p, v) }
+
+XI_clause :: Clause = p:XI_pre q:post_clause		-> { (fst p, snd p, q) }
+XI_pre :: Pre = p:pre_clause x:XI spaces?		-> { (p, x) }
 
 ZEhA_clause :: Clause = p:ZEhA_pre q:post_clause	-> { (fst p, snd p, q) }
 ZEhA_pre :: Pre = p:pre_clause z:ZEhA spaces?		-> { (p, z) }
@@ -2745,6 +2760,8 @@ type LerfuString = [Clause]
 
 data Free
 	= VocativeSumti [Clause] (Maybe Sumti) (Maybe Clause)
+	| XINumber Clause [Free] NumberLerfuString (Maybe Clause)
+	| XIMex Clause [Free] Clause [Free] Mex (Maybe Clause)
 	deriving Show
 
 type Clause = ([String], String, Indicators)
