@@ -37,3 +37,10 @@ si は parse 段階で扱う必要があるかもしれない。
 li pai noi na'e frinu namcu が parse できるようにする。
 no の直後に !vowel をつければ良いだろう。
 本当は cmavo にはことごとく !h !vowel をつけるべきなのだと思うが。
+
+2012.09.09 Sun.
+
+2012年  9月  9日 日曜日 15:26:13 JST
+Original grammar: 696 size 7333
+Reduced grammar: 950 size 8636
+pappy: Unable to infer type of: joik_jek:jj tense_modal:t2 -> { (fst jj, snd jj, t2) }

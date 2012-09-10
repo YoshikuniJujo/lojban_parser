@@ -683,13 +683,20 @@ gik :: Gik
 -- #09 tense and modal tag
 
 tag :: Tag
---	= tense_modal (joik_jek tense_modal)*
-	= tense_modal
+	= t1:tense_modal jt:joik_jek_tense_modal*
+		-> { if null jt then t1 else JoikJekTag t1 jt }
 
 stag :: Tag
---	= simple_tense_modal ((jek / joik) simple_tense_modal)*
---	/ tense_modal (joik_jek tense_modal)*
-	= simple_tense_modal
+	= st:simple_tense_modal jst:jek_joik_simple_tense_modal*
+		-> { if null jst then st else JekJoikSTag st jst }
+	/ t:tense_modal jt:joik_jek_tense_modal*
+		-> { if null jt then t else JoikJekTag t jt }
+
+jek_joik_simple_tense_modal :: { (JoikJek, Tag) }
+	= j:(jek / joik) s:simple_tense_modal	-> { (j, s) }
+
+joik_jek_tense_modal :: { (JoikJek, [Free], Tag) }
+	= jf:joik_jek t:tense_modal		-> { (fst jf, snd jf, t) }
 
 tense_modal :: Tag
 	= s:simple_tense_modal f:free*
@@ -2787,6 +2794,8 @@ data Tag
 	| NAhETenseKI (Maybe Clause) Tense (Maybe Clause)
 	| SimpleTenseModalFree Tag [Free]
 	| FIhO Clause [Free] Selbri (Maybe Clause) [Free]
+	| JoikJekTag Tag [(JoikJek, [Free], Tag)]
+	| JekJoikSTag Tag [(JoikJek, Tag)]
 	deriving Show
 
 data SpaceInterval
