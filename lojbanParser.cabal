@@ -5,5 +5,5 @@ name:		lojbanParser
 version:	0.1
 
 executable	parser
-    main-is:		test_frisby.hs
-    build-depends:	base > 3 && < 5, frisby >= 0.1.1
+    main-is:		testPappy.hs
+    build-depends:	base > 3 && < 5
