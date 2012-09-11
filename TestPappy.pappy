@@ -1995,7 +1995,7 @@ GOhA :: String = &cmavo goha:
 	/ n:n o:o h:h a:a	-> { [n, o, h, a] }
 	/ g:g o:o h:h e:e	-> { [g, o, h, e] }
 	/ g:g o:o h:h a:a	-> { [g, o, h, a] }
-	/ d:d u:u	-> { [d, u] }
+	/ d:d u:u !h !vowel	-> { [d, u] }
 	/ b:b u:u h:h a:a	-> { [b, u, h, a] }
 	/ b:b u:u h:h e:e	-> { [b, u, h, e] }
 	/ b:b u:u h:h i:i	-> { [b, u, h, i] }
