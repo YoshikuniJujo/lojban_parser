@@ -2772,7 +2772,7 @@ data Free
 	= VocativeSumti [Clause] (Maybe Sumti) (Maybe Clause)
 	| XINumber Clause [Free] NumberLerfuString (Maybe Clause)
 	| XIMex Clause [Free] Clause [Free] Mex (Maybe Clause)
-	| SEI Clause [Free] (Maybe ([Term], Clause, [Free])) Selbri (Maybe Clause)
+	| SEI Clause [Free] (Maybe ([Term], Maybe Clause, [Free])) Selbri (Maybe Clause)
 	deriving Show
 
 type Clause = ([String], String, Indicators)
