@@ -645,6 +645,11 @@ jek :: Jek
 
 joik :: Joik
 	= s:SE_clause? j:JOI_clause n:NAI_clause?	-> { JOI s j n }
+	/ interval
+	/ g1:GAhO_clause i:interval g2:GAhO_clause	-> { GAhO g1 i g2 }
+
+interval :: Joik
+	= s:SE_clause? b:BIhI_clause n:NAI_clause?	-> { BIhI s b n }
 
 joik_ek :: { (JoikEk, [Free]) }
 	= joik_ek_sa* j:joik_ek_1	-> { j }
@@ -787,13 +792,19 @@ interval_property :: IntervalProperty
 free :: Free
 	= sei:SEI_clause f:free* t:terms_cu? s:selbri sehu:SEhU_clause?
 		-> { SEI sei f t s sehu }
---	/ SOI_clause free* sumti sumti? SEhU_clause?
---	/ vocative relative_clauses? selbri relative_clauses? DOhU_clause?
---	/ vocative relative_clauses? CMENE_clause+ free* relative_clauses?
---		DOhU_clause?
+	/ soi:SOI_clause f:free* s:sumti t:sumti? sehu:SEhU_clause?
+		-> { SOI soi f s t sehu }
+	/ v:vocative r1:relative_clauses? s:selbri r2:relative_clauses?
+		d:DOhU_clause?
+		-> { VocativeSelbri v r1 s r2 d }
+	/ v:vocative r1:relative_clauses? c:CMENE_clause+ f:free*
+		r2:relative_clauses? d:DOhU_clause?
+		-> { VocativeCmene v r1 c f r2 d }
 	/ v:vocative s:sumti? d:DOhU_clause?	-> { VocativeSumti v s d }
---	/ (number / lerfu_string) MAI_clause
---	/ TO_clause text TOI_clause?
+	/ nl:(number / lerfu_string) m:MAI_clause
+		-> { MAI nl m }
+	/ to:TO_clause t:text toi:TOI_clause?
+		-> { TO to t toi }
 	/ xi_clause
 
 terms_cu :: { ([Term], Clause, [Free]) }
@@ -871,7 +882,13 @@ any_word_SA_handling :: { ([String], String) }
 	= BRIVLA_pre / known_cmavo_SA / CMAVO_pre / CMENE_pre
 
 known_cmavo_SA :: { ([String], String) }
-	= A_pre
+	= A_pre    / BAI_pre  / BAhE_pre'/ BE_pre   / BEI_pre  / BEhO_pre
+	/ BIhE_pre / BIhI_pre / BO_pre   / BOI_pre  / BU_pre   / BY_pre
+	/ CAI_pre  / CAhA_pre / CEI_pre  / CEhE_pre / CO_pre   / COI_pre
+	/ CU_pre   / CUhE_pre / DAhO_pre / DOI_pre  / DOhU_pre / FA_pre
+	/ FAhA_pre / FEhE_pre / FEhU_pre / FIhO_pre / FOI_pre  / FUhA_pre
+	/ FUhE_pre / FUhO_pre / GA_pre   / GAhO_pre / GEhU_pre / GI_pre
+	/ GIhA_pre / GOI_pre  / GOhA_pre / GUhA_pre / I_pre
 	/ NAhE_pre
 
 -----------------------------------------------------------------
@@ -927,15 +944,18 @@ BEhO_pre :: Pre = p:pre_clause b:BEhO spaces?		-> { (p, b) }
 BIhE_clause :: Clause = p:BIhE_pre q:post_clause	-> { (fst p, snd p, q) }
 BIhE_pre :: Pre = p:pre_clause b:BIhE spaces?		-> { (p, b) }
 
+BIhI_clause :: Clause = p:BIhI_pre q:post_clause	-> { (fst p, snd p, q) }
+BIhI_pre :: Pre = p:pre_clause b:BIhI spaces?		-> { (p, b) }
+
 BO_clause :: Clause = p:BO_pre q:post_clause		-> { (fst p, snd p, q) }
 BO_pre :: Pre = p:pre_clause b:BO spaces?		-> { (p, b) }
 
 BOI_clause :: Clause = p:BOI_pre q:post_clause		-> { (fst p, snd p, q) }
 BOI_pre :: Pre = p:pre_clause b:BOI spaces?		-> { (p, b) }
 
-BU_clause :: { () } = BU_pre
+BU_clause :: Pre = BU_pre
 -- BU_pre :: String = pre_clause BU spaces?
-BU_pre :: { () } = BU spaces?		-> { () }
+BU_pre :: Pre = b:BU spaces?		-> { ([], b) }
 
 BY_clause :: Clause = p:BY_pre q:post_clause		-> { (fst p, snd p, q) }
 	/ bu_clause
@@ -944,6 +964,7 @@ BY_pre :: Pre = p:pre_clause b:BY spaces?		-> { (p, b) }
 BAhE_clause :: { [String] } = bs:BAhE_clause_single+	-> { bs }
 BAhE_clause_single :: String = b:BAhE_pre BAhE_post	-> { b }
 BAhE_pre :: String = b:BAhE spaces?			-> { b }
+BAhE_pre' :: Pre = b:BAhE spaces?			-> { ([], b) }
 BAhE_post :: { () } = si_clause? !ZEI_clause !BU_clause	-> { () }
 
 CAhA_clause :: Clause = p:CAhA_pre q:post_clause	-> { (fst p, snd p, q) }
@@ -1041,6 +1062,9 @@ FUhO_post_no_ind :: { () } = post_clause_no_ind
 
 GA_clause :: Clause = p:GA_pre q:post_clause		-> { (fst p, snd p, q) }
 GA_pre :: Pre = p:pre_clause g:GA spaces?		-> { (p, g) }
+
+GAhO_clause :: Clause = p:GAhO_pre q:post_clause	-> { (fst p, snd p, q) }
+GAhO_pre :: Pre = p:pre_clause g:GAhO spaces?		-> { (p, g) }
 
 GEhU_clause :: Clause = p:GEhU_pre q:post_clause	-> { (fst p, snd p, q) }
 GEhU_pre :: Pre = p:pre_clause g:GEhU spaces?		-> { (p, g) }
@@ -1141,6 +1165,9 @@ LUhU_pre :: Pre = p:pre_clause l:LUhU spaces?		-> { (p, l) }
 MAhO_clause :: Clause = p:MAhO_pre q:post_clause	-> { (fst p, snd p, q) }
 MAhO_pre :: Pre = p:pre_clause m:MAhO spaces?		-> { (p, m) }
 
+MAI_clause :: Clause = p:MAI_pre q:post_clause		-> { (fst p, snd p, q) }
+MAI_pre :: Pre = p:pre_clause m:MAI spaces?		-> { (p, m) }
+
 ME_clause :: Clause = p:ME_pre q:post_clause		-> { (fst p, snd p, q) }
 ME_pre :: Pre = p:pre_clause m:ME spaces?		-> { (p, m) }
 
@@ -1223,6 +1250,9 @@ SEhU_pre :: Pre = p:pre_clause s:SEhU spaces?		-> { (p, s) }
 
 SI_clause :: { () } = spaces? SI spaces?	-> { () }
 
+SOI_clause :: Clause = p:SOI_pre q:post_clause		-> { (fst p, snd p, q) }
+SOI_pre :: Pre = p:pre_clause s:SOI spaces?		-> { (p, s) }
+
 SU_clause :: { () } = SU_pre SU_post		-> { () }
 SU_pre :: { () } = pre_clause SU spaces?	-> { () }
 SU_post :: Indicators = post_clause		-> { () }
@@ -1238,6 +1268,9 @@ TEI_pre :: Pre = p:pre_clause t:TEI spaces?		-> { (p, t) }
 
 TO_clause :: Clause = p:TO_pre q:post_clause		-> { (fst p, snd p, q) }
 TO_pre :: Pre = p:pre_clause t:TO spaces?		-> { (p, t) }
+
+TOI_clause :: Clause = p:TOI_pre q:post_clause		-> { (fst p, snd p, q) }
+TOI_pre :: Pre = p:pre_clause t:TOI spaces?		-> { (p, t) }
 
 TUhE_clause :: Clause = p:TUhE_pre q:post_clause	-> { (fst p, snd p, q) }
 TUhE_pre :: Pre = p:pre_clause t:TUhE spaces?		-> { (p, t) }
@@ -2773,6 +2806,13 @@ data Free
 	| XINumber Clause [Free] NumberLerfuString (Maybe Clause)
 	| XIMex Clause [Free] Clause [Free] Mex (Maybe Clause)
 	| SEI Clause [Free] (Maybe ([Term], Maybe Clause, [Free])) Selbri (Maybe Clause)
+	| SOI Clause [Free] Sumti (Maybe Sumti) (Maybe Clause)
+	| TO Clause Text (Maybe Clause)
+	| MAI NumberLerfuString Clause
+	| VocativeSelbri [Clause] (Maybe RelativeClauses) Selbri
+		(Maybe RelativeClauses) (Maybe Clause)
+	| VocativeCmene [Clause] (Maybe RelativeClauses) [Clause] [Free]
+		(Maybe RelativeClauses) (Maybe Clause)
 	deriving Show
 
 type Clause = ([String], String, Indicators)
@@ -2789,6 +2829,8 @@ data JoikJek
 	| Jek (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
 	| Ek (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
 	| Gihek (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
+	| BIhI (Maybe Clause) Clause (Maybe Clause)
+	| GAhO Clause JoikJek Clause
 	deriving Show
 data Gek
 	= GA (Maybe Clause) Clause (Maybe Clause) [Free]
