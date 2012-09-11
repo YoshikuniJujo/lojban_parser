@@ -897,7 +897,10 @@ known_cmavo_SA :: { ([String], String) }
 	/ NU_pre   / NUhA_pre / NUhI_pre / NUhU_pre / PA_pre   / PEhE_pre
 	/ PEhO_pre / PU_pre   / RAhO_pre / ROI_pre  / SA_pre'  / SE_pre
 	/ SEI_pre  / SEhU_pre / SI_pre   / SOI_pre  / SU_pre'  / TAhE_pre
-	/ TEI_pre
+	/ TEI_pre  / TEhU_pre / TO_pre   / TOI_pre  / TUhE_pre / TUhU_pre
+	/ UI_pre   / VA_pre   / VAU_pre  / VEI_pre  / VEhA_pre / VEhO_pre
+	/ VIhA_pre / VUhO_pre / VUhU_pre / XI_pre   / ZAhO_pre / ZEI_pre'
+	/ ZEhA_pre / ZI_pre   / ZIhE_pre / ZO_pre'  / ZOI_pre' / ZOhU_pre
 
 -----------------------------------------------------------------
 -- #0d Handling of spaces and things like spaces
@@ -1331,6 +1334,7 @@ ZEhA_pre :: Pre = p:pre_clause z:ZEhA spaces?		-> { (p, z) }
 ZEI_clause :: { () } = ZEI_pre
 -- ZEI_pre :: String = pre_clause z:ZEI spaces?
 ZEI_pre :: { () } = ZEI spaces?	-> { () }
+ZEI_pre' :: Pre = z:ZEI spaces?				-> { ([], z) }
 
 ZI_clause :: Clause = p:ZI_pre q:post_clause		-> { (fst p, snd p, q) }
 ZI_pre :: Pre = p:pre_clause z:ZI spaces?		-> { (p, z) }
@@ -1343,6 +1347,7 @@ ZO_clause :: { ([String], String, String, Indicators) }
 	-> { let (pre, z, w) = p in (pre, z, w, q) }
 ZO_pre :: { ([String], String, String) }
 	= p:pre_clause z:ZO spaces? w:any_word spaces?	-> { (p, z, w) }
+ZO_pre' :: Pre = p:pre_clause z:ZO spaces? w:any_word spaces?	-> { (p ++ [z], w) }
 
 ZOI_clause :: { ([String], String, [String], Indicators) }
 	= p:ZOI_pre q:post_clause
@@ -1351,6 +1356,10 @@ ZOI_pre :: { ([String], String, [String]) }
 	= p:pre_clause z:ZOI spaces? w:Char &{ w == '\NUL' } s:spaces?
 		ws:zoi_word* v:Char &{ v == '\NUL' } spaces?
 	-> { (p, z, maybe ws (: ws) s) }
+ZOI_pre' :: Pre
+	= p:pre_clause z:ZOI spaces? w:Char &{ w == '\NUL' } s:spaces?
+		ws:zoi_word* v:Char &{ v == '\NUL' } spaces?
+	-> { (p, z ++ concat (maybe ws (: ws) s)) }
 
 ZAhO_clause :: Clause = p:ZAhO_pre q:post_clause	-> { (fst p, snd p, q) }
 ZAhO_pre :: Pre = p:pre_clause z:ZAhO spaces?		-> { (p, z) }
