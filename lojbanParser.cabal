@@ -1,9 +1,28 @@
-cabal-version:	>= 1.2
 build-type:	Simple
+cabal-version:	>= 1.6
 
 name:		lojbanParser
-version:	0.1
+version:	0.1.1
+stability:	experimental
+author:		.iocikun.juj. <PAF01143@nifty.ne.jp>
+maintainer:	.iocikun.juj. <PAF01143@nifty.ne.jp>
 
-executable	parser
+license:	BSD3
+license-file:	LICENSE
+
+category:	Language
+synopsis:	lojban parser
+description:
+  This is alpha version. The interface may change.
+
+source-repository	head
+  type:		git
+  location:	git://github.com/YoshikuniJujo/lojban_parser.git
+
+library
+    exposed-modules:	Language.Lojban.Parser
+    other-modules: Preprocess LexerPappy Pos Parse TestPappy
+
+executable	testParser
     main-is:		testPappy.hs
     build-depends:	base > 3 && < 5

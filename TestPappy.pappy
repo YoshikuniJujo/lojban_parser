@@ -2370,7 +2370,7 @@ SEhU :: String = &cmavo sehu:
 	-> { sehu }
 
 SI :: String = &cmavo si:
-	( s:s i:i	-> { [s, i] } )
+	( s:s i:i !h !vowel	-> { [s, i] } )
 	-> { si }
 
 SOI :: String = &cmavo soi:
