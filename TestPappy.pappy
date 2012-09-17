@@ -2090,7 +2090,7 @@ KOhA :: String = &cmavo koha:
 	/ r:r i:i	-> { [r, i] }
 	/ r:r a:a	-> { [r, a] }
 	/ t:t a:a !h	-> { [t, a] }
-	/ t:t u:u	-> { [t, u] }
+	/ t:t u:u !h !vowel	-> { [t, u] }
 	/ t:t i:i	-> { [t, i] }
 	/ z:z i:i h:h o:o	-> { [z, i, h, o] }
 	/ k:k e:e h:h a:a	-> { [k, e, h, a] }
