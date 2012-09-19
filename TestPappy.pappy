@@ -1882,12 +1882,12 @@ DOhU :: String = &cmavo dohu:
 
 FA :: String = &cmavo fa:
 	( f:f a:a i:i	-> { [f, a, i] }
-	/ f:f a:a	-> { [f, a] }
-	/ f:f e:e	-> { [f, e] }
-	/ f:f o:o	-> { [f, o] }
-	/ f:f u:u	-> { [f, u] }
+	/ f:f a:a !h !vowel	-> { [f, a] }
+	/ f:f e:e !h !vowel	-> { [f, e] }
+	/ f:f o:o !h !vowel	-> { [f, o] }
+	/ f:f u:u !h !vowel	-> { [f, u] }
 	/ f:f i:i h:h a:a	-> { [f, i, h, a] }
-	/ f:f i:i	-> { [f, i] } )
+	/ f:f i:i !h !vowel	-> { [f, i] } )
 	-> { fa }
 
 FAhA :: String = &cmavo faha:
