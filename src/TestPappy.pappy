@@ -2398,7 +2398,7 @@ TEI :: String = &cmavo tei:
 
 TO :: String = &cmavo to:
 	( t:t o:o h:h i:i	-> { [t, o, h, i] }
-	/ t:t o:o	-> { [t, o] } )
+	/ t:t o:o !h !vowel	-> { [t, o] } )
 	-> { to }
 
 TOI :: String = &cmavo toi:
