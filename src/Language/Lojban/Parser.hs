@@ -1,5 +1,7 @@
 module Language.Lojban.Parser (
 	parse,
+	ParseError,
+	Text,
 
 	Sentence(..),
 	Sumti(..),
