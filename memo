@@ -44,3 +44,7 @@ no の直後に !vowel をつければ良いだろう。
 Original grammar: 696 size 7333
 Reduced grammar: 950 size 8636
 pappy: Unable to infer type of: joik_jek:jj tense_modal:t2 -> { (fst jj, snd jj, t2) }
+
+2012.09.30 Sun.
+
+Clause を export すること。
