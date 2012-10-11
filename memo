@@ -48,3 +48,7 @@ pappy: Unable to infer type of: joik_jek:jj tense_modal:t2 -> { (fst jj, snd jj,
 2012.09.30 Sun.
 
 Clause を export すること。
+
+2012.10.11 Thu.
+
+Prenex と PrenexSentence を分ける必要はないかもしれない。
