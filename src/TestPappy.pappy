@@ -2912,13 +2912,14 @@ main = do
 uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
 uncurry3 f (x, y, z) = f x y z
 
-isSimpleText :: [Clause] -> (Either [Clause] (Maybe [([String], String)]), [Free]) -> 
+isSimpleText ::
+	[Clause] -> (Either [Clause] (Maybe [([String], String)]), [Free]) ->
 	Maybe (JoikJek, [Free]) -> Maybe Text -> Maybe Pre -> Bool
 isSimpleText n tp2 jj t f =
 	null n && isNothing (fromRight $ fst tp2) && null (snd tp2) &&
 	isNothing jj && isJust t && isNothing f
 
-fromRight :: Either a b -> b
-fromRight = either (const $ error "not Right") id
+fromRight :: Either a (Maybe b) -> Maybe b
+fromRight = either (const $ Nothing) id
 
 }

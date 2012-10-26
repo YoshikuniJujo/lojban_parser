@@ -2,7 +2,7 @@ build-type:	Simple
 cabal-version:	>= 1.6
 
 name:		lojbanParser
-version:	0.1.5
+version:	0.1.6
 stability:	experimental
 author:		.iocikun.juj. <PAF01143@nifty.ne.jp>
 maintainer:	.iocikun.juj. <PAF01143@nifty.ne.jp>
