@@ -22,7 +22,28 @@ module Language.Lojban.Parser (
 	IntervalProperty(..),
 	Tag(..),
 	SpaceInterval(..),
-	SpaceOffset(..)
+	SpaceOffset(..),
+
+	Indicators(..),
+	Term(..),
+	Gik(..),
+	Gihek(..),
+	Statement(..),
+	Ek(..),
+	Quantifier(..),
+	Paragraph(..),
+	Paragraphs(..),
+	Pre(..),
+	LerfuString(..),
+	RelativeClauses(..),
+	Mex(..),
+	JoikEk(..),
+	NumberLerfuString(..),
+	Guhek(..),
+	JoikJekSelbri5(..),
+	Joik(..),
+	Number(..),
+	Tense(..)
 ) where
 
 import TestPappy
