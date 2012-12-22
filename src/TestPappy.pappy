@@ -4,6 +4,7 @@ parser TestPappy:
 
 import System.Environment
 import Data.Maybe
+import Data.Data
 import Preprocess
 
 ml = maybeToList
@@ -2684,7 +2685,7 @@ data Sentence
 	| HeadNIhO [Clause] [Free] (Maybe Paragraphs)
 	| TopText [Clause] (Either [Clause] (Maybe [([String], String)])) [Free]
 		(Maybe (JoikJek, [Free])) (Maybe Text) (Maybe Pre)
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 data Sumti
 	= TermsPEhETerms Term [(Clause, [Free], JoikJek, [Free], Term)]
@@ -2716,12 +2717,12 @@ data Sumti
 	| JoikEkKESumti Sumti JoikEk [Free] (Maybe Tag) Clause [Free] Sumti
 		(Maybe Clause) [Free]
 	| VUhO Sumti Clause [Free] RelativeClauses
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 data TermsGikTerms
 	= TGT Term TermsGikTerms Term
 	| Gik Gik
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 data SumtiTail
 	= SumtiSumtiTail Sumti (Maybe RelativeClauses) SumtiTail
@@ -2729,7 +2730,7 @@ data SumtiTail
 	| SelbriRelativeClauses Selbri (Maybe RelativeClauses)
 	| STQuantifierSelbri Quantifier Selbri (Maybe RelativeClauses)
 	| QuantifierSumti Quantifier Sumti
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 data Selbri
 	= Brivla Clause [Free]
@@ -2754,7 +2755,7 @@ data Selbri
 	| NU Clause (Maybe Clause) [Free]
 		[(JoikJek, [Free], Clause, Maybe Clause, [Free])]
 		Sentence (Maybe Clause) [Free]
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 type RelativeClauses = RelativeClause
 
@@ -2762,17 +2763,17 @@ data RelativeClause
 	= GOI Clause [Free] Term (Maybe Clause) [Free]
 	| NOI Clause [Free] Sentence (Maybe Clause) [Free]
 	| RelativeClauseZIhE RelativeClause [(Clause, [Free], RelativeClause)]
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 type JoikJekSelbri5 = Either (JoikJek, [Free], Selbri)
 	(Joik, (Maybe Tag), Clause, [Free], Selbri, Maybe Clause, [Free])
 
 data Linkargs
 	= BE Clause [Free] Term (Maybe Links) (Maybe Clause) [Free]
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 data Links
 	= BEI Clause [Free] Term (Maybe Links)
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 type Quantifier = Operand
 type Mex = Operand
@@ -2789,7 +2790,7 @@ data MexOperator
 		[Either (JoikJek, [Free], MexOperator)
 			(Joik, Maybe Tag, Clause, [Free], MexOperator,
 				Maybe Clause, [Free])]
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 data Operand
 	= OLerfuString LerfuString (Maybe Clause) [Free]
@@ -2808,14 +2809,14 @@ data Operand
 	| JOhI Clause [Free] [Mex] (Maybe Clause) [Free]
 	| GekOperand Gek Operand Gik Operand
 	| LAhE_NAhEOperand Clause (Maybe Clause) [Free] Operand (Maybe Clause) [Free]
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 data RPExpression
 	= RPExpression Operand (Maybe RPExpressionTail)
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 data RPExpressionTail
 	= RPExpressionTail RPExpression MexOperator (Maybe RPExpressionTail)
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 type NumberLerfuString = [Clause]
 type Number = [Clause]
@@ -2833,7 +2834,7 @@ data Free
 		(Maybe RelativeClauses) (Maybe Clause)
 	| VocativeCmene [Clause] (Maybe RelativeClauses) [Clause] [Free]
 		(Maybe RelativeClauses) (Maybe Clause)
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 type Clause = ([String], String, Indicators)
 type Pre = ([String], String)
@@ -2851,12 +2852,12 @@ data JoikJek
 	| Gihek (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
 	| BIhI (Maybe Clause) Clause (Maybe Clause)
 	| GAhO Clause JoikJek Clause
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 data Gek
 	= GA (Maybe Clause) Clause (Maybe Clause) [Free]
 	| JoikGI Joik Clause [Free]
 	| STagGik Tag Gik
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 -- type Guhek = ([Clause], [Free])
 -- type Gik = ([Clause], [Free])
 type Guhek = (Maybe Clause, Clause, Maybe Clause, [Free])
@@ -2867,7 +2868,7 @@ data IntervalProperty
 	= ROI Number Clause (Maybe Clause)
 	| TAhE Clause (Maybe Clause)
 	| ZAhO Clause (Maybe Clause)
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 data Tag
 	= BAI (Maybe Clause) (Maybe Clause) Clause (Maybe Clause) (Maybe Clause)
@@ -2886,7 +2887,7 @@ data Tag
 	| FIhO Clause [Free] Selbri (Maybe Clause) [Free]
 	| JoikJekTag Tag [(JoikJek, [Free], Tag)]
 	| JekJoikSTag Tag [(JoikJek, Tag)]
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 data SpaceInterval
 	= FEhE [(Clause, IntervalProperty)]
@@ -2894,11 +2895,11 @@ data SpaceInterval
 	| VEhAVIhAFAhA (Maybe Clause) (Maybe Clause) Clause (Maybe Clause)
 	| VEhAVIhAFEhE (Maybe Clause) (Maybe Clause) SpaceInterval
 	| VEhAVIhAFAhAFEhE (Maybe Clause) (Maybe Clause) Clause (Maybe Clause) SpaceInterval
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 data SpaceOffset
 	= FAhA Clause (Maybe Clause) (Maybe Clause)
-	deriving (Eq, Show)
+	deriving (Eq, Show, Data, Typeable)
 
 {-
 main = do

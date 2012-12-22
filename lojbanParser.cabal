@@ -21,11 +21,13 @@ source-repository	head
 
 library
     hs-source-dirs:	src
+    extensions:		DeriveDataTypeable
     exposed-modules:	Language.Lojban.Parser
     other-modules: Preprocess LexerPappy Pos Parse TestPappy
     build-depends:	base > 3 && < 5
 
 executable	testParser
     hs-source-dirs:	bin
+    extensions:		DeriveDataTypeable
     main-is:		testParser.hs
     build-depends:	base > 3 && < 5, lojbanParser
