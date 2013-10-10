@@ -1781,7 +1781,7 @@ BOI :: String = &cmavo boi:
 	-> { boi }
 
 BU :: String = &cmavo bu:
-	( b:b u:u	-> { [b, u] } )
+	( b:b u:u !h	-> { [b, u] } )
 	-> { bu }
 
 BY :: String = ybu / &cmavo by:
@@ -1838,7 +1838,7 @@ CEhE :: String = &cmavo cehe:
 	-> { cehe }
 
 CO :: String = &cmavo co:
-	( c:c o:o	-> { [c, o] } )
+	( c:c o:o !h	-> { [c, o] } )
 	-> { co }
 
 COI :: String = &cmavo coi:
@@ -2102,13 +2102,13 @@ KOhA :: String = &cmavo koha:
 	/ d:d a:a !h	-> { [d, a] }
 	/ d:d e:e !h	-> { [d, e] }
 	/ d:d i:i !h	-> { [d, i] }
-	/ k:k o:o	-> { [k, o] }
+	/ k:k o:o !h	-> { [k, o] }
 	/ m:m i:i	-> { [m, i] }
 	/ d:d o:o	-> { [d, o] } )
 	-> { koha }
 
 KU :: String = &cmavo ku:
-	( k:k u:u	-> { [k, u] } )
+	( k:k u:u !h	-> { [k, u] } )
 	-> { ku }
 
 KUhE :: String = &cmavo kuhe:
