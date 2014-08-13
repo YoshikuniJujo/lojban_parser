@@ -15,6 +15,8 @@ wordsToString :: [(String, String)] -> String
 wordsToString [] = ""
 wordsToString (("zoi", s1) : (q, s2) : rest) =
 	"zoi" ++ s1 ++ " \NUL" ++ s2 ++ quoteInside q rest
+wordsToString (("la'o", s1) : (q, s2) : rest) =
+	"la'o" ++ s1 ++ " \NUL" ++ s2 ++ quoteInside q rest
 wordsToString ((w, s) : rest) = w ++ s ++ wordsToString rest
 
 quoteInside :: String -> [(String, String)] -> String
