@@ -2060,51 +2060,51 @@ KI :: String = &cmavo ki:
 	-> { ki }
 
 KOhA :: String = &cmavo koha:
-	( d:d a:a h:h u:u	-> { [d, a, h, u] }
-	/ d:d a:a h:h e:e	-> { [d, a, h, e] }
-	/ d:d i:i h:h u:u	-> { [d, i, h, u] }
-	/ d:d i:i h:h e:e	-> { [d, i, h, e] }
-	/ d:d e:e h:h u:u	-> { [d, e, h, u] }
-	/ d:d e:e h:h e:e	-> { [d, e, h, e] }
-	/ d:d e:e i:i	-> { [d, e, i] }
-	/ d:d o:o h:h i:i	-> { [d, o, h, i] }
-	/ m:m i:i h:h o:o	-> { [m, i, h, o] }
-	/ m:m a:a h:h a:a	-> { [m, a, h, a] }
-	/ m:m i:i h:h a:a	-> { [m, i, h, a] }
-	/ d:d o:o h:h o:o	-> { [d, o, h, o] }
-	/ k:k o:o h:h a:a	-> { [k, o, h, a] }
-	/ f:f o:o h:h u:u	-> { [f, o, h, u] }
-	/ k:k o:o h:h e:e	-> { [k, o, h, e] }
-	/ k:k o:o h:h i:i	-> { [k, o, h, i] }
-	/ k:k o:o h:h o:o	-> { [k, o, h, o] }
-	/ k:k o:o h:h u:u	-> { [k, o, h, u] }
-	/ f:f o:o h:h a:a	-> { [f, o, h, a] }
-	/ f:f o:o h:h e:e	-> { [f, o, h, e] }
-	/ f:f o:o h:h i:i	-> { [f, o, h, i] }
-	/ f:f o:o h:h o:o	-> { [f, o, h, o] }
-	/ v:v o:o h:h a:a	-> { [v, o, h, a] }
-	/ v:v o:o h:h e:e	-> { [v, o, h, e] }
-	/ v:v o:o h:h i:i	-> { [v, o, h, i] }
-	/ v:v o:o h:h o:o	-> { [v, o, h, o] }
-	/ v:v o:o h:h u:u	-> { [v, o, h, u] }
+	( d:d a:a h:h u:u !h	-> { [d, a, h, u] }
+	/ d:d a:a h:h e:e !h !vowel	-> { [d, a, h, e] }
+	/ d:d i:i h:h u:u !h	-> { [d, i, h, u] }
+	/ d:d i:i h:h e:e !h !vowel	-> { [d, i, h, e] }
+	/ d:d e:e h:h u:u !h	-> { [d, e, h, u] }
+	/ d:d e:e h:h e:e !h !vowel	-> { [d, e, h, e] }
+	/ d:d e:e i:i !h	-> { [d, e, i] }
+	/ d:d o:o h:h i:i !h	-> { [d, o, h, i] }
+	/ m:m i:i h:h o:o !h !vowel	-> { [m, i, h, o] }
+	/ m:m a:a h:h a:a !h !vowel	-> { [m, a, h, a] }
+	/ m:m i:i h:h a:a !h !vowel	-> { [m, i, h, a] }
+	/ d:d o:o h:h o:o !h !vowel	-> { [d, o, h, o] }
+	/ k:k o:o h:h a:a !h !vowel	-> { [k, o, h, a] }
+	/ f:f o:o h:h u:u !h	-> { [f, o, h, u] }
+	/ k:k o:o h:h e:e !h !vowel	-> { [k, o, h, e] }
+	/ k:k o:o h:h i:i !h	-> { [k, o, h, i] }
+	/ k:k o:o h:h o:o !h !vowel	-> { [k, o, h, o] }
+	/ k:k o:o h:h u:u !h	-> { [k, o, h, u] }
+	/ f:f o:o h:h a:a !h !vowel	-> { [f, o, h, a] }
+	/ f:f o:o h:h e:e !h !vowel	-> { [f, o, h, e] }
+	/ f:f o:o h:h i:i !h	-> { [f, o, h, i] }
+	/ f:f o:o h:h o:o !h !vowel	-> { [f, o, h, o] }
+	/ v:v o:o h:h a:a !h !vowel	-> { [v, o, h, a] }
+	/ v:v o:o h:h e:e !h !vowel	-> { [v, o, h, e] }
+	/ v:v o:o h:h i:i !h	-> { [v, o, h, i] }
+	/ v:v o:o h:h o:o !h !vowel	-> { [v, o, h, o] }
+	/ v:v o:o h:h u:u !h	-> { [v, o, h, u] }
 	/ r:r u:u !h	-> { [r, u] }
-	/ r:r i:i	-> { [r, i] }
-	/ r:r a:a	-> { [r, a] }
-	/ t:t a:a !h	-> { [t, a] }
-	/ t:t u:u !h !vowel	-> { [t, u] }
-	/ t:t i:i	-> { [t, i] }
-	/ z:z i:i h:h o:o	-> { [z, i, h, o] }
-	/ k:k e:e h:h a:a	-> { [k, e, h, a] }
-	/ m:m a:a	-> { [m, a] }
-	/ z:z u:u h:h i:i	-> { [z, u, h, i] }
-	/ z:z o:o h:h e:e	-> { [z, o, h, e] }
-	/ c:c e:e h:h u:u	-> { [c, e, h, u] }
-	/ d:d a:a !h	-> { [d, a] }
-	/ d:d e:e !h	-> { [d, e] }
+	/ r:r i:i !h	-> { [r, i] }
+	/ r:r a:a !h !vowel	-> { [r, a] }
+	/ t:t a:a !h !vowel	-> { [t, a] }
+	/ t:t u:u !h -> { [t, u] }
+	/ t:t i:i !h -> { [t, i] }
+	/ z:z i:i h:h o:o !h !vowel	-> { [z, i, h, o] }
+	/ k:k e:e h:h a:a !h !vowel	-> { [k, e, h, a] }
+	/ m:m a:a !h !vowel -> { [m, a] }
+	/ z:z u:u h:h i:i !h	-> { [z, u, h, i] }
+	/ z:z o:o h:h e:e !h !vowel	-> { [z, o, h, e] }
+	/ c:c e:e h:h u:u !h	-> { [c, e, h, u] }
+	/ d:d a:a !h !vowel -> { [d, a] }
+	/ d:d e:e !h !vowel -> { [d, e] }
 	/ d:d i:i !h	-> { [d, i] }
-	/ k:k o:o !h	-> { [k, o] }
-	/ m:m i:i	-> { [m, i] }
-	/ d:d o:o	-> { [d, o] } )
+	/ k:k o:o !h !vowel -> { [k, o] }
+	/ m:m i:i !h	-> { [m, i] }
+	/ d:d o:o !h !vowel	-> { [d, o] } )
 	-> { koha }
 
 KU :: String = &cmavo ku:
